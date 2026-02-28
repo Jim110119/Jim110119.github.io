@@ -382,7 +382,7 @@
       </h3>
       <div class="utterances-frame">
         <script src="https://utteranc.es/client.js"
-                repo="Jim110119.github.io"
+                repo="Jim110119/Jim110119.github.io"
                 issue-term="pathname"
                 theme="github-light"
                 crossorigin="anonymous"
