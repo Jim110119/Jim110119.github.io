@@ -19,15 +19,22 @@
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
       padding: 10px;
+      display: flex;
+      flex-direction: column;
     }
 
     .container {
       max-width: 1000px;
+      width: 100%;
       margin: 0 auto;
       background-color: white;
       border-radius: 12px;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - 20px); /* 减去 body 的 padding */
+      flex: 1; /* 使容器填满剩余空间 */
     }
 
     .header {
@@ -36,6 +43,7 @@
       padding: 15px 20px;
       text-align: center;
       border-bottom: 3px solid #ff9800;
+      flex-shrink: 0; /* 防止头部被压缩 */
     }
 
     .page-title {
@@ -46,6 +54,7 @@
 
     .versions-container {
       padding: 15px 15px;
+      flex: 1; /* 让内容区域占据剩余空间 */
     }
 
     .version-block {
@@ -179,6 +188,7 @@
       margin: 10px 0;
       background-color: #f8f9fa;
       border-top: 2px solid #1e88e5;
+      flex-shrink: 0; /* 防止评论区被压缩 */
     }
 
     .comments-title {
@@ -199,6 +209,7 @@
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       overflow: hidden;
+      min-height: 300px; /* 确保评论区域有最小高度 */
     }
 
     .footer {
@@ -207,7 +218,8 @@
       text-align: center;
       padding: 12px;
       font-size: 12px;
-      margin-top: 8px;
+      margin-top: auto; /* 关键属性：使页脚自动推到容器底部 */
+      flex-shrink: 0; /* 防止页脚被压缩 */
     }
 
     .footer p {
@@ -254,6 +266,10 @@
       .comments-title {
         font-size: 16px;
       }
+      
+      .container {
+        min-height: calc(100vh - 20px);
+      }
     }
 
     @media (max-width: 480px) {
@@ -263,6 +279,7 @@
       
       .container {
         border-radius: 8px;
+        min-height: calc(100vh - 16px); /* 调整移动端的最小高度 */
       }
       
       .versions-container {
@@ -382,11 +399,11 @@
       </h3>
       <div class="utterances-frame">
         <script src="https://utteranc.es/client.js"
-                repo="Jim110119/Jim110119.github.io"
-                issue-term="pathname"
-                theme="github-light"
-                crossorigin="anonymous"
-                async>
+            repo="Jim110119/Jim110119.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
         </script>
       </div>
     </div>
