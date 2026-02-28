@@ -4,6 +4,19 @@
 <a href="零听悬浮歌词 v1.1.0.apk">下载Android应用</a>
 <a href="零听悬浮歌词 v1.2.0.apk">下载Android应用</a>
 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>应用下载</title>
+</head>
+<body>
+    <p>版本：1.0.0 | 大小：7MB</p>
+    <div class="download-buttons">
+        <a href="零听悬浮歌词 v1.0.0.apk" class="btn">零听悬浮歌词 v1.0.0</a>
+    </div>
+</body>
+</html>
+
 ## 功能特色：
 1.  支持位置拖拽与桌面歌词多行滚动，最多11行；
 2.  支持字号大小自定义，最大46号；
