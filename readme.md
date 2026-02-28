@@ -19,6 +19,8 @@
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
       padding: 10px;
+      /* 移除所有 flex 相关属性，回归传统布局 */
+      display: block;
     }
 
     .container {
@@ -28,9 +30,10 @@
       border-radius: 12px;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      min-height: calc(100vh - 20px);
+      /* 移除 flex 属性 */
+      display: block;
+      position: relative; /* 添加相对定位 */
+      min-height: auto; /* 移除固定高度 */
     }
 
     .header {
@@ -47,16 +50,9 @@
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
     }
 
-    /* 主要内容区域 - 包括版本信息和评论区 */
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
     .versions-container {
-      padding: 15px 15px;
-      flex: 1; /* 让版本区域占据主要空间 */
+      padding: 15px;
+      /* 移除 flex: 1 */
     }
 
     .version-block {
@@ -184,12 +180,16 @@
       color: #666;
     }
 
-    /* 评论区样式 */
+    /* 评论区样式 - 关键修复 */
     .comments-container {
       padding: 20px 15px;
       background-color: #f8f9fa;
       border-top: 2px solid #1e88e5;
-      /* 移除 flex-shrink 和 margin-top */
+      /* 确保评论区有足够的底部间距 */
+      margin-bottom: 10px;
+      /* 清除之前的 flex 属性 */
+      flex-shrink: 0;
+      margin-top: 0;
     }
 
     .comments-title {
@@ -210,18 +210,26 @@
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       overflow: hidden;
-      min-height: 300px; /* 确保评论区域有最小高度 */
+      min-height: 300px;
+      /* 确保 iframe 不会溢出 */
+      width: 100%;
     }
 
+    /* 页脚样式 - 关键修复 */
     .footer {
       background-color: #2c3e50;
       color: white;
       text-align: center;
       padding: 12px;
       font-size: 12px;
-      margin-top: 0; /* 移除 margin-top: auto */
-      /* 添加一个上边框来分隔内容 */
+      /* 移除所有 flex 相关属性 */
+      margin-top: 0;
+      position: relative;
+      z-index: 10; /* 提高层级，确保在最上方 */
       border-top: 1px solid rgba(255, 255, 255, 0.1);
+      /* 确保页脚在文档流中正常显示 */
+      display: block;
+      clear: both; /* 清除浮动 */
     }
 
     .footer p {
@@ -268,10 +276,6 @@
       .comments-title {
         font-size: 16px;
       }
-      
-      .container {
-        min-height: calc(100vh - 20px);
-      }
     }
 
     @media (max-width: 480px) {
@@ -281,11 +285,10 @@
       
       .container {
         border-radius: 8px;
-        min-height: calc(100vh - 16px);
       }
       
       .versions-container {
-        padding: 10px 10px;
+        padding: 10px;
       }
       
       .page-title {
@@ -304,115 +307,114 @@
       <h1 class="page-title">零听悬浮歌词</h1>
     </div>
     
-    <!-- 主要内容区域 -->
-    <div class="main-content">
-      <div class="versions-container">
-        <!-- 仪表版 -->
-        <div class="version-block" data-version="stable">
-          <div class="version-content">
-            <div class="version-info-col">
-              <div class="version-info">
-                <div>
-                  <span class="info-label">版本号：</span>
-                  <span class="info-value">v1.2.0</span>
-                </div>
-                <span class="file-size-info">7.01 MB</span>
+    <!-- 版本信息区域 -->
+    <div class="versions-container">
+      <!-- 仪表版 -->
+      <div class="version-block" data-version="stable">
+        <div class="version-content">
+          <div class="version-info-col">
+            <div class="version-info">
+              <div>
+                <span class="info-label">版本号：</span>
+                <span class="info-value">v1.2.0</span>
               </div>
-              
-              <div class="version-description">
-                1. 新增仪表悬浮歌词投屏功能，可自定义字体大小、行数、位置，颜色与主屏歌词同步；
-                2. 主屏歌词增加双行滚动选项。
-              </div>
+              <span class="file-size-info">7.01 MB</span>
             </div>
             
-            <div class="download-col">
-              <a href="零听悬浮歌词 v1.2.0.apk" class="download-btn" data-version="stable">
-                <i class="fas fa-download"></i> 立即下载
-              </a>
-              
-              <div class="download-count" id="count-stable">
-                <i class="fas fa-users"></i> 0 次下载
-              </div>
+            <div class="version-description">
+              1. 新增仪表悬浮歌词投屏功能，可自定义字体大小、行数、位置，颜色与主屏歌词同步；
+              2. 主屏歌词增加双行滚动选项。
             </div>
           </div>
-        </div>
-        
-        <!-- 穿透版 -->
-        <div class="version-block" data-version="beta">
-          <div class="version-content">
-            <div class="version-info-col">
-              <div class="version-info">
-                <div>
-                  <span class="info-label">版本号：</span>
-                  <span class="info-value">v1.1.0</span>
-                </div>
-                <span class="file-size-info">7.01 MB</span>
-              </div>
-              
-              <div class="version-description">
-                新增通知栏覆盖，可设置单行置于通知栏上方，需开启和保活无障碍权限。若不会保活，请使用上一版本。
-              </div>
-            </div>
+          
+          <div class="download-col">
+            <a href="零听悬浮歌词 v1.2.0.apk" class="download-btn" data-version="stable">
+              <i class="fas fa-download"></i> 立即下载
+            </a>
             
-            <div class="download-col">
-              <a href="零听悬浮歌词 v1.1.0.apk" class="download-btn" data-version="beta">
-                <i class="fas fa-download"></i> 立即下载
-              </a>
-              
-              <div class="download-count" id="count-beta">
-                <i class="fas fa-users"></i> 0 次下载
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 桌面版 -->
-        <div class="version-block" data-version="lite">
-          <div class="version-content">
-            <div class="version-info-col">
-              <div class="version-info">
-                <div>
-                  <span class="info-label">版本号：</span>
-                  <span class="info-value">v1.0.0</span>
-                </div>
-                <span class="file-size-info">7.00 MB</span>
-              </div>
-              
-              <div class="version-description">
-                首版发布，支持桌面单行显示，多行滚动。
-              </div>
-            </div>
-            
-            <div class="download-col">
-              <a href="app-lite-v1.1.5.exe" class="download-btn" data-version="lite">
-                <i class="fas fa-download"></i> 立即下载
-              </a>
-              
-              <div class="download-count" id="count-lite">
-                <i class="fas fa-users"></i> 0 次下载
-              </div>
+            <div class="download-count" id="count-stable">
+              <i class="fas fa-users"></i> 0 次下载
             </div>
           </div>
         </div>
       </div>
-
-      <!-- 评论区 - 现在位于主要内容区域内部 -->
-      <div class="comments-container">
-        <h3 class="comments-title">
-          <i class="fas fa-comments"></i> 评论区
-        </h3>
-        <div class="utterances-frame">
-          <script src="https://utteranc.es/client.js"
-              repo="Jim110119/Jim110119.github.io"
-              issue-term="pathname"
-              theme="github-light"
-              crossorigin="anonymous"
-              async>
-          </script>
+      
+      <!-- 穿透版 -->
+      <div class="version-block" data-version="beta">
+        <div class="version-content">
+          <div class="version-info-col">
+            <div class="version-info">
+              <div>
+                <span class="info-label">版本号：</span>
+                <span class="info-value">v1.1.0</span>
+              </div>
+              <span class="file-size-info">7.01 MB</span>
+            </div>
+            
+            <div class="version-description">
+              新增通知栏覆盖，可设置单行置于通知栏上方，需开启和保活无障碍权限。若不会保活，请使用上一版本。
+            </div>
+          </div>
+          
+          <div class="download-col">
+            <a href="零听悬浮歌词 v1.1.0.apk" class="download-btn" data-version="beta">
+              <i class="fas fa-download"></i> 立即下载
+            </a>
+            
+            <div class="download-count" id="count-beta">
+              <i class="fas fa-users"></i> 0 次下载
+            </div>
+          </div>
         </div>
       </div>
-    </div> <!-- 结束 .main-content -->
+      
+      <!-- 桌面版 -->
+      <div class="version-block" data-version="lite">
+        <div class="version-content">
+          <div class="version-info-col">
+            <div class="version-info">
+              <div>
+                <span class="info-label">版本号：</span>
+                <span class="info-value">v1.0.0</span>
+              </div>
+              <span class="file-size-info">7.00 MB</span>
+            </div>
+            
+            <div class="version-description">
+              首版发布，支持桌面单行显示，多行滚动。
+            </div>
+          </div>
+          
+          <div class="download-col">
+            <a href="app-lite-v1.1.5.exe" class="download-btn" data-version="lite">
+              <i class="fas fa-download"></i> 立即下载
+            </a>
+            
+            <div class="download-count" id="count-lite">
+              <i class="fas fa-users"></i> 0 次下载
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
+    <!-- 评论区 - 现在在版本信息下方，页脚上方 -->
+    <div class="comments-container">
+      <h3 class="comments-title">
+        <i class="fas fa-comments"></i> 评论区
+      </h3>
+      <div class="utterances-frame">
+        <script src="https://utteranc.es/client.js"
+            repo="Jim110119/Jim110119.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
+        </script>
+      </div>
+    </div>
+
+    <!-- 页脚 - 现在在评论区下方 -->
     <div class="footer">
       <p>© 2026 <a href="https://Jim110119.github.io" target="_blank">Jim110119.github.io</a> | 零听悬浮歌词 | 所有版本均为免费下载使用</p>
       <p>如有问题或建议，请留言或联系：<a href="mailto:jiaming022@foxmail.com">jiaming022@foxmail.com</a></p>
