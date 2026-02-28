@@ -19,21 +19,19 @@
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
       padding: 10px;
-      /* 移除所有 flex 相关属性，回归传统布局 */
-      display: block;
+      position: relative;
     }
 
+    /* 主容器 - 使用绝对定位确保高度正确 */
     .container {
       max-width: 1000px;
       margin: 0 auto;
       background-color: white;
       border-radius: 12px;
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      /* 移除 flex 属性 */
-      display: block;
-      position: relative; /* 添加相对定位 */
-      min-height: auto; /* 移除固定高度 */
+      overflow: visible; /* 改为visible允许内容溢出 */
+      position: relative;
+      min-height: calc(100vh - 20px);
     }
 
     .header {
@@ -42,6 +40,9 @@
       padding: 15px 20px;
       text-align: center;
       border-bottom: 3px solid #ff9800;
+      border-radius: 12px 12px 0 0;
+      position: relative;
+      z-index: 20;
     }
 
     .page-title {
@@ -52,7 +53,8 @@
 
     .versions-container {
       padding: 15px;
-      /* 移除 flex: 1 */
+      position: relative;
+      z-index: 10;
     }
 
     .version-block {
@@ -63,6 +65,8 @@
       overflow: hidden;
       border-left: 4px solid #1e88e5;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      z-index: 10;
     }
 
     .version-block:hover {
@@ -180,16 +184,18 @@
       color: #666;
     }
 
-    /* 评论区样式 - 关键修复 */
+    /* 评论区样式 - 彻底修复 */
     .comments-container {
       padding: 20px 15px;
       background-color: #f8f9fa;
       border-top: 2px solid #1e88e5;
-      /* 确保评论区有足够的底部间距 */
-      margin-bottom: 10px;
-      /* 清除之前的 flex 属性 */
-      flex-shrink: 0;
-      margin-top: 0;
+      position: relative;
+      z-index: 5;
+      margin-top: 10px;
+      /* 确保评论区不会溢出容器 */
+      overflow: visible;
+      /* 为页脚留出足够空间 */
+      margin-bottom: 120px; /* 增加底部边距，为页脚腾出空间 */
     }
 
     .comments-title {
@@ -209,10 +215,10 @@
     .utterances-frame {
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
-      min-height: 300px;
-      /* 确保 iframe 不会溢出 */
+      overflow: visible; /* 改为visible，确保Utterances内容完全显示 */
+      min-height: 400px; /* 增加最小高度，确保评论框有空间 */
       width: 100%;
+      position: relative;
     }
 
     /* 页脚样式 - 关键修复 */
@@ -222,14 +228,17 @@
       text-align: center;
       padding: 12px;
       font-size: 12px;
-      /* 移除所有 flex 相关属性 */
-      margin-top: 0;
-      position: relative;
-      z-index: 10; /* 提高层级，确保在最上方 */
+      position: absolute; /* 改为绝对定位 */
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 15; /* 确保页脚在评论区上方 */
       border-top: 1px solid rgba(255, 255, 255, 0.1);
-      /* 确保页脚在文档流中正常显示 */
-      display: block;
-      clear: both; /* 清除浮动 */
+      /* 确保页脚高度固定 */
+      height: auto;
+      min-height: 80px;
+      /* 确保页脚内容可见 */
+      opacity: 1;
     }
 
     .footer p {
@@ -251,6 +260,13 @@
       margin-top: 6px;
       font-size: 10px;
       opacity: 0.8;
+    }
+
+    /* 内容包装器 - 新添加，确保内容区域可以滚动 */
+    .content-wrapper {
+      padding-bottom: 100px; /* 为页脚预留空间 */
+      position: relative;
+      min-height: calc(100vh - 200px); /* 确保足够高度 */
     }
 
     /* 移动端适配 */
@@ -276,6 +292,15 @@
       .comments-title {
         font-size: 16px;
       }
+      
+      .comments-container {
+        margin-bottom: 140px; /* 移动端增加更多底部空间 */
+      }
+      
+      .footer {
+        position: absolute;
+        bottom: 0;
+      }
     }
 
     @media (max-width: 480px) {
@@ -297,7 +322,21 @@
 
       .comments-container {
         padding: 15px 10px;
+        margin-bottom: 150px; /* 小屏幕更多空间 */
       }
+      
+      .footer {
+        padding: 10px 8px;
+        min-height: 90px;
+      }
+    }
+
+    /* 专门针对Utterances的修复 */
+    .utterances-frame iframe {
+      width: 100% !important;
+      min-height: 400px !important;
+      border: none !important;
+      overflow: visible !important;
     }
   </style>
 </head>
@@ -307,114 +346,116 @@
       <h1 class="page-title">零听悬浮歌词</h1>
     </div>
     
-    <!-- 版本信息区域 -->
-    <div class="versions-container">
-      <!-- 仪表版 -->
-      <div class="version-block" data-version="stable">
-        <div class="version-content">
-          <div class="version-info-col">
-            <div class="version-info">
-              <div>
-                <span class="info-label">版本号：</span>
-                <span class="info-value">v1.2.0</span>
+    <div class="content-wrapper">
+      <!-- 版本信息区域 -->
+      <div class="versions-container">
+        <!-- 仪表版 -->
+        <div class="version-block" data-version="stable">
+          <div class="version-content">
+            <div class="version-info-col">
+              <div class="version-info">
+                <div>
+                  <span class="info-label">版本号：</span>
+                  <span class="info-value">v1.2.0</span>
+                </div>
+                <span class="file-size-info">7.01 MB</span>
               </div>
-              <span class="file-size-info">7.01 MB</span>
+              
+              <div class="version-description">
+                1. 新增仪表悬浮歌词投屏功能，可自定义字体大小、行数、位置，颜色与主屏歌词同步；
+                2. 主屏歌词增加双行滚动选项。
+              </div>
             </div>
             
-            <div class="version-description">
-              1. 新增仪表悬浮歌词投屏功能，可自定义字体大小、行数、位置，颜色与主屏歌词同步；
-              2. 主屏歌词增加双行滚动选项。
+            <div class="download-col">
+              <a href="零听悬浮歌词 v1.2.0.apk" class="download-btn" data-version="stable">
+                <i class="fas fa-download"></i> 立即下载
+              </a>
+              
+              <div class="download-count" id="count-stable">
+                <i class="fas fa-users"></i> 0 次下载
+              </div>
             </div>
           </div>
-          
-          <div class="download-col">
-            <a href="零听悬浮歌词 v1.2.0.apk" class="download-btn" data-version="stable">
-              <i class="fas fa-download"></i> 立即下载
-            </a>
+        </div>
+        
+        <!-- 穿透版 -->
+        <div class="version-block" data-version="beta">
+          <div class="version-content">
+            <div class="version-info-col">
+              <div class="version-info">
+                <div>
+                  <span class="info-label">版本号：</span>
+                  <span class="info-value">v1.1.0</span>
+                </div>
+                <span class="file-size-info">7.01 MB</span>
+              </div>
+              
+              <div class="version-description">
+                新增通知栏覆盖，可设置单行置于通知栏上方，需开启和保活无障碍权限。若不会保活，请使用上一版本。
+              </div>
+            </div>
             
-            <div class="download-count" id="count-stable">
-              <i class="fas fa-users"></i> 0 次下载
+            <div class="download-col">
+              <a href="零听悬浮歌词 v1.1.0.apk" class="download-btn" data-version="beta">
+                <i class="fas fa-download"></i> 立即下载
+              </a>
+              
+              <div class="download-count" id="count-beta">
+                <i class="fas fa-users"></i> 0 次下载
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 桌面版 -->
+        <div class="version-block" data-version="lite">
+          <div class="version-content">
+            <div class="version-info-col">
+              <div class="version-info">
+                <div>
+                  <span class="info-label">版本号：</span>
+                  <span class="info-value">v1.0.0</span>
+                </div>
+                <span class="file-size-info">7.00 MB</span>
+              </div>
+              
+              <div class="version-description">
+                首版发布，支持桌面单行显示，多行滚动。
+              </div>
+            </div>
+            
+            <div class="download-col">
+              <a href="app-lite-v1.1.5.exe" class="download-btn" data-version="lite">
+                <i class="fas fa-download"></i> 立即下载
+              </a>
+              
+              <div class="download-count" id="count-lite">
+                <i class="fas fa-users"></i> 0 次下载
+              </div>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- 穿透版 -->
-      <div class="version-block" data-version="beta">
-        <div class="version-content">
-          <div class="version-info-col">
-            <div class="version-info">
-              <div>
-                <span class="info-label">版本号：</span>
-                <span class="info-value">v1.1.0</span>
-              </div>
-              <span class="file-size-info">7.01 MB</span>
-            </div>
-            
-            <div class="version-description">
-              新增通知栏覆盖，可设置单行置于通知栏上方，需开启和保活无障碍权限。若不会保活，请使用上一版本。
-            </div>
-          </div>
-          
-          <div class="download-col">
-            <a href="零听悬浮歌词 v1.1.0.apk" class="download-btn" data-version="beta">
-              <i class="fas fa-download"></i> 立即下载
-            </a>
-            
-            <div class="download-count" id="count-beta">
-              <i class="fas fa-users"></i> 0 次下载
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 桌面版 -->
-      <div class="version-block" data-version="lite">
-        <div class="version-content">
-          <div class="version-info-col">
-            <div class="version-info">
-              <div>
-                <span class="info-label">版本号：</span>
-                <span class="info-value">v1.0.0</span>
-              </div>
-              <span class="file-size-info">7.00 MB</span>
-            </div>
-            
-            <div class="version-description">
-              首版发布，支持桌面单行显示，多行滚动。
-            </div>
-          </div>
-          
-          <div class="download-col">
-            <a href="app-lite-v1.1.5.exe" class="download-btn" data-version="lite">
-              <i class="fas fa-download"></i> 立即下载
-            </a>
-            
-            <div class="download-count" id="count-lite">
-              <i class="fas fa-users"></i> 0 次下载
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
-    <!-- 评论区 - 现在在版本信息下方，页脚上方 -->
-    <div class="comments-container">
-      <h3 class="comments-title">
-        <i class="fas fa-comments"></i> 评论区
-      </h3>
-      <div class="utterances-frame">
-        <script src="https://utteranc.es/client.js"
-            repo="Jim110119/Jim110119.github.io"
-            issue-term="pathname"
-            theme="github-light"
-            crossorigin="anonymous"
-            async>
-        </script>
+      <!-- 评论区 -->
+      <div class="comments-container">
+        <h3 class="comments-title">
+          <i class="fas fa-comments"></i> 评论区
+        </h3>
+        <div class="utterances-frame">
+          <script src="https://utteranc.es/client.js"
+              repo="Jim110119/Jim110119.github.io"
+              issue-term="pathname"
+              theme="github-light"
+              crossorigin="anonymous"
+              async>
+          </script>
+        </div>
       </div>
-    </div>
+    </div> <!-- 结束 content-wrapper -->
 
-    <!-- 页脚 - 现在在评论区下方 -->
+    <!-- 页脚 - 绝对定位在容器底部 -->
     <div class="footer">
       <p>© 2026 <a href="https://Jim110119.github.io" target="_blank">Jim110119.github.io</a> | 零听悬浮歌词 | 所有版本均为免费下载使用</p>
       <p>如有问题或建议，请留言或联系：<a href="mailto:jiaming022@foxmail.com">jiaming022@foxmail.com</a></p>
@@ -453,6 +494,30 @@
     document.querySelectorAll('.version-block').forEach(block => {
       block.addEventListener('mouseenter', () => block.style.zIndex = 10);
       block.addEventListener('mouseleave', () => block.style.zIndex = 1);
+    });
+
+    // 专门处理Utterances加载后的布局调整
+    window.addEventListener('load', function() {
+      // 等待一段时间确保Utterances完全加载
+      setTimeout(function() {
+        const utterancesFrame = document.querySelector('.utterances-frame iframe');
+        if (utterancesFrame) {
+          utterancesFrame.style.minHeight = '400px';
+          utterancesFrame.style.overflow = 'visible';
+        }
+        
+        // 调整容器高度
+        const container = document.querySelector('.container');
+        const contentHeight = document.querySelector('.content-wrapper').offsetHeight;
+        const footerHeight = document.querySelector('.footer').offsetHeight;
+        
+        // 设置最小高度，确保页脚在底部
+        const minHeight = contentHeight + footerHeight + 50;
+        container.style.minHeight = minHeight + 'px';
+        
+        // 强制调整页脚位置
+        document.querySelector('.footer').style.position = 'absolute';
+      }, 2000); // 2秒后执行，确保Utterances加载完成
     });
   </script>
 </body>
