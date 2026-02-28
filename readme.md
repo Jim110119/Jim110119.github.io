@@ -426,7 +426,7 @@
             </div>
             
             <div class="download-col">
-              <a href="app-lite-v1.1.5.exe" class="download-btn" data-version="lite">
+              <a href="零听悬浮歌词 v1.1.0.apk" class="download-btn" data-version="lite">
                 <i class="fas fa-download"></i> 立即下载
               </a>
               
