@@ -1,8 +1,3 @@
-# 版本：1.0.0
-## 下载链接：
-<a href="零听悬浮歌词 v1.0.0.apk">下载Android应用</a>
-<a href="零听悬浮歌词 v1.1.0.apk">下载Android应用</a>
-<a href="零听悬浮歌词 v1.2.0.apk">下载Android应用</a>
 
 <!DOCTYPE html>
 <html>
@@ -15,21 +10,6 @@
     <div class="download-buttons">
         <a href="零听悬浮歌词 v1.0.0.apk" class="btn">零听悬浮歌词</a>
     </div>
-
-
-    <p>版本：1.1.0 | 大小：7.01MB</p>
-    <div class="download-buttons">
-        <a href="零听悬浮歌词 v1.1.0.apk" class="btn">零听悬浮歌词</a>
-    </div>
-    <p>说明</p>
-    <p>新增支持通知栏穿透，需打开和保活无障碍权限，若不会保活，请使用上一个版本</p>
-
-    <p>版本：1.2.0 | 大小：7.01MB</p>
-    <div class="download-buttons">
-        <a href="零听悬浮歌词 v1.2.0.apk" class="btn">零听悬浮歌词</a>
-    </div>
-    <p>说明</p>
-    <p>新增仪表歌词悬浮，桌面歌词可设置为2行</p>
 </body>
 </html>
 
