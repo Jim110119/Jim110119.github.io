@@ -7,12 +7,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>应用下载</title>
+    应用下载
 </head>
 <body>
     <p>版本：1.0.0 | 大小：7MB</p>
     <div class="download-buttons">
-        <a href="零听悬浮歌词 v1.0.0.apk" class="btn">零听悬浮歌词 v1.0.0</a>
+        <a href="零听悬浮歌词 v1.0.0.apk" class="btn">零听悬浮歌词</a>
     </div>
 </body>
 </html>
