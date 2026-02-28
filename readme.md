@@ -1,129 +1,358 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>我的应用下载</title>
+    <title>Jim110119 - 应用下载</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         /* 全局样式 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Microsoft YaHei', 'Segoe UI', Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 800px;
+            background-color: #f8f9fa;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
         
-        /* 标题样式 */
-        h1 {
-            font-size: 36px;          /* 大字号 */
-            font-weight: bold;        /* 加粗 */
-            color: #1e88e5;           /* 蓝色 */
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 40px;
+            margin-top: 20px;
+        }
+        
+        /* 顶部用户信息 */
+        .user-header {
             text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .username {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
             margin-bottom: 10px;
+        }
+        
+        .page-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1e88e5;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        /* 版本卡片容器 */
+        .versions-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        /* 单个版本卡片 */
+        .version-card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            width: 100%;
+            max-width: 350px;
+            border: 1px solid #eaeaea;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .version-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* 版本标题 */
+        .version-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8e8e8;
+            text-align: center;
         }
         
         /* 版本信息样式 */
         .version-info {
-            font-size: 18px;          /* 中字号 */
-            font-weight: 600;         /* 半粗体 */
-            color: #f57c00;           /* 橙色 */
-            text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         
-        /* 下载按钮容器 */
-        .download-buttons {
-            text-align: center;
-            margin: 30px 0;
-        }
-        
-        /* 按钮样式 */
-        .btn {
-            display: inline-block;
-            margin: 10px;
-            padding: 12px 24px;
-            font-size: 16px;          /* 按钮字号 */
-            font-weight: bold;        /* 按钮加粗 */
-            color: white;             /* 白色文字 */
-            background-color: #4caf50; /* 绿色背景 */
-            text-decoration: none;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        
-        /* 按钮悬停效果 */
-        .btn:hover {
-            background-color: #388e3c; /* 深绿色 */
-        }
-        
-        /* 不同系统的按钮颜色 */
-        .btn.windows {
-            background-color: #0078d7; /* Windows蓝 */
-        }
-        
-        .btn.mac {
-            background-color: #555555; /* macOS灰 */
-        }
-        
-        .btn.android {
-            background-color: #3ddc84; /* Android绿 */
-        }
-        
-        /* 安装说明标题 */
-        h2 {
-            font-size: 28px;          /* 大字号 */
-            font-weight: bold;        /* 加粗 */
-            color: #7b1fa2;           /* 紫色 */
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
-            margin-top: 40px;
-        }
-        
-        /* 安装步骤样式 */
-        .installation-steps {
-            font-size: 18px;          /* 中字号 */
-        }
-        
-        .installation-steps p {
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
             padding: 8px 0;
-            border-left: 4px solid #1e88e5;
-            padding-left: 15px;
-            margin: 10px 0;
+            border-bottom: 1px dashed #f0f0f0;
         }
         
-        /* 重要提示样式 */
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        /* 版本描述 */
+        .version-description {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #555;
+            border-left: 4px solid #4caf50;
+        }
+        
+        /* 下载按钮 */
+        .download-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: #4caf50;
+            color: white;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+            margin-top: 15px;
+        }
+        
+        .download-btn:hover {
+            background-color: #388e3c;
+        }
+        
+        .download-btn i {
+            margin-right: 8px;
+        }
+        
+        /* 安装说明 */
+        .installation-section {
+            margin-top: 50px;
+            padding: 25px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .section-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #7b1fa2;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .steps-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .step-item {
+            font-size: 18px;
+            padding: 12px 0;
+            padding-left: 40px;
+            position: relative;
+            margin-bottom: 10px;
+        }
+        
+        .step-item:before {
+            content: counter(step);
+            counter-increment: step;
+            position: absolute;
+            left: 0;
+            top: 10px;
+            background-color: #1e88e5;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+        }
+        
+        .steps-list {
+            counter-reset: step;
+        }
+        
+        /* 重要提示 */
         .important-note {
             font-size: 16px;
             font-weight: bold;
-            color: #d32f2f;           /* 红色 */
-            background-color: #ffebee; /* 浅红背景 */
-            padding: 15px;
-            border-radius: 5px;
+            color: #d32f2f;
+            background-color: #ffebee;
+            padding: 20px;
+            border-radius: 10px;
             border-left: 5px solid #d32f2f;
-            margin-top: 20px;
+            margin-top: 30px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .important-note:before {
+            content: "⚠️";
+            font-size: 20px;
+            margin-right: 15px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .versions-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .version-card {
+                max-width: 100%;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .page-title {
+                font-size: 28px;
+            }
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <h1>欢迎下载我的应用</h1>
-    <p class="version-info">版本：<strong>1.0.0</strong> | 大小：<strong>50MB</strong></p>
-    
-    <div class="download-buttons">
-        <a href="零听悬浮歌词 v1.0.0" class="btn android">下载</a>
+    <div class="container">
+        <!-- 顶部用户信息 -->
+        <div class="user-header">
+            <div class="username">Jim110119</div>
+            <h1 class="page-title">欢迎下载我的应用</h1>
+        </div>
+        
+        <!-- 版本下载区域 -->
+        <div class="versions-container">
+            <!-- 版本1 -->
+            <div class="version-card">
+                <h3 class="version-title">稳定版</h3>
+                <div class="version-info">
+                    <div class="info-item">
+                        <span class="info-label">版本：</span>
+                        <span class="info-value">1.2.0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">大小：</span>
+                        <span class="info-value">68 MB</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">发布日期：</span>
+                        <span class="info-value">2024-03-15</span>
+                    </div>
+                </div>
+                <div class="version-description">
+                    此版本为稳定版本，修复了已知的所有Bug，性能优化，建议所有用户下载使用。包含完整功能，支持Windows 10/11系统。
+                </div>
+                <a href="app-stable-v1.2.0.exe" class="download-btn">
+                    <i class="fas fa-download"></i> 下载稳定版
+                </a>
+            </div>
+            
+            <!-- 版本2 -->
+            <div class="version-card">
+                <h3 class="version-title">测试版</h3>
+                <div class="version-info">
+                    <div class="info-item">
+                        <span class="info-label">版本：</span>
+                        <span class="info-value">2.0.0-beta</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">大小：</span>
+                        <span class="info-value">75 MB</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">发布日期：</span>
+                        <span class="info-value">2024-03-20</span>
+                    </div>
+                </div>
+                <div class="version-description">
+                    测试版本，包含新功能和实验性特性。适合喜欢尝鲜的用户，可能存在不稳定情况，不建议在生产环境中使用。
+                </div>
+                <a href="app-beta-v2.0.0.exe" class="download-btn">
+                    <i class="fas fa-flask"></i> 下载测试版
+                </a>
+            </div>
+            
+            <!-- 版本3 -->
+            <div class="version-card">
+                <h3 class="version-title">轻量版</h3>
+                <div class="version-info">
+                    <div class="info-item">
+                        <span class="info-label">版本：</span>
+                        <span class="info-value">1.1.5-lite</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">大小：</span>
+                        <span class="info-value">42 MB</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">发布日期：</span>
+                        <span class="info-value">2024-03-10</span>
+                    </div>
+                </div>
+                <div class="version-description">
+                    轻量版本，占用资源少，启动速度快。保留了核心功能，适合配置较低的设备或只需基本功能的用户。
+                </div>
+                <a href="app-lite-v1.1.5.exe" class="download-btn">
+                    <i class="fas fa-bolt"></i> 下载轻量版
+                </a>
+            </div>
+        </div>
+        
+        <!-- 安装说明 -->
+        <div class="installation-section">
+            <h2 class="section-title">安装说明</h2>
+            <ol class="steps-list">
+                <li class="step-item">点击上方对应版本的下载按钮，选择适合您需求的版本</li>
+                <li class="step-item">下载完成后，运行安装程序，选择安装路径</li>
+                <li class="step-item">按照提示完成安装，建议重启计算机以确保所有组件正确加载</li>
+            </ol>
+        </div>
+        
+        <!-- 重要提示 -->
+        <div class="important-note">
+            重要提示：请确保您的设备满足系统要求，并关闭杀毒软件后再安装。如有任何问题，请查看压缩包内的README文件或联系技术支持。
+        </div>
     </div>
     
-    <h2>安装说明</h2>
-    <div class="installation-steps">
-        <p>1. 点击上方对应系统的下载按钮</p>
-        <p>2. 下载完成后运行安装程序</p>
-        <p>3. 按照提示完成安装</p>
-    </div>
-    
-    <div class="important-note">
-        ⚠️ 重要提示：请确保您的设备满足系统要求，并关闭杀毒软件后再安装。
-    </div>
+    <script>
+        // 简单的点击统计（可选功能）
+        document.querySelectorAll('.download-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const version = this.textContent.trim();
+                console.log(`用户下载了: ${version}`);
+                // 这里可以添加统计代码，如Google Analytics事件跟踪
+            });
+        });
+    </script>
 </body>
 </html>
 
