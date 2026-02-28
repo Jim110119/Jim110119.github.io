@@ -1,8 +1,8 @@
 # 版本：1.0.0
 ## 下载链接：
-『来自123云盘用户星空g的分享』零听悬浮歌词
-链接：https://www.123865.com/s/fzmwvd-V7VjH?pwd=tqm8#
-提取码：tqm8
+<a href="零听悬浮歌词 v1.0.0.apk">下载Android应用</a>
+<a href="零听悬浮歌词 v1.1.0.apk">下载Android应用</a>
+<a href="零听悬浮歌词 v1.2.0.apk">下载Android应用</a>
 
 ## 功能特色：
 1.  支持位置拖拽与桌面歌词多行滚动，最多11行；
