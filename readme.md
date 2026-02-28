@@ -9,13 +9,13 @@
 <head>
     应用下载
 </head>
+    <p>首个版本，仅支持桌面悬浮</p>  
 <body>
     <p>版本：1.0.0 | 大小：7MB</p>
     <div class="download-buttons">
         <a href="零听悬浮歌词 v1.0.0.apk" class="btn">零听悬浮歌词</a>
     </div>
-    <p>说明</p>
-    <p>首个版本，仅支持桌面悬浮</p>  
+
 
     <p>版本：1.1.0 | 大小：7.01MB</p>
     <div class="download-buttons">
