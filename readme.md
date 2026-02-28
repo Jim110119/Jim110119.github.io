@@ -1,379 +1,478 @@
-<!DOCTYPE html>
-<html>
+<![CDATA[<!DOCTYPE html>
+
+<html lang="zh-CN">
+
 <head>
-    <title>Jim110119 - 应用下载</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        /* 全局样式 */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: 'Microsoft YaHei', 'Segoe UI', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f8f9fa;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .container {
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            padding: 40px;
-            margin-top: 20px;
-        }
-        
-        /* 顶部用户信息 */
-        .user-header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-        
-        .username {
-            font-size: 28px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        
-        .page-title {
-            font-size: 36px;
-            font-weight: bold;
-            color: #1e88e5;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        
-        /* 版本卡片容器 */
-        .versions-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
-            margin: 40px 0;
-        }
-        
-        /* 单个版本卡片 */
-        .version-card {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            padding: 25px;
-            width: 100%;
-            max-width: 350px;
-            border: 1px solid #eaeaea;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .version-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        }
-        
-        /* 版本标题 */
-        .version-title {
-            font-size: 22px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e8e8e8;
-            text-align: center;
-        }
-        
-        /* 版本信息样式 */
-        .version-info {
-            margin-bottom: 20px;
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding: 8px 0;
-            border-bottom: 1px dashed #f0f0f0;
-        }
-        
-        .info-label {
-            font-weight: bold;
-            color: #555;
-        }
-        
-        .info-value {
-            color: #333;
-            font-weight: 600;
-        }
-        
-        /* 版本描述 */
-        .version-description {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-            font-size: 15px;
-            line-height: 1.5;
-            color: #555;
-            border-left: 4px solid #4caf50;
-        }
-        
-        /* 下载按钮 */
-        .download-btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            background-color: #4caf50;
-            color: white;
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background-color 0.3s;
-            margin-top: 15px;
-        }
-        
-        .download-btn:hover {
-            background-color: #388e3c;
-        }
-        
-        .download-btn i {
-            margin-right: 8px;
-        }
-        
-        /* 安装说明 */
-        .installation-section {
-            margin-top: 50px;
-            padding: 25px;
-            background-color: #f8f9fa;
-            border-radius: 10px;
-        }
-        
-        .section-title {
-            font-size: 28px;
-            font-weight: bold;
-            color: #7b1fa2;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-        
-        .steps-list {
-            list-style-type: none;
-            padding: 0;
-        }
-        
-        .step-item {
-            font-size: 18px;
-            padding: 12px 0;
-            padding-left: 40px;
-            position: relative;
-            margin-bottom: 10px;
-        }
-        
-        .step-item:before {
-            content: counter(step);
-            counter-increment: step;
-            position: absolute;
-            left: 0;
-            top: 10px;
-            background-color: #1e88e5;
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 28px;
-            font-weight: bold;
-        }
-        
-        .steps-list {
-            counter-reset: step;
-        }
-        
-        /* 重要提示 */
-        .important-note {
-            font-size: 16px;
-            font-weight: bold;
-            color: #d32f2f;
-            background-color: #ffebee;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 5px solid #d32f2f;
-            margin-top: 30px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .important-note:before {
-            content: "⚠️";
-            font-size: 20px;
-            margin-right: 15px;
-        }
-        
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .versions-container {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .version-card {
-                max-width: 100%;
-            }
-            
-            .container {
-                padding: 20px;
-            }
-            
-            .page-title {
-                font-size: 28px;
-            }
-        }
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body>
-    <div class="container">
-        <!-- 顶部用户信息 -->
-        <div class="user-header">
-            <div class="username">Jim110119</div>
-            <h1 class="page-title">欢迎下载我的应用</h1>
-        </div>
-        
-        <!-- 版本下载区域 -->
-        <div class="versions-container">
-            <!-- 版本1 -->
-            <div class="version-card">
-                <h3 class="version-title">稳定版</h3>
-                <div class="version-info">
-                    <div class="info-item">
-                        <span class="info-label">版本：</span>
-                        <span class="info-value">1.2.0</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">大小：</span>
-                        <span class="info-value">68 MB</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">发布日期：</span>
-                        <span class="info-value">2024-03-15</span>
-                    </div>
-                </div>
-                <div class="version-description">
-                    此版本为稳定版本，修复了已知的所有Bug，性能优化，建议所有用户下载使用。包含完整功能，支持Windows 10/11系统。
-                </div>
-                <a href="app-stable-v1.2.0.exe" class="download-btn">
-                    <i class="fas fa-download"></i> 下载稳定版
-                </a>
-            </div>
-            
-            <!-- 版本2 -->
-            <div class="version-card">
-                <h3 class="version-title">测试版</h3>
-                <div class="version-info">
-                    <div class="info-item">
-                        <span class="info-label">版本：</span>
-                        <span class="info-value">2.0.0-beta</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">大小：</span>
-                        <span class="info-value">75 MB</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">发布日期：</span>
-                        <span class="info-value">2024-03-20</span>
-                    </div>
-                </div>
-                <div class="version-description">
-                    测试版本，包含新功能和实验性特性。适合喜欢尝鲜的用户，可能存在不稳定情况，不建议在生产环境中使用。
-                </div>
-                <a href="app-beta-v2.0.0.exe" class="download-btn">
-                    <i class="fas fa-flask"></i> 下载测试版
-                </a>
-            </div>
-            
-            <!-- 版本3 -->
-            <div class="version-card">
-                <h3 class="version-title">轻量版</h3>
-                <div class="version-info">
-                    <div class="info-item">
-                        <span class="info-label">版本：</span>
-                        <span class="info-value">1.1.5-lite</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">大小：</span>
-                        <span class="info-value">42 MB</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">发布日期：</span>
-                        <span class="info-value">2024-03-10</span>
-                    </div>
-                </div>
-                <div class="version-description">
-                    轻量版本，占用资源少，启动速度快。保留了核心功能，适合配置较低的设备或只需基本功能的用户。
-                </div>
-                <a href="app-lite-v1.1.5.exe" class="download-btn">
-                    <i class="fas fa-bolt"></i> 下载轻量版
-                </a>
-            </div>
-        </div>
-        
-        <!-- 安装说明 -->
-        <div class="installation-section">
-            <h2 class="section-title">安装说明</h2>
-            <ol class="steps-list">
-                <li class="step-item">点击上方对应版本的下载按钮，选择适合您需求的版本</li>
-                <li class="step-item">下载完成后，运行安装程序，选择安装路径</li>
-                <li class="step-item">按照提示完成安装，建议重启计算机以确保所有组件正确加载</li>
-            </ol>
-        </div>
-        
-        <!-- 重要提示 -->
-        <div class="important-note">
-            重要提示：请确保您的设备满足系统要求，并关闭杀毒软件后再安装。如有任何问题，请查看压缩包内的README文件或联系技术支持。
-        </div>
-    </div>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Jim110119 - 应用下载中心</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css
+">
+
+<style>
+
+/* 基础样式重置 */
+
+{
+
+margin: 0;
+
+padding: 0;
+
+box-sizing: border-box;
+
+}
+
+body {
+
+font-family: 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
+
+line-height: 1.6;
+
+color: #333;
+
+background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+
+min-height: 100vh;
+
+padding: 20px;
+
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* 头部区域 */
+.header {
+    background: linear-gradient(90deg, #1e88e5 0%, #0d47a1 100%);
+    color: white;
+    padding: 30px 25px;
+    text-align: center;
+    border-bottom: 5px solid #ff9800;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* 头部区域 */
+.header {
+    background: linear-gradient(90deg, #1e88e5 0%, #0d47a1 100%);
+    color: white;
+    padding: 30px 25px;
+    text-align: center;
+    border-bottom: 5px solid #ff9800;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.user-icon {
+    background-color: white;
+    color: #1e88e5;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.username {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.page-subtitle {
+    font-size: 16px;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* 版本容器 - 更紧凑 */
+.versions-container {
+    padding: 30px 25px;
+}
+
+/* 单个版本块 - 更紧凑 */
+.version-block {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    overflow: hidden;
+    border-left: 5px solid #1e88e5;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.version-block:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.version-block.stable {
+    border-left-color: #4caf50;
+}
+
+.version-block.beta {
+    border-left-color: #ff9800;
+}
+
+.version-block.lite {
+    border-left-color: #9c27b0;
+}
+
+/* 版本头部 - 更紧凑 */
+.version-header {
+    background: linear-gradient(to right, #f8f9fa, #f1f3f5);
+    padding: 15px 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.version-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.version-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-left: 12px;
+}
+
+.badge-stable {
+    background-color: #4caf50;
+    color: white;
+}
+
+.badge-beta {
+    background-color: #ff9800;
+    color: white;
+}
+
+.badge-lite {
+    background-color: #9c27b0;
+    color: white;
+}
+
+/* 版本内容 - 更紧凑 */
+.version-content {
+    padding: 20px 25px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* 版本信息列 - 简化后更紧凑 */
+.version-info-col {
+    flex: 1;
+    min-width: 250px;
+    padding-right: 25px;
+}
+
+/* 版本号信息项 */
+.version-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #1e88e5;
+}
+
+.info-label {
+    font-size: 15px;
+    color: #666;
+    font-weight: 600;
+    margin-right: 10px;
+    min-width: 70px;
+}
+
+.info-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+/* 版本描述 - 更紧凑 */
+.version-description {
+    background-color: #f1f8ff;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #1e88e5;
+    line-height: 1.6;
+    color: #444;
+    font-size: 15px;
+}
+
+.description-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e88e5;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.description-title i {
+    margin-right: 6px;
+}
+
+/* 下载列 - 更紧凑 */
+.download-col {
+    flex: 0 0 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.download-icon {
+    font-size: 40px;
+    color: #1e88e5;
+    margin-bottom: 15px;
+}
+
+.file-size {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.file-size-label {
+    font-size: 13px;
+    color: #666;
+}
+
+/* 下载按钮 */
+.download-btn {
+    display: inline-block;
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(90deg, #1e88e5 0%, #0d47a1 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    margin-top: 15px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(30, 136, 229, 0.3);
+}
+
+.download-btn:hover {
+    background: linear-gradient(90deg, #0d47a1 0%, #1e88e5 100%);
+    box-shadow: 0 6px 15px rgba(30, 136, 229, 0.4);
+    transform: translateY(-2px);
+}
+
+.download-btn i {
+    margin-right: 8px;
+}
+
+/* 安装说明 - 更紧凑 */
+.installation-section {
+    padding: 25px;
+    background-color: #f8f9fa;
+    margin: 0 25px 25px;
+    border-radius: 12px;
+}
+
+.section-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #eaeaea;
+}
+
+.steps-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+}
+
+.step {
+    flex: 1;
+    min-width: 200px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    border-top: 4px solid #1e88e5;
+}
+
+.step-number {
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    background-color: #1e88e5;
+    color: white;
+    border-radius: 50%;
+    line-height: 35px;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.step-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.step-desc {
+    color: #666;
+    font-size: 14px;
+}
+
+/* 页脚 */
+.footer {
+    background-color: #2c3e50;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+}
+
+.footer p {
+    margin-bottom: 8px;
+}
+
+.footer a {
+    color: #4fc3f7;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .version-content {
+        flex-direction: column;
+    }
     
-    <script>
-        // 简单的点击统计（可选功能）
-        document.querySelectorAll('.download-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const version = this.textContent.trim();
-                console.log(`用户下载了: ${version}`);
-                // 这里可以添加统计代码，如Google Analytics事件跟踪
-            });
-        });
-    </script>
-</body>
-</html>
+    .version-info-col {
+        padding-right: 0;
+        margin-bottom: 20px;
+    }
+    
+    .download-col {
+        width: 100%;
+    }
+    
+    .header {
+        padding: 25px 20px;
+    }
+    
+    .page-title {
+        font-size: 28px;
+    }
+    
+    .version-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .version-badge {
+        margin-left: 0;
+        margin-top: 8px;
+    }
+    
+    .steps-container {
+        flex-direction: column;
+    }
+    
+    .step {
+        min-width: 100%;
+    }
+}
 
-
-## 功能特色：
-1.  支持位置拖拽与桌面歌词多行滚动，最多11行；
-2.  支持字号大小自定义，最大46号；
-3.  支持当前歌词与前后歌词自定义颜色；
-4.  支持锁定穿透功能；
-5.  支持联网歌词。
-6.  支持时间补偿。
-
-## 已知bug：
-零听广播使用独家协议，只能获取到歌名信息，获取不到播放进度，所以使用零听播放时，拖进度条歌词会失配，此时按暂停再播放歌词就会跳到播放位置。
-
-## 使用说明：
-1.  本应用适配21-23款零跑C01/C11。
-2.  老款车机仅限SAF方式访问U盘，本应用仅做U盘适配，请将本地歌词存储至U盘（根目录/子目录），歌词文件请与歌曲同名，命名格式为 `歌手 - 歌名.lrc`。
-3.  建议优先使用本地歌词，联网爬取无人维护可能会失效，若本地与联网均检索不到可用歌词，则只悬浮歌名，此时请自行切换可用api。因反爬虫技术更新，未来可能所有url都不可用。
-4.  本应用监听各媒体app公共广播，无论你使用网易云、酷狗等音乐播放器，或者哔哩哔哩等媒体播放器，都会监听并悬浮曲目。若你在观看视频，请手动关闭浮窗。
-
-## 开发者声明：
-1.  本应用为车主调试开发，旨在解决零跑车机第三方app不能访问U盘、QQ乐不能扫描U盘歌曲，实现本地+桌面悬浮歌词的痛点，一气之下自己开发了USF访问U盘的悬浮歌词插件（穷啊，不想买QQ音乐会员）。作者不保证软件稳定运行，仅提供爱好者免费使用，若出现任何运行异常，不承担任何责任，无后续维护，严禁商用与转售。
-2.  关注后续更新，请联系开发者：**【小红书号：4421157220】** **【抖音号：ljm19743】**
+@media (max-width: 480px) {
+    .container {
+        border-radius: 10px;
+    }
+    
+    .header {
+        padding: 20px 15px;
+    }
+    
+    .versions-container {
+        padding: 20px 15px;
+    }
+    
+    .installation-section {
+        margin: 0 15px 20px;
+        padding: 20px 15px;
+    }
+    
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .username {
+        font-size: 22px;
+    }
+}
+</style>
