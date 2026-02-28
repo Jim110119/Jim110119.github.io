@@ -51,6 +51,112 @@
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
     }
 
+    /* 介绍内容区域 - 新添加 */
+    .intro-container {
+      padding: 25px 30px;
+      background-color: white;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .intro-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #1e88e5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .intro-title i {
+      color: #1e88e5;
+    }
+
+    .intro-content {
+      line-height: 1.6;
+      color: #444;
+      font-size: 15px;
+    }
+
+    /* 所有段落和描述性内容缩进 */
+    .intro-content p,
+    .feature-desc p,
+    .warning-box p {
+      text-indent: 2em;
+      margin-bottom: 15px;
+      text-align: justify;
+      line-height: 1.6;
+    }
+
+    /* 列表项中的强标签不单独缩进，但跟随列表项整体 */
+    .feature-list li strong {
+      text-indent: 0;
+      display: inline-block;
+    }
+
+    .feature-list {
+      margin: 18px 0 25px 25px;
+    }
+
+    .feature-list li {
+      margin-bottom: 12px;
+      padding-left: 5px;
+    }
+
+    .feature-title {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 6px;
+      font-size: 16px;
+      text-indent: 0; /* 标题不缩进 */
+    }
+
+    .feature-desc {
+      color: #555;
+      font-size: 14.5px;
+      line-height: 1.5;
+      margin-left: 8px;
+      text-align: justify;
+    }
+
+    /* 确保.feature-desc内部的每个段落都缩进 */
+    .feature-desc p {
+      text-indent: 2em;
+      margin-bottom: 10px;
+    }
+
+    .warning-box {
+      background-color: #fff8e1;
+      border-left: 4px solid #ff9800;
+      padding: 15px 18px;
+      margin: 20px 0;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .warning-title {
+      font-weight: 600;
+      color: #e65100;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      text-indent: 0; /* 标题不缩进 */
+    }
+
+    .warning-title i {
+      color: #e65100;
+    }
+
+    /* 确保警告框内特殊样式 */
+    .warning-box p {
+      text-indent: 2em;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
     .versions-container {
       padding: 15px;
       position: relative;
@@ -271,6 +377,18 @@
 
     /* 移动端适配 */
     @media (max-width: 768px) {
+      .intro-container {
+        padding: 20px 22px;
+      }
+      
+      .intro-title {
+        font-size: 18px;
+      }
+      
+      .feature-list {
+        margin-left: 20px;
+      }
+      
       .version-content {
         flex-direction: column;
         gap: 6px;
@@ -312,6 +430,10 @@
         border-radius: 8px;
       }
       
+      .intro-container {
+        padding: 15px 18px;
+      }
+      
       .versions-container {
         padding: 10px;
       }
@@ -338,6 +460,29 @@
       border: none !important;
       overflow: visible !important;
     }
+
+    /* 图片样式 */
+    .image-container {
+      text-align: center;
+      margin: 20px 0;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    
+    .image-container img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    
+    .image-caption {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #666;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -346,6 +491,94 @@
       <h1 class="page-title">零听悬浮歌词</h1>
     </div>
     
+    <!-- 介绍内容区域 -->
+    <div class="intro-container">
+      <h2 class="intro-title">
+        <i class="fas fa-info-circle"></i> 应用介绍
+      </h2>
+      
+      <div class="intro-content">
+        <p>本 app 由零跑车主开发，适用于 21-23 款（其它款没车），旨在使本地歌曲实现悬浮歌词的目标。由于系统只允许 SAF 方式访问 U盘，QQ 音乐无法扫描 U盘歌曲当做本地媒体（除非 Root）。不想买音乐会员，就另起炉灶，既然能 SAF 访问 U盘，那我们就访问里面的歌词呗。这应该是全网第一个不依赖第三方桌面的零跑悬浮歌词插件应用，且免费分享。</p> 
+
+        <!--
+        <div class="image-container">
+          <img src="lyrics-preview.jpg" alt="悬浮效果.png">
+        </div>
+        -->
+        
+        <h3 class="intro-title" style="font-size: 18px; margin-top: 20px; border-bottom-color: #4caf50;">
+          <i class="fas fa-star"></i> 核心特性
+        </h3>
+        
+        <ul class="feature-list">
+          <li>
+            <div class="feature-title">零听歌曲匹配与全局媒体监听</div>
+            <div class="feature-desc">
+              <p>监听零听U盘播放曲目（不支持蓝牙与零听酷狗），由于零听不使用安卓的标准媒体通知，只能通过日志反向试出它播放u盘曲目时的media_id，从大量日志中没有找到上报的歌曲进度信息，所以用计时器自己滚动有些bug：拖动进度条歌词不能同步；刚开机或者从其他播放器回切时自动从头开始，但是按暂停或者切歌即刻同步，所以几乎不影响使用。</p>
+              <p>监听任意第三方播放器（包括视频播放器）发布的标准媒体通知，此场景歌词无进度问题。</p>
+            </div>
+          </li>
+          
+          <li>
+            <div class="feature-title">无障碍级状态栏穿透与后台常驻</div>
+            <div class="feature-desc">
+              <p>v1.1.0以上因为要实现状态栏覆盖，需要保活无障碍权限，保活需ADB提权，否则要每次开机手动授权。若嫌麻烦可食用1.0版本，但是1.0版使用前台服务+通知保活的方式，内存告急可能会杀后台。</p>
+              <p>无障碍版AMS权限不会被杀后台，此应用常驻后台运存占用小于40M，请放心使用。</p>
+            </div>
+          </li>
+          
+          <li>
+            <div class="feature-title">仪表盘多屏异显引擎</div>
+            <div class="feature-desc">
+              <p>采用Context.createDisplayContext建立独立渲染沙盒，主屏与仪表双屏独立控制：主屏与仪表盘拥有完全独立的开关与坐标系统。</p>
+            </div>
+          </li>
+          
+          <li>
+            <div class="feature-title">双核歌词解析</div>
+            <div class="feature-desc">
+              <p>本地扫描：基于树形目录遍历索引U盘/内部存储.lrc文件。但是SAF访问方式较慢，刚打开或启动时会显示"无本地歌词"或"暂无歌词"（打开联网），请静待扫描完成。</p>
+              <p>智能网搜回退：本地无匹配时，自动触发网络引擎（默认对接网易云音乐API），支持精准ID匹配与歌名/歌手模糊搜索。但是模糊搜索匹配的歌词不一定准确，且爬虫不一定稳定，请自行切换URL，建议优先使用本地歌词确保准确有效。</p>
+            </div>
+          </li>
+          
+          <li>
+            <div class="feature-title">深度级UI定制</div>
+            <div class="feature-desc">
+              <p>自由配置：通过RGB滑块实现颜色自由定义，加深阴影在复杂背景下仍清晰可见，快捷设置栏实现对行数、位置、时间补偿自由定义。</p>
+              <p>丝滑上推过渡：打破单行歌词生硬切换的限制，无论1、2、3行，均提供丝滑的300ms属性动画滚动阻尼效果。</p>
+              <p>开启自启记忆：开机自动沿用上次设置。</p>
+              <p>其他：使用零听播放时，由于没有歌曲进度信息，监听media_id变化抓不准什么时候会有切歌动作，多时钟异步时序有竞争毛刺，造成切歌时有上一曲歌名残影的现象，已优化但未能完全消除。其他播放器无影响。</p>
+            </div>
+          </li>
+        </ul>
+        
+        <h3 class="intro-title" style="font-size: 18px; margin-top: 20px; border-bottom-color: #9c27b0;">
+          <i class="fas fa-file-alt"></i> 安装与配置指南
+        </h3>
+        
+        <ol class="feature-list" style="list-style-type: decimal; margin-left: 25px;">
+          <li><strong>基础授权</strong>：安装完成后点击"1.选取U盘歌词目录"按提示授权悬浮窗权限与通知权限以及歌词目录。</li>
+          <li><strong>启用主屏无障碍穿透</strong>：进入车机系统"无障碍(Accessibility)"设置，找到"零听悬浮歌词"并开启。</li>
+          <li><strong>歌词设置</strong>：主屏歌词直接点击悬浮窗设置，锁定或关闭后回应用界面解锁或开启。仪表歌词点击应用界面"仪表歌词设置"，开启总开关并调节X/Y坐标轴至仪表盘可视安全区域。</li>
+        </ol>
+        
+        <p>参考视频：<a href="https://www.douyin.com/video/7611730600667532590" target="_blank" style="color: #1e88e5; text-decoration: none; border-bottom: 1px dotted #1e88e5;">https://www.douyin.com/video/7611730600667532590</a></p>
+        
+        <div class="warning-box">
+          <div class="warning-title">
+            <i class="fas fa-exclamation-triangle"></i> 安全警告与免责声明
+          </div>
+          <p><strong>驾驶安全第一</strong>：在仪表盘区域显示动态信息可能会分散驾驶注意力。应用内置了自定义坐标系统，请务必将歌词调节至不遮挡时速、限速、导航箭头的边缘安全区域！请规范使用仪表歌词，专注驾驶！</p>
+          <p><strong>声明</strong>：本应用纯属个人技术探索配合Gemini开发，未修改车机任何底层系统文件，不涉及Root破解。由此引发的任何安全或问题由使用者自行承担。</p>
+        </div>
+        
+        <h3 class="intro-title" style="font-size: 18px; margin-top: 20px; border-bottom-color: #1e88e5;">
+          <i class="fas fa-download"></i> 下载链接
+        </h3>
+      </div>
+    </div>
+
     <div class="content-wrapper">
       <!-- 版本信息区域 -->
       <div class="versions-container">
@@ -363,7 +596,7 @@
               
               <div class="version-description">
                 1. 新增仪表悬浮歌词投屏功能，可自定义字体大小、行数、位置，颜色与主屏歌词同步；
-                2. 主屏歌词增加双行滚动选项。
+                2. 主屏歌词增加双行滚动选项。修复BUG。
               </div>
             </div>
             
@@ -421,12 +654,12 @@
               </div>
               
               <div class="version-description">
-                首版发布，支持桌面单行显示，多行滚动。
+                首版发布，前台服务+持续通知常驻后台。
               </div>
             </div>
             
             <div class="download-col">
-              <a href="零听悬浮歌词 v1.1.0.apk" class="download-btn" data-version="lite">
+              <a href="零听悬浮歌词 v1.0.0.apk" class="download-btn" data-version="lite">
                 <i class="fas fa-download"></i> 立即下载
               </a>
               
@@ -441,15 +674,15 @@
       <!-- 评论区 -->
       <div class="comments-container">
         <h3 class="comments-title">
-          <i class="fas fa-comments"></i> 评论区
+          <i class="fas fa-comments"></i> 评论
         </h3>
         <div class="utterances-frame">
           <script src="https://utteranc.es/client.js"
-              repo="Jim110119/Jim110119.github.io"
-              issue-term="pathname"
-              theme="github-light"
-              crossorigin="anonymous"
-              async>
+            repo="Jim110119/Jim110119.github.io"
+            issue-term="pathname"
+            theme="github-light"
+            crossorigin="anonymous"
+            async>
           </script>
         </div>
       </div>
@@ -457,7 +690,7 @@
 
     <!-- 页脚 - 绝对定位在容器底部 -->
     <div class="footer">
-      <p>© 2026 <a href="https://Jim110119.github.io" target="_blank">Jim110119.github.io</a> | 零听悬浮歌词 | 所有版本均为免费下载使用</p>
+      <p>© 2026 <a href="https://Jim110119.github.io" target="_blank">Jim110119.github.io</a> | 零听悬浮歌词</p>
       <p>如有问题或建议，请留言或联系：<a href="mailto:jiaming022@foxmail.com">jiaming022@foxmail.com</a></p>
       <p class="footer-disclaimer">注意：请从本页面下载，避免使用来路不明的其他版本</p>
     </div>
