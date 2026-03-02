@@ -803,96 +803,109 @@
   </div> <!-- 结束 container -->
 
 <script>
+<script>
     const statsManager = {
-      // 你的专属云端空间名
-      namespace: 'jim110119_github_io',
+      // 注意：我为你更换了一个带 '_v3' 的新命名空间。
+      // 这是为了保证和之前的测试数据隔离，让云端全新开始，从而触发初始化逻辑。
+      namespace: 'jim110119_app_v3', 
+      
       versionKeys: {
         stable: 'downloads_v1_2_0',
         beta: 'downloads_v1_1_0',
         lite: 'downloads_v1_0_0'
       },
       
-      // 获取指定版本的总下载次数
+      // 初始基数配置（只有在云端没有记录时，才会用这些数字去“初始化”云端数据库）
+      baseDownloads: {
+        stable: 1586,
+        beta: 342,
+        lite: 895,
+        visits: 8500 // 给总访问量也设定一个起始值
+      },
+      
+      // 获取指定版本的下载量
       async getVersionDownloads(version) {
         const key = this.versionKeys[version];
+        const base = this.baseDownloads[version];
+        
         try {
-          const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}`);
+          // 1. 尝试去云端读取真实数据
+          const response = await fetch(`https://api.countapi.it/get/${this.namespace}/${key}`);
           
-          // 核心修复：如果服务器返回 404，说明还没有人下载过，直接返回 0
-          if (response.status === 404) return 0; 
-          
-          if (!response.ok) throw new Error('API Request Failed');
-          
-          const data = await response.json();
-          
-          // 获取成功，将真实数据备份到本地，用于下次刷新时秒展示
-          localStorage.setItem(`display_val_${key}`, data.count);
-          return data.count || 0;
+          if (response.ok) {
+            // 如果读取成功，说明已经有真实数据了，直接返回
+            const data = await response.json();
+            return data.value;
+          } else if (response.status === 404) {
+            // 2. 【核心魔法】如果云端返回 404 (没记录)，我们就主动用基数“创建”这条云端记录！
+            const createRes = await fetch(`https://api.countapi.it/create?namespace=${this.namespace}&key=${key}&value=${base}`);
+            const createData = await createRes.json();
+            return createData.value; // 这时云端的真实数据就已经变成 1586 了
+          }
         } catch (error) {
-          // 如果网络卡顿或404被浏览器跨域策略拦截，优先显示之前记住的数字，如果连记忆也没有，就显示 0
-          const cached = localStorage.getItem(`display_val_${key}`);
-          return cached ? parseInt(cached) : 0; 
+          return base; // 断网情况下的视觉兜底
         }
       },
       
-      // 更新指定版本的总下载次数
+      // 触发下载量 +1
       async updateVersionDownloads(version) {
         const key = this.versionKeys[version];
         try {
-          const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}/up`);
-          if (!response.ok) throw new Error('API Request Failed');
+          // hit 接口会自动在云端当前的数字上 +1，并返回最新总数
+          const response = await fetch(`https://api.countapi.it/hit/${this.namespace}/${key}`);
           const data = await response.json();
-          
-          // 云端+1成功，刷新本地的视觉备份
-          localStorage.setItem(`display_val_${key}`, data.count);
-          return data.count;
+          return data.value;
         } catch (error) {
-          // 为了不影响用户体验，即使遇到断网，也让界面显示的数字+1
-          const cached = parseInt(localStorage.getItem(`display_val_${key}`) || 0) + 1;
-          localStorage.setItem(`display_val_${key}`, cached);
-          return cached; 
+          return null; 
         }
       },
       
-      // 更新页面浏览统计（逻辑与下载同步）
+      // 获取并更新页面总访问量
       async updateVisitCount() {
+        const key = 'page_total_visits';
+        const base = this.baseDownloads.visits;
+        const visitEl = document.getElementById('visitCount');
+        
         try {
-          const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/page_visits/up`);
-          if (!response.ok) throw new Error('API Request Failed');
+          // 逻辑同上：先尝试 hit (访问+1)
+          let response = await fetch(`https://api.countapi.it/hit/${this.namespace}/${key}`);
+          
+          if (response.status === 404) {
+            // 如果 404，说明是全网第一个人访问，用基数初始化并 +1
+            await fetch(`https://api.countapi.it/create?namespace=${this.namespace}&key=${key}&value=${base}`);
+            response = await fetch(`https://api.countapi.it/hit/${this.namespace}/${key}`);
+          }
+          
           const data = await response.json();
-          localStorage.setItem('display_visits', data.count);
-          document.getElementById('visitCount').textContent = data.count.toLocaleString();
+          visitEl.textContent = data.value.toLocaleString();
         } catch (error) {
-          const cached = localStorage.getItem('display_visits');
-          document.getElementById('visitCount').textContent = cached ? cached : '1';
+          visitEl.textContent = base.toLocaleString();
         }
       },
       
-      // 初始化显示所有版本的总下载次数
+      // 初始化展示
       async initVersionDownloads() {
         for (const version in this.versionKeys) {
           const count = await this.getVersionDownloads(version);
           const countEl = document.getElementById(`count-${version}`);
           if(countEl) {
-              // 刷新页面时直接显示获取到的数字或0，不再显示...
               countEl.innerHTML = `<i class="fas fa-users"></i> ${count} 次下载`;
           }
         }
       }
     };
     
-    // 页面加载时初始化统计
+    // 页面加载完成后的主流程
     document.addEventListener('DOMContentLoaded', async function() {
-      // 并发执行访问量和下载量的获取，加快页面渲染速度
+      // 同步执行：获取下载量展示、触发访问量+1
       await Promise.all([
         statsManager.initVersionDownloads(),
         statsManager.updateVisitCount()
       ]);
     });
     
-    // 下载按钮点击事件处理
+    // 按钮点击事件
     document.querySelectorAll('.download-btn').forEach(button => {
-      // 克隆按钮防止重复绑定事件
       const newButton = button.cloneNode(true);
       button.parentNode.replaceChild(newButton, button);
       
@@ -902,14 +915,16 @@
         const version = this.dataset.version;
         const countElement = document.getElementById(`count-${version}`);
         
-        // 给用户一个加载中的反馈
+        // 点击反馈
         countElement.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 记录中...`;
         
-        // 触发云端+1
+        // 触发云端 +1 并获取最新真实数据
         const newCount = await statsManager.updateVersionDownloads(version);
-        countElement.innerHTML = `<i class="fas fa-users"></i> ${newCount} 次下载`;
+        if (newCount !== null) {
+          countElement.innerHTML = `<i class="fas fa-users"></i> ${newCount} 次下载`;
+        }
         
-        // 执行真实的下载操作
+        // 执行真实下载
         const link = document.createElement('a');
         link.href = this.href;
         link.download = ''; 
@@ -919,7 +934,7 @@
       });
     });
     
-    // 保持原来的UI悬浮与布局交互逻辑
+    // UI交互特效与布局调整
     document.querySelectorAll('.version-block').forEach(block => {
       block.addEventListener('mouseenter', () => block.style.zIndex = 10);
       block.addEventListener('mouseleave', () => block.style.zIndex = 1);
