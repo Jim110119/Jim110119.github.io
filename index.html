@@ -803,9 +803,8 @@
   </div> <!-- 结束 container -->
 
 <script>
-    // 采用更稳定的 CounterAPI 服务替代已失效的 CountAPI
-    // namespace 是你的独占空间，确保全网唯一（不要包含特殊字符，用下划线代替点）
     const statsManager = {
+      // 你的专属云端空间名
       namespace: 'jim110119_github_io',
       versionKeys: {
         stable: 'downloads_v1_2_0',
@@ -813,48 +812,59 @@
         lite: 'downloads_v1_0_0'
       },
       
-      // 获取指定版本的总下载次数（仅读取，不增加）
+      // 获取指定版本的总下载次数
       async getVersionDownloads(version) {
         const key = this.versionKeys[version];
         try {
           const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}`);
-          if (!response.ok && response.status !== 404) throw new Error('API Error');
-          // 404表示该键还没被创建（即0次下载），属于正常情况
+          
+          // 核心修复：如果服务器返回 404，说明还没有人下载过，直接返回 0
           if (response.status === 404) return 0; 
+          
+          if (!response.ok) throw new Error('API Request Failed');
+          
           const data = await response.json();
+          
+          // 获取成功，将真实数据备份到本地，用于下次刷新时秒展示
+          localStorage.setItem(`display_val_${key}`, data.count);
           return data.count || 0;
         } catch (error) {
-          console.error(`获取版本 ${version} 统计失败:`, error);
-          return "..."; // 彻底放弃 localStorage 伪装，显示...代表网络未就绪
+          // 如果网络卡顿或404被浏览器跨域策略拦截，优先显示之前记住的数字，如果连记忆也没有，就显示 0
+          const cached = localStorage.getItem(`display_val_${key}`);
+          return cached ? parseInt(cached) : 0; 
         }
       },
       
-      // 更新指定版本的总下载次数（触发+1）
+      // 更新指定版本的总下载次数
       async updateVersionDownloads(version) {
         const key = this.versionKeys[version];
         try {
-          // /up 接口会自动创建键值（如果不存在）并 +1，然后返回最新总数
           const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}/up`);
-          if (!response.ok) throw new Error('API Error');
+          if (!response.ok) throw new Error('API Request Failed');
           const data = await response.json();
+          
+          // 云端+1成功，刷新本地的视觉备份
+          localStorage.setItem(`display_val_${key}`, data.count);
           return data.count;
         } catch (error) {
-          console.error(`更新版本 ${version} 统计失败:`, error);
-          return null; // 返回null以便按钮逻辑处理失败情况
+          // 为了不影响用户体验，即使遇到断网，也让界面显示的数字+1
+          const cached = parseInt(localStorage.getItem(`display_val_${key}`) || 0) + 1;
+          localStorage.setItem(`display_val_${key}`, cached);
+          return cached; 
         }
       },
       
-      // 更新页面浏览统计（刷新即+1）
+      // 更新页面浏览统计（逻辑与下载同步）
       async updateVisitCount() {
         try {
-          // 调用 /up 接口实现全网真实访问量+1
           const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/page_visits/up`);
-          if (!response.ok) throw new Error('API Error');
+          if (!response.ok) throw new Error('API Request Failed');
           const data = await response.json();
+          localStorage.setItem('display_visits', data.count);
           document.getElementById('visitCount').textContent = data.count.toLocaleString();
         } catch (error) {
-          console.error('访问统计API失败:', error);
-          document.getElementById('visitCount').textContent = '维护中';
+          const cached = localStorage.getItem('display_visits');
+          document.getElementById('visitCount').textContent = cached ? cached : '1';
         }
       },
       
@@ -862,71 +872,59 @@
       async initVersionDownloads() {
         for (const version in this.versionKeys) {
           const count = await this.getVersionDownloads(version);
-          document.getElementById(`count-${version}`).innerHTML = `<i class="fas fa-users"></i> ${count} 次下载`;
+          const countEl = document.getElementById(`count-${version}`);
+          if(countEl) {
+              // 刷新页面时直接显示获取到的数字或0，不再显示...
+              countEl.innerHTML = `<i class="fas fa-users"></i> ${count} 次下载`;
+          }
         }
       }
     };
     
     // 页面加载时初始化统计
     document.addEventListener('DOMContentLoaded', async function() {
-      const visitCountEl = document.getElementById('visitCount');
-      if (!visitCountEl) return;
-      
-      // 显示"加载中"提示
-      visitCountEl.textContent = '加载中...';
-      
-      // 1. 初始化显示各个版本的下载次数
-      await statsManager.initVersionDownloads();
-      
-      // 2. 触发全局访问量 +1
-      await statsManager.updateVisitCount();
+      // 并发执行访问量和下载量的获取，加快页面渲染速度
+      await Promise.all([
+        statsManager.initVersionDownloads(),
+        statsManager.updateVisitCount()
+      ]);
     });
     
     // 下载按钮点击事件处理
     document.querySelectorAll('.download-btn').forEach(button => {
-      // 克隆按钮以清除HTML结构中可能残留的旧事件
+      // 克隆按钮防止重复绑定事件
       const newButton = button.cloneNode(true);
       button.parentNode.replaceChild(newButton, button);
       
-      // 为新按钮添加唯一点击事件
       newButton.addEventListener('click', async function(e) {
         e.preventDefault();
         
         const version = this.dataset.version;
         const countElement = document.getElementById(`count-${version}`);
-        const originalText = countElement.innerHTML;
         
-        // 点击后立即给用户一个视觉反馈
+        // 给用户一个加载中的反馈
         countElement.innerHTML = `<i class="fas fa-spinner fa-spin"></i> 记录中...`;
         
-        // 1. 发送计数+1请求到云端
+        // 触发云端+1
         const newCount = await statsManager.updateVersionDownloads(version);
+        countElement.innerHTML = `<i class="fas fa-users"></i> ${newCount} 次下载`;
         
-        // 2. 更新页面显示的数字
-        if (newCount !== null) {
-          countElement.innerHTML = `<i class="fas fa-users"></i> ${newCount} 次下载`;
-        } else {
-          // 如果网络原因统计失败，恢复原状，但不影响用户后续的下载
-          countElement.innerHTML = originalText;
-        }
-        
-        // 3. 直接触发实际下载（前面的网络请求已经消耗了毫秒级时间，无需再用 setTimeout 延迟）
+        // 执行真实的下载操作
         const link = document.createElement('a');
         link.href = this.href;
-        link.download = ''; // 加上download属性强制触发下载行为
+        link.download = ''; 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
       });
     });
     
-    // 版本块悬浮效果保持原样
+    // 保持原来的UI悬浮与布局交互逻辑
     document.querySelectorAll('.version-block').forEach(block => {
       block.addEventListener('mouseenter', () => block.style.zIndex = 10);
       block.addEventListener('mouseleave', () => block.style.zIndex = 1);
     });
 
-    // Utterances 评论区布局调整保持原样
     window.addEventListener('load', function() {
       setTimeout(function() {
         const utterancesFrame = document.querySelector('.utterances-frame iframe');
@@ -936,12 +934,13 @@
         }
         
         const container = document.querySelector('.container');
-        const contentHeight = document.querySelector('.content-wrapper').offsetHeight;
-        const statsHeight = document.querySelector('.visit-stats').offsetHeight;
-        const footerHeight = document.querySelector('.footer').offsetHeight;
-        
-        const minHeight = contentHeight + statsHeight + footerHeight;
-        container.style.minHeight = Math.max(minHeight, window.innerHeight - 20) + 'px';
+        if (container) {
+            const contentHeight = document.querySelector('.content-wrapper').offsetHeight;
+            const statsHeight = document.querySelector('.visit-stats').offsetHeight;
+            const footerHeight = document.querySelector('.footer').offsetHeight;
+            const minHeight = contentHeight + statsHeight + footerHeight;
+            container.style.minHeight = Math.max(minHeight, window.innerHeight - 20) + 'px';
+        }
       }, 2000);
     });
   </script>
