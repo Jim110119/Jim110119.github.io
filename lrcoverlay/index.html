@@ -582,24 +582,22 @@
 <body>
   <div class="container">
     <div class="header">
-      <!-- 标题部分，包含图标 -->
       <h1 class="page-title">
-        <img src="lrcoverlay/icon.png" alt="零听悬浮歌词图标" class="title-icon">
+        <img src="./icon.png" alt="零听悬浮歌词图标" class="title-icon">
         零听悬浮歌词
       </h1>
     </div>
     
-    <!-- 介绍内容区域 -->
     <div class="intro-container">
       <h2 class="intro-title">
         <i class="fas fa-info-circle"></i> 应用介绍
       </h2>
       
       <div class="intro-content">
-        <p>本 app 由零跑车主开发，适用于 21-23 款（其它款没车），旨在使本地歌曲实现悬浮歌词的目标。由于系统只允许 SAF 方式访问 U盘，QQ 音乐无法扫描 U盘歌曲当做本地媒体（除非 Root）。不想买音乐会员，就另起炉灶，既然能 SAF 访问 U盘，那我们就访问里面的歌词呗。这应该是全网第一个不依赖第三方桌面的零跑悬浮歌词插件应用，且免费分享。</p> 
+        <p>本 app 由零跑车主开发，适用于 21-23 款（其它款没车），旨在使本地歌曲实现悬浮歌词的目标。由于系统只允许 SAF 方式访问 U盘，QQ 音乐无法扫描 U盘歌曲当做本地媒体（除非 Root）。不想买音乐会员，就另起炉灶，既然能 SAF 访问 U盘，那我们就访问里面的歌词呗。这应该是全网第一个不依赖第三方桌面的零跑悬浮歌词插件应用免费分享。</p> 
                 
         <div class="image-container">
-          <img src="lrcoverlay/悬浮效果.png" alt="零听悬浮歌词效果展示" style="width: 50%; max-width: 480px; height: auto;">
+          <img src="./悬浮效果.png" alt="零听悬浮歌词效果展示" style="width: 50%; max-width: 480px; height: auto;">
         </div>
         
         <h3 class="intro-title" style="font-size: 18px; margin-top: 20px; border-bottom-color: #4caf50;">
@@ -610,7 +608,7 @@
           <li>
             <div class="feature-title">零听歌曲匹配与全局媒体监听</div>
             <div class="feature-desc">
-              <p>监听零听U盘播放曲目（不支持蓝牙与零听酷狗），由于零听不使用安卓的标准媒体通知，只能通过日志反向试出它播放u盘曲目时的media_id，从大量日志中没有找到上报的歌曲进度信息，所以用计时器自己滚动有些bug：拖动进度条歌词不能同步；刚开机或者从其他播放器回切时自动从头开始，但是按暂停或者切歌即刻同步，所以几乎不影响使用。</p>
+              <p>监听零听U盘播放曲目（不支持蓝牙与零听酷狗），由于零听不使用安卓的标准媒体通知，只能通过日志反向试出它播放u盘曲目时的media_id，从大量日志中没有找到上报的歌曲进度信息，所以用计时器自己滚动有些bug：拖动进度条歌词不能同步；刚开机或者从其他播放器回切时自动从头开始。但是按暂停或者切歌即刻同步，所以几乎不影响使用。第三方播放器无问题</p>
               <p>监听任意第三方播放器（包括视频播放器）发布的标准媒体通知，此场景歌词无进度问题。</p>
             </div>
           </li>
@@ -633,8 +631,8 @@
           <li>
             <div class="feature-title">双核歌词解析</div>
             <div class="feature-desc">
-              <p>本地扫描：基于树形目录遍历索引U盘/内部存储.lrc文件。但是SAF访问方式较慢，刚打开或启动时会显示"无本地歌词"或"暂无歌词"（打开联网），请静待扫描完成。</p>
-              <p>智能网搜回退：本地无匹配时，自动触发网络引擎（默认对接网易云音乐API），支持精准ID匹配与歌名/歌手模糊搜索。但是模糊搜索匹配的歌词不一定准确，且爬虫不一定稳定，请自行切换URL，建议优先使用本地歌词（优先匹配本地）。</p>
+              <p>本地扫描：基于树形目录遍历索引U盘/内部存储.lrc文件。但是SAF访问方式较慢，刚打开或启动时会显示"无本地歌词"或"暂无歌词"（打开联网且匹配不到），请静待扫描完成。</p>
+              <p>智能网搜回退：本地无匹配时，自动触发网络引擎（默认爬取网易云API），支持精准ID匹配与歌名/歌手模糊搜索。但是模糊搜索匹配的曲目/滚动时间不一定准确，若搜索超时请自行切换URL，建议使用本地歌词。</p>
             </div>
           </li>
           
@@ -644,7 +642,7 @@
               <p>自由配置：通过RGB滑块实现颜色自由定义，加深阴影在复杂背景下仍清晰可见，快捷设置栏实现对行数、位置、时间补偿自由定义。</p>
               <p>丝滑上推过渡：打破单行歌词生硬切换的限制，无论1、2、3行，均提供丝滑的300ms属性动画滚动阻尼效果。</p>
               <p>开启自启记忆：开机自动沿用上次设置。</p>
-              <p>其他：使用零听播放时，由于没有歌曲进度信息，监听media_id变化抓不准什么时候会有切歌动作，多时钟异步时序有竞争毛刺，造成切歌时有上一曲歌名残影的现象，已优化但未能完全消除。其他播放器无影响。</p>
+              <p>其他：使用零听播放时，由于没有歌曲进度信息，监听media_id变化抓不准什么时候会有切歌动作，时钟异步时序有竞争毛刺，造成切歌时有上一曲歌名残影的现象，已优化但未能完全消除。</p>
             </div>
           </li>
         </ul>
@@ -665,8 +663,8 @@
           <div class="warning-title">
             <i class="fas fa-exclamation-triangle"></i> 安全警告与免责声明
           </div>
-          <p><strong>驾驶安全第一</strong>：在仪表盘区域显示动态信息可能会分散驾驶注意力。应用内置了自定义坐标系统，请务必将歌词调节至不遮挡时速、限速、导航箭头的边缘安全区域！请规范使用仪表歌词，专注驾驶！</p>
-          <p><strong>声明</strong>：本应用纯属个人技术探索配合Gemini开发，未修改车机任何底层系统文件，不涉及Root破解。由此引发的任何安全或问题由使用者自行承担。</p>
+          <p><strong>驾驶安全第一</strong>：在仪表盘区域显示动态信息可能会分散驾驶注意力。应用内置了自定义坐标系统，请务必将歌词调节至不遮挡系统图标、时速、导航箭头的边缘安全区域！请规范使用仪表歌词，专注驾驶！</p>
+          <p><strong>声明</strong>：本应用纯属个人DIY，未修改车机任何底层系统文件，不涉及Root破解，不确保无bug，请谨慎使用，若引发任何问题由使用者自行承担。</p>
         </div>
         
         <h3 class="intro-title" style="font-size: 18px; margin-top: 20px; border-bottom-color: #1e88e5;">
@@ -676,9 +674,7 @@
     </div>
 
     <div class="content-wrapper">
-      <!-- 版本信息区域 -->
       <div class="versions-container">
-        <!-- 仪表版 -->
         <div class="version-block" data-version="stable">
           <div class="version-content">
             <div class="version-info-col">
@@ -697,7 +693,7 @@
             </div>
             
             <div class="download-col">
-              <a href="lrcoverlay/零听悬浮歌词 v1.2.0.apk" class="download-btn" data-version="stable">
+              <a href="./零听悬浮歌词 v1.2.0.apk" class="download-btn" data-version="stable">
                 <i class="fas fa-download"></i> 立即下载
               </a>
               
@@ -708,7 +704,6 @@
           </div>
         </div>
         
-        <!-- 穿透版 -->
         <div class="version-block" data-version="beta">
           <div class="version-content">
             <div class="version-info-col">
@@ -726,7 +721,7 @@
             </div>
             
             <div class="download-col">
-              <a href="lrcoverlay/零听悬浮歌词 v1.1.0.apk" class="download-btn" data-version="beta">
+              <a href="./零听悬浮歌词 v1.1.0.apk" class="download-btn" data-version="beta">
                 <i class="fas fa-download"></i> 立即下载
               </a>
               
@@ -737,7 +732,6 @@
           </div>
         </div>
         
-        <!-- 桌面版 -->
         <div class="version-block" data-version="lite">
           <div class="version-content">
             <div class="version-info-col">
@@ -755,7 +749,7 @@
             </div>
             
             <div class="download-col">
-              <a href="lrcoverlay/零听悬浮歌词 v1.0.0.apk" class="download-btn" data-version="lite">
+              <a href="./零听悬浮歌词 v1.0.0.apk" class="download-btn" data-version="lite">
                 <i class="fas fa-download"></i> 立即下载
               </a>
               
@@ -767,7 +761,6 @@
         </div>
       </div>
 
-      <!-- 评论区 -->
       <div class="comments-container">
         <h3 class="comments-title">
           <i class="fas fa-comments"></i> 评论
@@ -782,27 +775,19 @@
           </script>
         </div>
       </div>
-    </div> <!-- 结束 content-wrapper -->
-
-    <!-- 底部区域包装器 -->
-    <div class="bottom-wrapper">
-      <!-- 浏览次数统计框 - 只显示总访问 -->
+    </div> <div class="bottom-wrapper">
       <div class="visit-stats">
         <div class="stats-container">
           <i class="fas fa-eye"></i> 总访问：<span id="visitCount">0</span> 次
         </div>
       </div>
 
-      <!-- 页脚 -->
       <div class="footer">
-        <p>© 2026 <a href="https://Jim110119.github.io" target="_blank">Jim110119.github.io</a> | 零听悬浮歌词</p>
+        <p>© 2026 <a href="https://jim110119.github.io/lrcoverlay/" target="_blank">jim110119.github.io/lrcoverlay/</a> | 零听悬浮歌词</p>
         <p>如有问题或建议，请留言或联系：<a href="mailto:jiaming022@foxmail.com">jiaming022@foxmail.com</a></p>
         <p class="footer-disclaimer">注意：请从本页面下载，避免使用来路不明的其他版本</p>
       </div>
-    </div> <!-- 结束 bottom-wrapper -->
-  </div> <!-- 结束 container -->
-
-<script>
+    </div> </div> <script>
     // 采用完美支持 CORS(跨域) 的 CountAPI.it 服务
     const statsManager = {
       // 为了不与之前的脏数据冲突，这里加了 _v2 后缀开辟全新独立空间
