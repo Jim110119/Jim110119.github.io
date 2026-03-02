@@ -4,6 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>零听悬浮歌词 - 下载中心</title>
+  
+  <meta property="og:title" content="零听悬浮歌词 - 下载中心" />
+  <meta itemprop="name" content="零听悬浮歌词 - 下载中心" />
+
+  <meta property="og:description" content="零听悬浮歌词是一款专为安卓设备设计的应用，能够在任何界面上优雅地显示歌词，支持自定义外观和灵活的操作方式。" />
+  <meta itemprop="description" content="零听悬浮歌词是一款专为安卓设备设计的应用，能够在任何界面上优雅地显示歌词，支持自定义外观和灵活的操作方式。" />
+
+  <meta property="og:image" content="icon.png" />
+  <meta itemprop="image" content="https://jim110119.github.io/lrcoverlay/icon.png" />
+  
+  <meta property="og:type" content="website" />
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     * {
@@ -577,9 +589,80 @@
       color: #666;
       font-style: italic;
     }
+	
+   /* 极简评分系统样式 */
+    .rating-container {
+      margin-bottom: 20px;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start; /* 绝对左对齐 */
+    }
+
+    .rating-row {
+      display: flex;
+      align-items: center;
+      gap: 10px; /* 星星和分数之间的间距 */
+    }
+
+    /* 三层星星容器 */
+    .star-layers {
+      position: relative;
+      display: inline-block;
+      font-size: 24px; /* 星星大小 */
+      line-height: 1;
+    }
+
+    .layer-bg {
+      color: #e0e0e0; /* 灰色底 */
+    }
+
+    .layer-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: #ff9800; /* 金色 */
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0%; /* 默认0，靠JS改变 */
+      transition: width 0.3s ease; /* 平滑动画 */
+      pointer-events: none; /* 让点击穿透到最顶层 */
+    }
+
+    /* 顶层透明点击区：图标大小位置与底层完全一致，但透明 */
+    .layer-click {
+      position: absolute;
+      top: 0;
+      left: 0;
+      color: transparent; 
+      display: flex;
+    }
+
+    .layer-click i {
+      cursor: pointer;
+    }
+
+    .rating-score {
+      font-size: 22px;
+      font-weight: bold;
+      color: #ff9800;
+      line-height: 1;
+    }
+
+    .rating-text {
+      font-size: 13px;
+      color: #666;
+      margin-top: 5px;
+    }
+	
   </style>
 </head>
 <body>
+
+  <div style="margin:0 auto;width:0px;height:0px;overflow:hidden;">
+    <img src="icon.png" width="400" alt="logo" />
+  </div>
+
   <div class="container">
     <div class="header">
       <h1 class="page-title">
@@ -657,7 +740,7 @@
           <li><strong>歌词设置</strong>：主屏歌词直接点击悬浮窗设置，锁定或关闭后回应用界面解锁或开启。仪表歌词点击应用界面"仪表歌词设置"，开启总开关并调节X/Y坐标轴至仪表盘可视安全区域。</li>
         </ol>
         
-        <p>参考视频：<a href="https://www.douyin.com/video/7611730600667532590" target="_blank" style="color: #1e88e5; text-decoration: none; border-bottom: 1px dotted #1e88e5;">https://www.douyin.com/video/7611730600667532590</a></p>
+        <p style="text-align: left;">参考视频：<a href="https://www.douyin.com/video/7611730600667532590" target="_blank" style="color: #1e88e5; text-decoration: underline;">点击链接播放</a></p>
         
         <div class="warning-box">
           <div class="warning-title">
@@ -766,6 +849,25 @@
         <h3 class="comments-title">
           <i class="fas fa-comments"></i> 评论
         </h3>
+		
+    <div class="rating-container">
+          <div class="rating-row">
+            <div class="star-layers" id="starLayers">
+              <div class="layer-bg">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+              </div>
+              <div class="layer-fill" id="starsFill">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+              </div>
+              <div class="layer-click" id="starsClickArea">
+                <i class="fas fa-star" data-val="1"></i><i class="fas fa-star" data-val="2"></i><i class="fas fa-star" data-val="3"></i><i class="fas fa-star" data-val="4"></i><i class="fas fa-star" data-val="5"></i>
+              </div>
+            </div>
+            <span class="rating-score" id="avgScore">0</span>
+          </div>
+          <div class="rating-text" id="ratingText">点击星星给应用打分</div>
+        </div>
+		
         <div class="utterances-frame">
           <script src="https://utteranc.es/client.js"
             repo="Jim110119/Jim110119.github.io"
@@ -947,6 +1049,119 @@
         }
       }, 2000);
     });
+	
+    Object.assign(statsManager, {
+      ratingKeys: ['star_1', 'star_2', 'star_3', 'star_4', 'star_5'],
+      currentTotalScore: 0,
+      currentTotalVotes: 0,
+      isRating: false,
+
+      async initRatings() {
+        try {
+          const promises = this.ratingKeys.map(key => 
+            fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}`)
+              .then(res => res.status === 404 ? 0 : res.json().then(data => data.count || 0))
+              .catch(() => 0)
+          );
+          const votes = await Promise.all(promises);
+          
+          this.currentTotalScore = 0;
+          this.currentTotalVotes = 0;
+          
+          votes.forEach((count, index) => {
+            this.currentTotalScore += (count * (index + 1));
+            this.currentTotalVotes += count;
+          });
+          
+          this.renderRatingState();
+        } catch (error) {
+          console.error("加载评分失败:", error);
+        }
+      },
+
+      renderRatingState() {
+        const avgScoreEl = document.getElementById('avgScore');
+        const starsFillEl = document.getElementById('starsFill');
+        const textEl = document.getElementById('ratingText');
+
+        const avg = this.currentTotalVotes === 0 ? 0 : (this.currentTotalScore / this.currentTotalVotes).toFixed(1);
+        avgScoreEl.textContent = avg;
+        starsFillEl.style.width = `${(avg / 5) * 100}%`;
+        
+        if (localStorage.getItem('has_rated_lingting') === 'true') {
+          textEl.textContent = '您已经评价过啦~';
+          // 如果已评价，移除透明层的鼠标手势
+          document.getElementById('starsClickArea').style.cursor = 'default';
+        } else if (this.currentTotalVotes === 0) {
+          textEl.textContent = '点击星星给应用打分';
+        }
+      },
+
+      async submitRating(scoreNum) {
+        // 如果正在请求中，或者已经评价过，直接忽略点击
+        if (this.isRating || localStorage.getItem('has_rated_lingting') === 'true') return;
+        this.isRating = true;
+
+        const starsFillEl = document.getElementById('starsFill');
+        const avgScoreEl = document.getElementById('avgScore');
+        const textEl = document.getElementById('ratingText');
+
+        // 第一步：即刻UI反馈
+        // 1. 本地立即计算加上这1票后的新平均分
+        this.currentTotalScore += scoreNum;
+        this.currentTotalVotes += 1;
+        const newAvg = (this.currentTotalScore / this.currentTotalVotes).toFixed(1);
+        
+        // 2. 文字即刻变更为已评价
+        textEl.textContent = '您已经评价过啦~';
+        
+        // 3. 右侧数字即刻变成新的平均分
+        avgScoreEl.textContent = newAvg;
+        
+        // 4. 星星即刻点亮用户点击的数量 (比如点3星就瞬间填满60%)
+        starsFillEl.style.transition = 'none'; // 瞬间填满，无动画
+        starsFillEl.style.width = `${(scoreNum / 5) * 100}%`;
+        
+        // 标记已评，防止重复点击
+        localStorage.setItem('has_rated_lingting', 'true');
+        document.getElementById('starsClickArea').style.cursor = 'default';
+
+        // 第二步：后台发送请求
+        try {
+          const key = `star_${scoreNum}`;
+          fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}/up`); // 异步发送，不阻塞UI
+          
+          // 第三步：1秒后，星星宽度退回到新的平均分比例
+          setTimeout(() => {
+            starsFillEl.style.transition = 'width 0.5s ease'; // 恢复平滑动画
+            starsFillEl.style.width = `${(newAvg / 5) * 100}%`; // 退回到平均分宽度
+          }, 1000);
+
+        } catch (error) {
+          console.error('评分提交异常', error);
+        }
+      }
+    });
+
+    // 绑定交互事件
+    document.addEventListener('DOMContentLoaded', function() {
+      // 原有的计数逻辑...
+      statsManager.initVersionDownloads();
+      statsManager.updateVisitCount();
+      
+      // 初始化评分
+      statsManager.initRatings();
+
+      // 绑定顶层透明星星的点击事件
+      const clickStars = document.querySelectorAll('#starsClickArea i');
+      clickStars.forEach(star => {
+        star.addEventListener('click', function() {
+          const score = parseInt(this.getAttribute('data-val'));
+          statsManager.submitRating(score);
+        });
+      });
+    });
+	
   </script>
 </body>
 </html>
