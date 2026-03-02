@@ -49,9 +49,25 @@
       font-size: 26px;
       font-weight: 700;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px; /* 1.5倍行距，26px * 1.5 ≈ 39px，这里使用15px作为间隔 */
+    }
+    
+    /* 标题图标样式 */
+    .title-icon {
+      height: 39px; /* 1.5倍字体大小，26px * 1.5 = 39px */
+      width: auto; /* 保持宽高比 */
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3)); /* 添加阴影增强可见性 */
+      transition: transform 0.3s ease; /* 添加悬停效果 */
+    }
+    
+    .title-icon:hover {
+      transform: scale(1.05); /* 鼠标悬停时轻微放大 */
     }
 
-    /* 介绍内容区域 - 新添加 */
+    /* 介绍内容区域 */
     .intro-container {
       padding: 25px 30px;
       background-color: white;
@@ -90,12 +106,6 @@
       line-height: 1.6;
     }
 
-    /* 列表项中的强标签不单独缩进，但跟随列表项整体 */
-    .feature-list li strong {
-      text-indent: 0;
-      display: inline-block;
-    }
-
     .feature-list {
       margin: 18px 0 25px 25px;
     }
@@ -110,7 +120,7 @@
       color: #2c3e50;
       margin-bottom: 6px;
       font-size: 16px;
-      text-indent: 0; /* 标题不缩进 */
+      text-indent: 0;
     }
 
     .feature-desc {
@@ -121,7 +131,6 @@
       text-align: justify;
     }
 
-    /* 确保.feature-desc内部的每个段落都缩进 */
     .feature-desc p {
       text-indent: 2em;
       margin-bottom: 10px;
@@ -143,14 +152,13 @@
       align-items: center;
       gap: 8px;
       font-size: 16px;
-      text-indent: 0; /* 标题不缩进 */
+      text-indent: 0;
     }
 
     .warning-title i {
       color: #e65100;
     }
 
-    /* 确保警告框内特殊样式 */
     .warning-box p {
       text-indent: 2em;
       margin-bottom: 10px;
@@ -290,7 +298,7 @@
       color: #666;
     }
 
-    /* 评论区样式 - 彻底修复 */
+    /* 评论区样式 */
     .comments-container {
       padding: 20px 15px;
       background-color: #f8f9fa;
@@ -298,10 +306,8 @@
       position: relative;
       z-index: 5;
       margin-top: 10px;
-      /* 确保评论区不会溢出容器 */
       overflow: visible;
-      /* 为页脚留出足够空间 */
-      margin-bottom: 120px; /* 增加底部边距，为页脚腾出空间 */
+      margin-bottom: 120px;
     }
 
     .comments-title {
@@ -321,41 +327,51 @@
     .utterances-frame {
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      overflow: visible; /* 改为visible，确保Utterances内容完全显示 */
-      min-height: 400px; /* 增加最小高度，确保评论框有空间 */
+      overflow: visible;
+      min-height: 400px;
       width: 100%;
       position: relative;
     }
 
-/* 浏览次数统计样式 - 修正版 */
-.visit-stats {
-  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
-  border-top: 1px solid #d1d1d1;
-  border-bottom: 1px solid #d1d1d1;
-  padding: 12px 20px;
-  text-align: center;
-  font-size: 13px;
-  color: #555;
-  font-family: 'Segoe UI', Arial, sans-serif;
-  position: relative; /* 确保是相对定位 */
-  z-index: 10;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05) inset;
-  display: block; /* 明确设置为块级显示 */
-  visibility: visible; /* 明确设置为可见 */
-  opacity: 1; /* 明确设置为不透明 */
-  height: auto; /* 高度自适应 */
-  min-height: 44px; /* 最小高度 */
-  box-sizing: border-box; /* 盒模型 */
-  margin: 0; /* 清除外边距 */
-  width: 100%; /* 确保宽度100% */
-}
+    /* 底部区域包装器 */
+    .bottom-wrapper {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* 浏览次数统计样式 - 精简版 */
+    .visit-stats {
+      background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+      border-top: 1px solid #d1d1d1;
+      border-bottom: 1px solid #d1d1d1;
+      padding: 12px 0; /* 调整左右内边距为0，使内容居中 */
+      text-align: center;
+      font-size: 13px;
+      color: #555;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      position: relative;
+      z-index: 20;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05) inset;
+      display: flex;
+      justify-content: center; /* 水平居中 */
+      align-items: center; /* 垂直居中 */
+      visibility: visible;
+      opacity: 1;
+      height: auto;
+      min-height: 44px;
+      box-sizing: border-box;
+      margin: 0;
+      width: 100%;
+      border-radius: 0 0 8px 8px;
+    }
     
     .stats-container {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.7);
-      padding: 8px 15px;
+      gap: 8px; /* 减小间距 */
+      background: rgba(255, 255, 255, 0.9);
+      padding: 8px 20px; /* 调整内边距，使框体更紧凑 */
       border-radius: 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
@@ -366,12 +382,7 @@
       font-size: 12px;
     }
     
-    .stats-separator {
-      color: #bbb;
-      font-weight: 300;
-    }
-    
-    #visitCount, #totalDownloads {
+    #visitCount {
       font-weight: 700;
       color: #0d47a1;
       font-size: 14px;
@@ -380,24 +391,22 @@
       text-align: center;
     }
 
-    /* 页脚样式 - 关键修复 */
+    /* 页脚样式 */
     .footer {
       background-color: #2c3e50;
       color: white;
       text-align: center;
-      padding: 12px;
+      padding: 12px 20px;
       font-size: 12px;
-      position: absolute; /* 改为绝对定位 */
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 15; /* 确保页脚在评论区上方 */
+      position: relative;
+      z-index: 15;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
-      /* 确保页脚高度固定 */
       height: auto;
       min-height: 80px;
-      /* 确保页脚内容可见 */
       opacity: 1;
+      width: 100%;
+      border-radius: 0 0 8px 8px;
+      box-sizing: border-box;
     }
 
     .footer p {
@@ -421,11 +430,11 @@
       opacity: 0.8;
     }
 
-    /* 内容包装器 - 新添加，确保内容区域可以滚动 */
+    /* 内容包装器 */
     .content-wrapper {
-      padding-bottom: 100px; /* 为页脚预留空间 */
+      padding-bottom: 100px;
       position: relative;
-      min-height: calc(100vh - 200px); /* 确保足够高度 */
+      min-height: calc(100vh - 200px);
     }
 
     /* 移动端适配 */
@@ -458,6 +467,11 @@
       
       .page-title {
         font-size: 22px;
+        gap: 12px; /* 移动端调整间隔 */
+      }
+      
+      .title-icon {
+        height: 33px; /* 1.5倍移动端字体大小，22px * 1.5 = 33px */
       }
 
       .comments-title {
@@ -465,12 +479,21 @@
       }
       
       .comments-container {
-        margin-bottom: 140px; /* 移动端增加更多底部空间 */
+        margin-bottom: 140px;
+      }
+      
+      .bottom-wrapper {
+        padding: 0 10px;
+      }
+      
+      .visit-stats {
+        border-radius: 0;
+        padding: 10px 0;
       }
       
       .footer {
-        position: absolute;
-        bottom: 0;
+        border-radius: 0;
+        padding: 10px 15px;
       }
     }
 
@@ -493,27 +516,34 @@
       
       .page-title {
         font-size: 20px;
+        gap: 10px; /* 小屏幕调整间隔 */
+      }
+      
+      .title-icon {
+        height: 30px; /* 1.5倍小屏幕字体大小，20px * 1.5 = 30px */
       }
 
       .comments-container {
         padding: 15px 10px;
-        margin-bottom: 150px; /* 小屏幕更多空间 */
+        margin-bottom: 150px;
       }
       
-      .footer {
-        padding: 10px 8px;
-        min-height: 90px;
+      .bottom-wrapper {
+        padding: 0 8px;
       }
       
-      /* 统计框移动端适配 */
       .visit-stats {
-        padding: 8px 10px;
+        padding: 8px 0;
         font-size: 12px;
       }
       
       .stats-container {
-        padding: 6px 12px;
-        gap: 8px;
+        padding: 6px 15px; /* 移动端也保持紧凑 */
+      }
+      
+      .footer {
+        padding: 8px 10px;
+        min-height: 70px;
       }
     }
 
@@ -552,7 +582,11 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1 class="page-title">零听悬浮歌词</h1>
+      <!-- 修改标题部分，添加图标 -->
+      <h1 class="page-title">
+        <img src="icon.png" alt="零听悬浮歌词图标" class="title-icon">
+        零听悬浮歌词
+      </h1>
     </div>
     
     <!-- 介绍内容区域 -->
@@ -750,25 +784,26 @@
       </div>
     </div> <!-- 结束 content-wrapper -->
 
-    <!-- 浏览次数统计框 - 新添加 -->
-    <div class="visit-stats">
-      <div class="stats-container">
-        <i class="fas fa-eye"></i> 页面浏览：<span id="visitCount">0</span> 次
-        <span class="stats-separator">|</span>
-        <i class="fas fa-download"></i> 累计下载：<span id="totalDownloads">0</span> 次
+    <!-- 底部区域包装器 -->
+    <div class="bottom-wrapper">
+      <!-- 浏览次数统计框 - 精简版 -->
+      <div class="visit-stats">
+        <div class="stats-container">
+          <i class="fas fa-eye"></i> 页面浏览：<span id="visitCount">0</span> 次
+        </div>
       </div>
-    </div>
 
-    <!-- 页脚 - 绝对定位在容器底部 -->
-    <div class="footer">
-      <p>© 2026 <a href="https://Jim110119.github.io" target="_blank">Jim110119.github.io</a> | 零听悬浮歌词</p>
-      <p>如有问题或建议，请留言或联系：<a href="mailto:jiaming022@foxmail.com">jiaming022@foxmail.com</a></p>
-      <p class="footer-disclaimer">注意：请从本页面下载，避免使用来路不明的其他版本</p>
-    </div>
-  </div>
+      <!-- 页脚 -->
+      <div class="footer">
+        <p>© 2026 <a href="https://Jim110119.github.io" target="_blank">Jim110119.github.io</a> | 零听悬浮歌词</p>
+        <p>如有问题或建议，请留言或联系：<a href="mailto:jiaming022@foxmail.com">jiaming022@foxmail.com</a></p>
+        <p class="footer-disclaimer">注意：请从本页面下载，避免使用来路不明的其他版本</p>
+      </div>
+    </div> <!-- 结束 bottom-wrapper -->
+  </div> <!-- 结束 container -->
 
   <script>
-// 初始化下载计数
+    // 初始化下载计数
     let downloadCounts = {
       stable: localStorage.getItem('downloadCount_stable') || 0,
       beta: localStorage.getItem('downloadCount_beta') || 0,
@@ -792,7 +827,6 @@
 
     // 专门处理Utterances加载后的布局调整
     window.addEventListener('load', function() {
-      // 等待一段时间确保Utterances完全加载
       setTimeout(function() {
         const utterancesFrame = document.querySelector('.utterances-frame iframe');
         if (utterancesFrame) {
@@ -803,18 +837,16 @@
         // 调整容器高度
         const container = document.querySelector('.container');
         const contentHeight = document.querySelector('.content-wrapper').offsetHeight;
+        const statsHeight = document.querySelector('.visit-stats').offsetHeight;
         const footerHeight = document.querySelector('.footer').offsetHeight;
         
-        // 设置最小高度，确保页脚在底部
-        const minHeight = contentHeight + footerHeight + 50;
-        container.style.minHeight = minHeight + 'px';
-        
-        // 强制调整页脚位置
-        document.querySelector('.footer').style.position = 'absolute';
+        // 设置容器最小高度
+        const minHeight = contentHeight + statsHeight + footerHeight;
+        container.style.minHeight = Math.max(minHeight, window.innerHeight - 20) + 'px';
       }, 2000);
     });
 
-    // ============ 浏览次数统计功能 - 纯本地存储方案 ============
+    // ============ 浏览次数统计功能 ============
     
     // 统计管理对象
     const statsManager = {
@@ -825,23 +857,6 @@
         localStorage.setItem('pageVisits', visits);
         document.getElementById('visitCount').textContent = visits.toLocaleString();
         return visits;
-      },
-      
-      // 更新总下载统计
-      updateTotalDownloads(amount = 1) {
-        let downloads = localStorage.getItem('totalDownloads') || 0;
-        downloads = parseInt(downloads) + amount;
-        localStorage.setItem('totalDownloads', downloads);
-        document.getElementById('totalDownloads').textContent = downloads.toLocaleString();
-        return downloads;
-      },
-      
-      // 初始化显示统计
-      initStatsDisplay() {
-        const visits = localStorage.getItem('pageVisits') || 0;
-        const downloads = localStorage.getItem('totalDownloads') || 0;
-        document.getElementById('visitCount').textContent = parseInt(visits).toLocaleString();
-        document.getElementById('totalDownloads').textContent = parseInt(downloads).toLocaleString();
       }
     };
     
@@ -849,54 +864,34 @@
     document.addEventListener('DOMContentLoaded', function() {
       // 确保统计框元素存在
       const visitCountEl = document.getElementById('visitCount');
-      const totalDownloadsEl = document.getElementById('totalDownloads');
       const statsContainer = document.querySelector('.visit-stats');
       
-      if (!visitCountEl || !totalDownloadsEl) {
+      if (!visitCountEl) {
         console.error('统计框元素未找到，请检查HTML结构');
-        // 尝试手动创建统计框
-        if (!statsContainer) {
-          createStatsBox();
-        }
         return;
       }
       
-      // 调试信息
-      console.log('统计功能初始化:', {
-        visitCountEl, 
-        totalDownloadsEl,
-        statsContainer,
-        visits: localStorage.getItem('pageVisits'),
-        downloads: localStorage.getItem('totalDownloads')
-      });
-      
       // 显示"加载中"提示
       visitCountEl.textContent = '加载中...';
-      totalDownloadsEl.textContent = '加载中...';
       
       // 立即使用本地数据更新显示
       setTimeout(() => {
         statsManager.updateVisitCount(); // 增加浏览次数
-        statsManager.initStatsDisplay(); // 显示统计数据
       }, 0);
     });
     
-    // 修正的下载按钮点击事件处理
+    // 下载按钮点击事件处理
     document.querySelectorAll('.download-btn').forEach(button => {
       // 创建新的事件处理函数
       const newHandler = function(e) {
         e.preventDefault();
         
         const version = this.dataset.version;
-        console.log(`下载按钮点击: ${version}`);
         
-        // 更新版本下载计数（只执行一次）
+        // 更新版本下载计数
         downloadCounts[version] = Number(downloadCounts[version]) + 1;
         localStorage.setItem(`downloadCount_${version}`, downloadCounts[version]);
         updateCountDisplay();
-        
-        // 更新总下载统计（只执行一次）
-        statsManager.updateTotalDownloads(1);
         
         // 延迟触发实际下载
         setTimeout(() => {
@@ -915,38 +910,6 @@
       
       // 为新按钮添加单一事件监听器
       newButton.addEventListener('click', newHandler);
-    });
-    
-    // 应急函数：如果统计框不存在，创建它
-    function createStatsBox() {
-      const footer = document.querySelector('.footer');
-      if (!footer) return;
-      
-      const statsHTML = `
-        <div class="visit-stats">
-          <div class="stats-container">
-            <i class="fas fa-eye"></i> 页面浏览：<span id="visitCount">0</span> 次
-            <span class="stats-separator">|</span>
-            <i class="fas fa-download"></i> 累计下载：<span id="totalDownloads">0</span> 次
-          </div>
-        </div>
-      `;
-      
-      footer.insertAdjacentHTML('beforebegin', statsHTML);
-      console.log('已创建统计框');
-    }
-    
-    // 页面完全加载后检查统计框
-    window.addEventListener('load', function() {
-      setTimeout(() => {
-        const statsContainer = document.querySelector('.visit-stats');
-        if (!statsContainer) {
-          console.warn('统计框未找到，尝试创建');
-          createStatsBox();
-        } else {
-          console.log('统计框已存在:', statsContainer);
-        }
-      }, 1000);
     });
   </script>
 </body>
