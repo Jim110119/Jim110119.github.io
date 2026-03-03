@@ -895,10 +895,10 @@
 	
 <script>
     const statsManager = {
-      // 访问量和下载量沿用原来的命名空间，保证历史数据不丢失
+      // 访问量和下载量沿用旧房间
       namespace: 'jim110119_github_io',
-      // 【新增】：评分系统启用一个全新的隔离空间，确保从零开始纯净计算
-      ratingNamespace: 'jim110119_rating_v1',
+      // 【全新启航】：启用 V2 隔离空间，确保数据干净
+      ratingNamespace: 'jim110119_rating_v2',
       
       versionKeys: {
         stable: 'downloads_v1_2_0',
@@ -906,7 +906,6 @@
         lite: 'downloads_v1_0_0'
       },
       
-      // 【修复】：使用标准的 { cache: 'no-store' } 替代 ?t= 时间戳
       async getVersionDownloads(version) {
         const key = this.versionKeys[version];
         try {
@@ -966,32 +965,51 @@
       async initRatings() {
         if (this.isRating) return; 
 
-        this.currentTotalScore = 0;
-        this.currentTotalVotes = 0;
+        const textEl = document.getElementById('ratingText');
+        if (localStorage.getItem('has_rated_lingting') !== 'true') {
+          textEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 正在拉取全网评分...';
+        }
+
+        let tempTotalScore = 0;
+        let tempTotalVotes = 0;
+        let successCount = 0;
         
-        // 排队去服务器拿真实的星级票数
+        // 【核心防御】：错峰排队请求。每查一颗星，强行睡 400 毫秒！
         for (let i = 0; i < this.ratingKeys.length; i++) {
           const key = this.ratingKeys[i];
           const starValue = i + 1;
           try {
-            // 查询评分专属的 ratingNamespace
-            const response = await fetch(`https://api.counterapi.dev/v1/${this.ratingNamespace}/${key}`, { cache: 'no-store' });
+            if (i > 0) await new Promise(resolve => setTimeout(resolve, 400));
+            
+            const response = await fetch(`https://api.counterapi.dev/v1/${this.ratingNamespace}/${key}`, { 
+              cache: 'no-store',
+              headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+            });
             
             let count = 0;
             if (response.ok) {
               const data = await response.json();
               count = Number(data.count) || 0;
+              successCount++;
             } else if (response.status === 404) {
               count = 0; 
+              successCount++;
             }
-            this.currentTotalScore += (count * starValue);
-            this.currentTotalVotes += count;
+            tempTotalScore += (count * starValue);
+            tempTotalVotes += count;
           } catch (error) {
             console.error(`加载星级 ${starValue} 失败:`, error);
           }
         }
         
-        this.renderRatingState();
+        // 只有 5 个星级数据全部安全拿到，才渲染真实结果
+        if (successCount === 5 && !this.isRating) {
+          this.currentTotalScore = tempTotalScore;
+          this.currentTotalVotes = tempTotalVotes;
+          this.renderRatingState();
+        } else if (!this.isRating) {
+           this.renderRatingState(); // 若失败太多次，回退显示 0.0
+        }
       },
 
       renderRatingState() {
@@ -1024,12 +1042,10 @@
 
         try {
           const key = `star_${scoreNum}`;
-          // 提交到专属的 ratingNamespace
           const response = await fetch(`https://api.counterapi.dev/v1/${this.ratingNamespace}/${key}/up`, { cache: 'no-store' });
           
-          if (!response.ok) throw new Error('网络异常，服务器拒绝');
+          if (!response.ok) throw new Error('网络异常');
 
-          // 服务器存入成功后，更新本地UI
           this.currentTotalScore += scoreNum;
           this.currentTotalVotes += 1;
           const newAvg = (this.currentTotalScore / this.currentTotalVotes).toFixed(1);
@@ -1050,8 +1066,7 @@
           }, 1500);
 
         } catch (error) {
-          console.error('评分失败', error);
-          textEl.innerHTML = `<span style="color:#e65100;">网络异常提交失败，请重试</span>`;
+          textEl.innerHTML = `<span style="color:#e65100;">提交失败，请重试</span>`;
           this.isRating = false; 
         }
       }
@@ -1062,10 +1077,16 @@
       const visitCountEl = document.getElementById('visitCount');
       if (visitCountEl) visitCountEl.textContent = '加载中...';
       
+      // 第 1 波：立刻请求基础访问量数据
       statsManager.initVersionDownloads();
       statsManager.updateVisitCount();
-      statsManager.initRatings();
+      
+      // 第 2 波：【核心防御】憋 2 秒钟，等第一波全搞定后，再慢慢拉取评分
+      setTimeout(() => {
+        statsManager.initRatings();
+      }, 2000);
 
+      // 绑定下载与交互
       document.querySelectorAll('.download-btn').forEach(button => {
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
@@ -1127,7 +1148,6 @@
         }
       }, 2000);
     });
-  </script>
-	
+  </script>	
 </body>
 </html>
