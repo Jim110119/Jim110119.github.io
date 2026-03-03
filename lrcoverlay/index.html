@@ -897,7 +897,7 @@
     const statsManager = {
       // 访问量和下载量沿用旧房间，保证数据不丢
       namespace: 'jim110119_github_io',
-      // 【终极方案】：启用 V3 纯净空间
+      // 评分系统
       ratingNamespace: 'jim110119_rating_v3',
       
       versionKeys: {
@@ -909,7 +909,8 @@
       async getVersionDownloads(version) {
         const key = this.versionKeys[version];
         try {
-          const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}`, { cache: 'no-store' });
+          // 【救命斜杠】：注意链接末尾的 /，防止触发 301 重定向导致 CORS 拦截！
+          const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}/`, { cache: 'no-store' });
           if (response.status === 404) return 0; 
           if (!response.ok) throw new Error('API Error');
           const data = await response.json();
@@ -922,6 +923,7 @@
       async updateVersionDownloads(version) {
         const key = this.versionKeys[version];
         try {
+          // 提交接口带 /up，本身没问题
           const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}/up`, { cache: 'no-store' });
           if (!response.ok) throw new Error('API Error');
           const data = await response.json();
@@ -973,7 +975,6 @@
         let tempTotalScore = 0;
         let tempTotalVotes = 0;
         
-        // 【核心防御：带重试的排队系统】
         for (let i = 0; i < this.ratingKeys.length; i++) {
           const key = this.ratingKeys[i];
           const starValue = i + 1;
@@ -981,10 +982,10 @@
           let count = 0;
           let fetchSuccess = false;
 
-          // 每个星级最多死磕 3 次，专门对付服务器限流
           for(let attempt = 0; attempt < 3; attempt++) {
             try {
-              const response = await fetch(`https://api.counterapi.dev/v1/${this.ratingNamespace}/${key}`, { 
+              // 【救命斜杠】：注意链接末尾的 /，绕开坑爹的重定向！
+              const response = await fetch(`https://api.counterapi.dev/v1/${this.ratingNamespace}/${key}/`, { 
                 cache: 'no-store'
               });
               
@@ -992,32 +993,27 @@
                 const data = await response.json();
                 count = Number(data.count) || 0;
                 fetchSuccess = true;
-                break; // 成功则跳出重试循环
+                break;
               } else if (response.status === 404) {
-                count = 0; // 404表示还没人打这个星级，这是正常的
+                count = 0; 
                 fetchSuccess = true;
                 break;
               } else if (response.status === 429) {
-                // 遇到限流，强行睡1秒再试
                 await new Promise(r => setTimeout(r, 1000));
               }
             } catch (error) {
-              // 遇到网络波动，睡0.5秒再试
               await new Promise(r => setTimeout(r, 500));
             }
           }
 
-          // 只要拿到了（哪怕有的星级死活拿不到），也把拿到的分加上去！
           if (fetchSuccess) {
             tempTotalScore += (count * starValue);
             tempTotalVotes += count;
           }
 
-          // 每个星级查完，强制休息 0.3 秒，避免一口气发5个请求被拉黑
           await new Promise(r => setTimeout(r, 300));
         }
         
-        // 只要用户当前没有正在点击打分，就把计算好的真实总分渲染出来
         if (!this.isRating) {
           this.currentTotalScore = tempTotalScore;
           this.currentTotalVotes = tempTotalVotes;
@@ -1058,7 +1054,6 @@
           
           let response = await fetch(`https://api.counterapi.dev/v1/${this.ratingNamespace}/${key}/up`, { cache: 'no-store' });
           
-          // 如果打分也被限流了，等1.5秒重试一次
           if (response.status === 429) {
             await new Promise(r => setTimeout(r, 1500));
             response = await fetch(`https://api.counterapi.dev/v1/${this.ratingNamespace}/${key}/up`, { cache: 'no-store' });
@@ -1066,7 +1061,6 @@
 
           if (!response.ok) throw new Error('网络异常');
 
-          // 成功提交到服务器后，本地再修改UI
           this.currentTotalScore += scoreNum;
           this.currentTotalVotes += 1;
           const newAvg = (this.currentTotalScore / this.currentTotalVotes).toFixed(1);
@@ -1093,21 +1087,17 @@
       }
     };
 
-    // 事件绑定
     document.addEventListener('DOMContentLoaded', function() {
       const visitCountEl = document.getElementById('visitCount');
       if (visitCountEl) visitCountEl.textContent = '加载中...';
       
-      // 第 1 波：立刻请求基础访问量和下载量
       statsManager.initVersionDownloads();
       statsManager.updateVisitCount();
       
-      // 第 2 波：错开高峰期，憋 2 秒后再开始慢慢拉取评分数据
       setTimeout(() => {
         statsManager.initRatings();
       }, 2000);
 
-      // 绑定下载与交互
       document.querySelectorAll('.download-btn').forEach(button => {
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
@@ -1150,7 +1140,6 @@
       });
     });
 
-    // Utterances 调整
     window.addEventListener('load', function() {
       setTimeout(function() {
         const utterancesFrame = document.querySelector('.utterances-frame iframe');
@@ -1170,5 +1159,6 @@
       }, 2000);
     });
   </script>
+	
 </body>
 </html>
