@@ -8,8 +8,8 @@
   <meta property="og:title" content="零听悬浮歌词 - 应用页" />
   <meta itemprop="name" content="零听悬浮歌词 - 应用页" />
 
-  <meta property="og:description" content="零听悬浮歌词 app 由零跑车主开发，适用于 21-23 款，旨在使本地歌曲实现悬浮歌词的目标。" />
-  <meta itemprop="description" content="零听悬浮歌词 app 由零跑车主开发，适用于 21-23 款，旨在使本地歌曲实现悬浮歌词的目标" />
+  <meta property="og:description" content="零听悬浮歌词 app 由零跑车主开发，适用于 21-23 款，让本地歌曲不依赖第三方桌面能实现悬浮歌词。" />
+  <meta itemprop="description" content="零听悬浮歌词 app 由零跑车主开发，适用于 21-23 款，让本地歌曲不依赖第三方桌面能实现悬浮歌词。" />
 
   <meta property="og:image" content="./悬浮效果.png" />
   <meta itemprop="image" content="./悬浮效果.png" />
@@ -206,10 +206,6 @@
 
     .version-block:nth-child(2) {
       border-left-color: #ff9800;
-    }
-
-    .version-block:nth-child(3) {
-      border-left-color: #9c27b0;
     }
 
     .version-content {
@@ -677,7 +673,7 @@
       </h2>
       
       <div class="intro-content">
-        <p>本 app 由零跑车主开发，适用于 21-23 款（其它款没车），旨在使本地歌曲实现悬浮歌词的目标。由于系统只允许 SAF 方式访问 U盘，QQ 音乐无法扫描 U盘歌曲当做本地媒体（除非 Root）。不想买音乐会员，就另起炉灶，既然能 SAF 访问 U盘，那我们就访问里面的歌词呗。这应该是全网第一个不依赖第三方桌面的零跑悬浮歌词插件应用免费分享。</p> 
+        <p>本 app 由零跑车主开发，适用于 21-23 款，让本地歌曲也能实现歌词悬浮，主屏、仪表、副驾、屏保四屏渲染独立开关控制，并且副屏可以实现屏保自定义，取代原车的图片轮播。这应该是全网第一个不依赖第三方桌面的零跑悬浮歌词插件。</p> 
                 
         <div class="image-container">
           <img src="./悬浮效果.png" alt="零听悬浮歌词效果展示" style="width: 75%; max-width: 540px; height: auto;">
@@ -691,31 +687,31 @@
           <li>
             <div class="feature-title">零听歌曲匹配与全局媒体监听</div>
             <div class="feature-desc">
-              <p>监听零听U盘播放曲目（不支持蓝牙与零听酷狗）。由于零听不使用安卓的标准媒体通知，只能通过日志反向试出它播放u盘曲目时的media_id，从大量日志中没有找到上报的歌曲进度信息，所以用计时器自己滚动有些bug：拖动进度条歌词不能同步；刚开机或者从其他播放器回切时自动从头开始。但是按暂停或者切歌即刻同步，所以几乎不影响使用。</p>
-              <p>监听任意第三方播放器（包括视频播放器，请手动关闭）发布的标准媒体通知，第三方播放器无上述歌词同步问题。</p>
+              <p>监听零听U盘播放曲目。由于零听不使用安卓的标准媒体通知，U盘歌词有些bug：拖动进度条歌词不能同步；刚开机或者从其他播放器回切时自动从头开始。但是按暂停或者切歌即刻同步，所以几乎不影响使用。</p>
+              <p>监听任意第三方播放器（包括视频播放器，若播放视频请手动关闭歌词）发布的标准媒体通知，第三方播放器无歌词同步不跳动的问题。</p>
             </div>
           </li>
           
           <li>
             <div class="feature-title">无障碍级状态栏穿透与后台常驻</div>
             <div class="feature-desc">
-              <p>v1.1.0以上因为要实现状态栏覆盖，需要保活无障碍权限，保活需ADB提权，否则要每次开机手动授权。若嫌麻烦可使用1.0版本。</p>
-              <p>无障碍版AMS后台免死，此应用常驻后台运存占用小于40M，请放心使用。</p>
+              <p>v1.1.0以上因为要实现状态栏覆盖，需要保活无障碍权限，保活需ADB提权，否则要每次开机手动授权。</p>
+              <p>无障碍版AMS后台免死，此应用常驻后台运存占用约50M，请放心使用。</p>
             </div>
           </li>
           
           <li>
             <div class="feature-title">仪表盘多屏异显引擎</div>
             <div class="feature-desc">
-              <p>建立独立渲染沙盒，主屏与仪表盘拥有完全独立的开关与坐标系统。</p>
+              <p>建立独立渲染沙盒，主屏、仪表、副驾驶、屏保，完全独立开关与设置。</p>
             </div>
           </li>
           
           <li>
             <div class="feature-title">双核歌词解析</div>
             <div class="feature-desc">
-              <p>本地扫描：基于树形目录遍历索引U盘/内部存储.lrc文件。但是SAF访问方式较慢，刚打开或启动时会显示"无本地歌词"或"暂无歌词"（打开联网且匹配不到），请静待扫描完成。</p>
-              <p>智能网搜回退：本地无匹配时，自动触发网络引擎（默认爬取网易云API），支持精准ID匹配与歌名/歌手模糊搜索。但是模糊搜索匹配的曲目/滚动时间不一定准确，若搜索超时请自行切换URL，建议使用本地歌词。</p>
+              <p>本地扫描：基于树形目录遍历索引U盘/内部存储.lrc文件。但是SAF访问方式较慢，刚打开或启动时会显示"无本地歌词"（未打开网络歌词），请静待扫描完成。</p>
+              <p>智能网搜回退：本地无匹配时，自动触发网络引擎（默认对接网易云API，可自行更换），支持精准ID匹配与歌名/歌手模糊搜索。</p>
             </div>
           </li>
           
@@ -723,9 +719,9 @@
             <div class="feature-title">深度级UI定制</div>
             <div class="feature-desc">
               <p>自由配置：通过RGB滑块实现颜色自由定义，加深阴影在复杂背景下仍清晰可见，快捷设置栏实现对行数、位置、时间补偿自由定义。</p>
-              <p>丝滑上推过渡：打破单行歌词生硬切换的限制，无论1、2、3行，均提供丝滑的300ms属性动画滚动阻尼效果。</p>
+              <p>丝滑上推过渡：行滚动提供丝滑硬件渲染动画滑动效果。</p>
               <p>开启自启记忆：开机自动沿用上次设置。</p>
-              <p>其他：切歌时UI等待与IO读取之间有时间冲突，会概率性看到切歌上一首歌词开头残影（ms级）的现象，未能完全消除。</p>
+              <p>其他：切歌时UI等待与IO读取之间有时间冲突，会概率性看到切歌上一首歌词开头残影（ms级）的现象。</p>
             </div>
           </li>
         </ul>
@@ -735,9 +731,9 @@
         </h3>
         
         <ol class="feature-list" style="list-style-type: decimal; margin-left: 25px;">
-          <li><strong>基础授权</strong>：安装完成后点击"1.选取U盘歌词目录"按提示授权悬浮窗权限与通知权限以及歌词目录。</li>
-          <li><strong>启用主屏无障碍穿透</strong>：进入车机系统"无障碍(Accessibility)"设置，找到"零听悬浮歌词"并开启。</li>
-          <li><strong>歌词设置</strong>：主屏歌词直接点击悬浮窗设置，锁定或关闭后回应用界面解锁或开启。仪表歌词点击应用界面"仪表歌词设置"，开启总开关并调节X/Y坐标轴至仪表盘可视安全区域。</li>
+          <li><strong>基础授权</strong>：安装完成后进行基础授权和歌词目录选择，请在u盘存放与歌曲同名的.lrc格式的歌词文件，名称格式为“歌手 - 歌名.lrc”或“歌名.lrc。</li>
+          <li><strong>启用无障碍穿透</strong>：无障碍权限可以实现歌词覆盖于通知栏或系统设置界面之上，首次打主屏悬浮窗激活，或进入车机系统"无障碍(Accessibility)"设置，找到"零听悬浮歌词"并开启。注意无障碍权限需ADB提权经无障碍管理app保活（非破解），否则每次都要手动开启，方法不在此提供。</li>
+          <li><strong>歌词设置</strong>：将歌词调整至合适区域，若移出屏幕外围，请回主界面重置。</li>
         </ol>
         
         <p style="text-align: left;">参考视频：<a href="https://www.douyin.com/video/7611730600667532590" target="_blank" style="color: #1e88e5; text-decoration: underline;">点击链接播放</a></p>
@@ -747,7 +743,7 @@
             <i class="fas fa-exclamation-triangle"></i> 安全警告与免责声明
           </div>
           <p><strong>驾驶安全第一</strong>：在仪表盘区域显示动态信息可能会分散驾驶注意力。应用内置了自定义坐标系统，请务必将歌词调节至不遮挡系统图标、时速、导航箭头的边缘安全区域！请规范使用仪表歌词，专注驾驶！</p>
-          <p><strong>声明</strong>：本应用纯属个人DIY，未修改车机任何底层系统文件，不涉及Root破解，不确保无bug，请谨慎使用，若引发任何问题由使用者自行承担。</p>
+          <p><strong>声明</strong>：本应用纯属个人DIY，未修改车机任何底层系统文件，不涉及Root破解，请谨慎使用，若引发任何问题由使用者自行承担。</p>
         </div>
         
         <h3 class="intro-title" style="font-size: 18px; margin-top: 20px; border-bottom-color: #1e88e5;">
@@ -758,6 +754,38 @@
 
     <div class="content-wrapper">
       <div class="versions-container">
+	  
+	  <div class="version-block" data-version="v2">
+          <div class="version-content">
+            <div class="version-info-col">
+              <div class="version-info">
+                <div>
+                  <span class="info-label">版本号：</span>
+                  <span class="info-value">v2.0</span>
+                </div>
+                <span class="file-size-info">7.06 MB</span>
+              </div>
+              
+              <div class="version-description">
+                1. 全新界面。
+				2. 新增支持副屏悬浮歌词与自定义屏保歌词。
+				3. 修复歌词编码兼容异常。
+				4. 支持暂停播放时隐藏歌词。
+              </div>
+            </div>
+            
+            <div class="download-col">
+              <a href="./release/com.leapmotor.lrcoverlay_v2.0.apk" class="download-btn" data-version="v2">
+                <i class="fas fa-download"></i> 立即下载
+              </a>
+              
+              <div class="download-count" id="count-v2">
+                <i class="fas fa-users"></i> 加载中...
+              </div>
+            </div>
+          </div>
+        </div>
+	  
         <div class="version-block" data-version="stable">
           <div class="version-content">
             <div class="version-info-col">
@@ -770,9 +798,9 @@
               </div>
               
               <div class="version-description">
-                1. 新增仪表悬浮歌词投屏功能，可自定义UI（颜色与主屏歌词同步）；
+                1. 新增仪表悬浮歌词投屏功能，可自定义UI（颜色与主屏歌词同步）。
                 2. 主屏歌词增加双行滚动选项。
-                3. 修复上一版第一次开机自启主屏歌词会自动下沉的BUG。
+                3. 修复第一次开机自启主屏歌词自动下沉。
               </div>
             </div>
             
@@ -787,62 +815,8 @@
             </div>
           </div>
         </div>
-        
-        <div class="version-block" data-version="beta">
-          <div class="version-content">
-            <div class="version-info-col">
-              <div class="version-info">
-                <div>
-                  <span class="info-label">版本号：</span>
-                  <span class="info-value">v1.1.0</span>
-                </div>
-                <span class="file-size-info">7.01 MB</span>
-              </div>
-              
-              <div class="version-description">
-                新增通知栏覆盖，可设置单行置于通知栏上方，需开启和保活无障碍权限。若不会保活，请使用上一版本。
-              </div>
-            </div>
-            
-            <div class="download-col">
-              <a href="./零听悬浮歌词 v1.1.0.apk" class="download-btn" data-version="beta">
-                <i class="fas fa-download"></i> 立即下载
-              </a>
-              
-              <div class="download-count" id="count-beta">
-                <i class="fas fa-users"></i> 加载中...
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="version-block" data-version="lite">
-          <div class="version-content">
-            <div class="version-info-col">
-              <div class="version-info">
-                <div>
-                  <span class="info-label">版本号：</span>
-                  <span class="info-value">v1.0.0</span>
-                </div>
-                <span class="file-size-info">7.00 MB</span>
-              </div>
-              
-              <div class="version-description">
-                仅支持桌面歌词，前台服务+后台通知方式保活，无需无障碍权限。
-              </div>
-            </div>
-            
-            <div class="download-col">
-              <a href="./零听悬浮歌词 v1.0.0.apk" class="download-btn" data-version="lite">
-                <i class="fas fa-download"></i> 立即下载
-              </a>
-              
-              <div class="download-count" id="count-lite">
-                <i class="fas fa-users"></i> 加载中...
-              </div>
-            </div>
-          </div>
-        </div>
+
+        <!-- 已根据用户要求删除 v1.1.0 和 v1.0.0 版本块 -->
       </div>
 
       <div class="comments-container">
@@ -900,16 +874,17 @@
       // 评分系统
       ratingNamespace: 'jim110119_rating_v3',
       
+      // 根据用户要求，只保留 v2.0 和 v1.2.0 版本的下载统计
       versionKeys: {
+	    v2: 'downloads_v2_0', // v2.0的专属下载量房间
         stable: 'downloads_v1_2_0',
-        beta: 'downloads_v1_1_0',
-        lite: 'downloads_v1_0_0'
+        // 已移除 beta: 'downloads_v1_1_0',
+        // 已移除 lite: 'downloads_v1_0_0'
       },
       
       async getVersionDownloads(version) {
         const key = this.versionKeys[version];
         try {
-          // 【救命斜杠】：注意链接末尾的 /，防止触发 301 重定向导致 CORS 拦截！
           const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}/`, { cache: 'no-store' });
           if (response.status === 404) return 0; 
           if (!response.ok) throw new Error('API Error');
@@ -923,7 +898,6 @@
       async updateVersionDownloads(version) {
         const key = this.versionKeys[version];
         try {
-          // 提交接口带 /up，本身没问题
           const response = await fetch(`https://api.counterapi.dev/v1/${this.namespace}/${key}/up`, { cache: 'no-store' });
           if (!response.ok) throw new Error('API Error');
           const data = await response.json();
@@ -984,7 +958,6 @@
 
           for(let attempt = 0; attempt < 3; attempt++) {
             try {
-              // 【救命斜杠】：注意链接末尾的 /，绕开坑爹的重定向！
               const response = await fetch(`https://api.counterapi.dev/v1/${this.ratingNamespace}/${key}/`, { 
                 cache: 'no-store'
               });
