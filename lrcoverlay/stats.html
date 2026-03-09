@@ -3,22 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>零听歌词 - 实时数据看板</title>
+    <title>零听歌词 - 运营数据大屏</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { margin: 0; padding: 0; background-color: #0f172a; color: #38bdf8; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        .container { background: rgba(30, 41, 59, 0.7); padding: 40px 60px; border-radius: 20px; box-shadow: 0 0 30px rgba(56, 189, 248, 0.2); text-align: center; border: 1px solid #334155; }
-        h1 { font-size: 24px; color: #e2e8f0; margin-bottom: 10px; letter-spacing: 2px; }
-        .number-box { font-size: 80px; font-weight: bold; color: #0ea5e9; text-shadow: 0 0 20px rgba(14, 165, 233, 0.6); margin: 20px 0; }
-        .footer { margin-top: 30px; font-size: 14px; color: #64748b; }
-        .loading { font-size: 40px; color: #94a3b8; animation: pulse 1.5s infinite; }
+        body { margin: 0; padding: 20px; background-color: #0f172a; color: #38bdf8; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        .dashboard { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 20px; }
+        .card { background: rgba(30, 41, 59, 0.7); padding: 30px; border-radius: 16px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); border: 1px solid #334155; text-align: center; }
+        h2 { font-size: 20px; color: #e2e8f0; margin-top: 0; margin-bottom: 10px; letter-spacing: 1px; }
+        .number-box { font-size: 60px; font-weight: bold; color: #0ea5e9; text-shadow: 0 0 15px rgba(14, 165, 233, 0.5); margin: 10px 0; }
+        .loading { font-size: 30px; color: #94a3b8; animation: pulse 1.5s infinite; }
+        .footer { margin-top: 20px; font-size: 13px; color: #64748b; text-align: center; }
+        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 零听悬浮歌词 总装机量</h1>
-        <div id="installCount" class="number-box loading">读取中...</div>
-        <div class="footer">数据来源：Supabase 边缘节点实时汇算 | 极客专属</div>
+    <div class="dashboard">
+        <div style="display: flex; gap: 20px;">
+            <div class="card" style="flex: 1;">
+                <h2>🚀 累计总装机</h2>
+                <div id="installCount" class="number-box loading">...</div>
+            </div>
+            <div class="card" style="flex: 1;">
+                <h2>🔥 今日实时活跃 (24h)</h2>
+                <div id="todayActiveCount" class="number-box loading">...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📈 最近 7 天活跃趋势 (DAU)</h2>
+            <div class="chart-container">
+                <canvas id="dauChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="footer">数据每分钟自动刷新 | 数据来源：Supabase 端云同步架构</div>
     </div>
 
     <script>
@@ -26,32 +45,69 @@
         const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
         
-        // 为了极致性能，我们只请求 1 条数据，但要求服务器在 Header 里返回精确的总行数
-        const API_URL = `${SUPABASE_URL}/rest/v1/installations?select=id&limit=1`;
+        const headers = {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json'
+        };
 
-        fetch(API_URL, {
+        // 1. 获取总装机量 (逻辑不变)
+        fetch(`${SUPABASE_URL}/rest/v1/installations?select=id&limit=1`, {
             method: 'GET',
-            headers: {
-                'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                // 这两个 Header 是让 Supabase 吐出总数的关键魔法
-                'Range-Unit': 'items',
-                'Prefer': 'count=exact'
-            }
-        })
-        .then(response => {
-            // Supabase 会在 Content-Range 头部返回类似 "0-0/128" 的格式，128 就是总数
-            const contentRange = response.headers.get('Content-Range');
-            if (contentRange) {
-                const totalCount = parseInt(contentRange.split('/')[1]);
-                animateValue("installCount", 0, totalCount, 1500);
-            } else {
-                document.getElementById('installCount').innerText = "0";
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('installCount').innerText = "加载失败";
+            headers: { ...headers, 'Range-Unit': 'items', 'Prefer': 'count=exact' }
+        }).then(res => {
+            const range = res.headers.get('Content-Range');
+            const total = range ? parseInt(range.split('/')[1]) : 0;
+            animateValue("installCount", 0, total, 1500);
+        });
+
+        // 2. 获取 7 天活跃数据 (直接请求我们刚才写的 SQL 视图！)
+        fetch(`${SUPABASE_URL}/rest/v1/daily_stats?select=*`, {
+            method: 'GET',
+            headers: headers
+        }).then(res => res.json()).then(data => {
+            // 数据库返回的是倒序（最新日期在前），我们要反转一下方便画图（从左到右显示）
+            data.reverse();
+
+            // 提取图表需要的 X 轴（日期）和 Y 轴（活跃人数）
+            const labels = data.map(item => item.active_date.substring(5)); // 把 "2026-03-09" 变成 "03-09"
+            const counts = data.map(item => item.active_count);
+
+            // 更新今日实时活跃量（取数组最后一天的数据）
+            const todayCount = counts.length > 0 ? counts[counts.length - 1] : 0;
+            animateValue("todayActiveCount", 0, todayCount, 1500);
+
+            // 3. 绘制帅气的折线图
+            const ctx = document.getElementById('dauChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '日活跃车机数',
+                        data: counts,
+                        borderColor: '#0ea5e9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.2)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointRadius: 5,
+                        fill: true,
+                        tension: 0.3 // 让线条有平滑的弧度
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14 }, padding: 12 }
+                    }
+                }
+            });
         });
 
         function animateValue(id, start, end, duration) {
@@ -62,7 +118,7 @@
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
                 obj.innerHTML = Math.floor(progress * (end - start) + start);
-                if (progress < 1) { window.requestAnimationFrame(step); }
+                if (progress < 1) window.requestAnimationFrame(step);
             };
             window.requestAnimationFrame(step);
         }
