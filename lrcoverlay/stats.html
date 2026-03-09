@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>零听歌词 - 实时数据看板</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #0f172a; color: #38bdf8; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        .container { background: rgba(30, 41, 59, 0.7); padding: 40px 60px; border-radius: 20px; box-shadow: 0 0 30px rgba(56, 189, 248, 0.2); text-align: center; border: 1px solid #334155; }
+        h1 { font-size: 24px; color: #e2e8f0; margin-bottom: 10px; letter-spacing: 2px; }
+        .number-box { font-size: 80px; font-weight: bold; color: #0ea5e9; text-shadow: 0 0 20px rgba(14, 165, 233, 0.6); margin: 20px 0; }
+        .footer { margin-top: 30px; font-size: 14px; color: #64748b; }
+        .loading { font-size: 40px; color: #94a3b8; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 零听悬浮歌词 总装机量</h1>
+        <div id="installCount" class="number-box loading">读取中...</div>
+        <div class="footer">数据来源：Supabase 边缘节点实时汇算 | 极客专属</div>
+    </div>
+
+    <script>
+        // ================= 替换为你的 Supabase 配置 =================
+        const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
+        
+        // 为了极致性能，我们只请求 1 条数据，但要求服务器在 Header 里返回精确的总行数
+        const API_URL = `${SUPABASE_URL}/rest/v1/installations?select=id&limit=1`;
+
+        fetch(API_URL, {
+            method: 'GET',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                // 这两个 Header 是让 Supabase 吐出总数的关键魔法
+                'Range-Unit': 'items',
+                'Prefer': 'count=exact'
+            }
+        })
+        .then(response => {
+            // Supabase 会在 Content-Range 头部返回类似 "0-0/128" 的格式，128 就是总数
+            const contentRange = response.headers.get('Content-Range');
+            if (contentRange) {
+                const totalCount = parseInt(contentRange.split('/')[1]);
+                animateValue("installCount", 0, totalCount, 1500);
+            } else {
+                document.getElementById('installCount').innerText = "0";
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('installCount').innerText = "加载失败";
+        });
+
+        function animateValue(id, start, end, duration) {
+            let obj = document.getElementById(id);
+            obj.classList.remove("loading");
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) { window.requestAnimationFrame(step); }
+            };
+            window.requestAnimationFrame(step);
+        }
+    </script>
+</body>
+</html>
