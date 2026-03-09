@@ -1,5 +1,5 @@
 {
-  "versionCode": 3,
+  "versionCode": 2,
   "versionName": "v2.0",
   "updateLog": "\n• 全新界面\n• 新增支持副屏悬浮歌词与自定义屏保歌词\n• 修复歌词编码兼容异常\n• 支持暂停播放时隐藏歌词",
   "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/com.leapmotor.lrcoverlay_v2.0.apk"
