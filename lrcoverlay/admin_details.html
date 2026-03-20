@@ -1,1 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - 用户明细</title>
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; font-family: monospace; padding: 20px; }
+        .auth-box { text-align: center; margin-top: 100px; }
+        input { padding: 10px; border-radius: 5px; border: 1px solid #38bdf8; background: #1e293b; color: white; outline: none; }
+        button { padding: 10px 20px; border-radius: 5px; border: none; background: #0ea5e9; color: white; cursor: pointer; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
+        th, td { padding: 12px; border: 1px solid #334155; text-align: left; }
+        th { background: #1e293b; color: #38bdf8; }
+        .vip-yes { color: #f59e0b; font-weight: bold; }
+        .vip-no { color: #94a3b8; }
+    </style>
+</head>
+<body>
 
+    <div class="auth-box" id="authBox">
+        <h2>🔒 安全验证</h2>
+        <input type="password" id="adminPwd" placeholder="请输入管理员密码">
+        <button onclick="fetchData()">解锁数据</button>
+        <p id="errMsg" style="color: #ef4444; display: none;">密码错误，拒绝访问！</p>
+    </div>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>用户名</th>
+                <th>密码</th>
+                <th>状态</th>
+                <th>注册时间</th>
+                <th>使用的卡密</th>
+                <th>核销时间</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script>
+        const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
+
+        function fetchData() {
+            const pwd = document.getElementById('adminPwd').value;
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_all_user_details`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ admin_pwd: pwd }) // 提交密码去云端校验
+            })
+            .then(res => res.json())
+            .then(resData => {
+                if (resData.success) {
+                    document.getElementById('authBox').style.display = 'none';
+                    document.getElementById('dataTable').style.display = 'table';
+                    const tbody = document.getElementById('tableBody');
+                    
+                    // 渲染表格数据
+                    resData.data.forEach(user => {
+                        const row = `<tr>
+                            <td>${user.username}</td>
+                            <td>${user.password}</td>
+                            <td class="${user.is_vip ? 'vip-yes' : 'vip-no'}">${user.is_vip ? '永久VIP' : '普通'}</td>
+                            <td>${new Date(user.created_at).toLocaleString()}</td>
+                            <td>${user.used_code || '-'}</td>
+                            <td>${user.used_time ? new Date(user.used_time).toLocaleString() : '-'}</td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    document.getElementById('errMsg').style.display = 'block';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
