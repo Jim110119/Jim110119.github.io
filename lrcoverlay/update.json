@@ -1,6 +1,6 @@
 {
-  "versionCode": 2,
-  "versionName": "v2.0",
-  "updateLog": "\n• 全新界面\n• 新增支持副屏悬浮歌词与自定义屏保歌词\n• 修复歌词编码兼容异常\n• 支持暂停播放时隐藏歌词",
+  "versionCode": 3,
+  "versionName": "v3.0",
+  "updateLog": "• 联网歌词增加自定义API列表，切换更便捷。\n• 优化仪表歌词异常掉线。\n• 支持原生桌面动态壁纸。\n• 新增高级功能：任意应用仪表副驾飞屏一键开关、仪表双模式飞屏、开机全自动飞屏、飞屏遥控器。\n• 支持一键开启无障碍持久。",
   "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/com.leapmotor.lrcoverlay_v2.0.apk"
 }
