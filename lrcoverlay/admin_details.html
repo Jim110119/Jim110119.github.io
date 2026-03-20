@@ -3,26 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>后台管理 - 用户明细</title>
+    <title>后台管理 - 用户明细与设备控制</title>
     <style>
         body { background-color: #0f172a; color: #e2e8f0; font-family: monospace; padding: 20px; }
         .auth-box { text-align: center; margin-top: 100px; }
         input { padding: 10px; border-radius: 5px; border: 1px solid #38bdf8; background: #1e293b; color: white; outline: none; }
         button { padding: 10px 20px; border-radius: 5px; border: none; background: #0ea5e9; color: white; cursor: pointer; font-weight: bold; }
+        
+        /* 搜索框与控制台容器 */
+        .control-panel { display: none; justify-content: space-between; align-items: center; margin-top: 20px; background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; }
+        .search-box { width: 300px; padding: 8px 15px; border-radius: 20px; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
         th, td { padding: 12px; border: 1px solid #334155; text-align: left; }
         th { background: #1e293b; color: #38bdf8; }
         .vip-yes { color: #f59e0b; font-weight: bold; }
         .vip-no { color: #94a3b8; }
+        
+        /* 解绑按钮样式 */
+        .btn-unbind { background: #ef4444; padding: 6px 12px; font-size: 12px; }
+        .btn-unbind:hover { background: #dc2626; }
+        .btn-disabled { background: #475569; cursor: not-allowed; color: #94a3b8; padding: 6px 12px; font-size: 12px; border-radius: 5px; border: none; }
+        
+        .uuid-text { font-size: 11px; color: #94a3b8; word-break: break-all; max-width: 150px; }
     </style>
 </head>
 <body>
 
     <div class="auth-box" id="authBox">
-        <h2>🔒 安全验证</h2>
+        <h2>🔒 高级管理员后台</h2>
         <input type="password" id="adminPwd" placeholder="请输入管理员密码">
         <button onclick="fetchData()">解锁数据</button>
         <p id="errMsg" style="color: #ef4444; display: none;">密码错误，拒绝访问！</p>
+    </div>
+
+    <div class="control-panel" id="controlPanel">
+        <div>
+            <span style="font-size: 18px; font-weight: bold; color: #38bdf8;">👥 用户总库</span>
+            <span id="userCount" style="margin-left: 10px; color: #94a3b8;">共 0 人</span>
+        </div>
+        <div>
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 输入用户名搜索..." oninput="filterTable()">
+        </div>
     </div>
 
     <table id="dataTable">
@@ -31,9 +53,9 @@
                 <th>用户名</th>
                 <th>密码</th>
                 <th>状态</th>
-                <th>注册时间</th>
                 <th>使用的卡密</th>
-                <th>核销时间</th>
+                <th>当前绑定设备 (UUID)</th>
+                <th>操作</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -42,39 +64,88 @@
     <script>
         const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
+        
+        let currentPwd = '';
+        let allUserData = []; // 存在内存里的全局数据，用于搜索过滤
 
         function fetchData() {
-            const pwd = document.getElementById('adminPwd').value;
+            currentPwd = document.getElementById('adminPwd').value;
             fetch(`${SUPABASE_URL}/rest/v1/rpc/get_all_user_details`, {
                 method: 'POST',
-                headers: {
-                    'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ admin_pwd: pwd }) // 提交密码去云端校验
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ admin_pwd: currentPwd })
             })
             .then(res => res.json())
             .then(resData => {
                 if (resData.success) {
                     document.getElementById('authBox').style.display = 'none';
+                    document.getElementById('controlPanel').style.display = 'flex';
                     document.getElementById('dataTable').style.display = 'table';
-                    const tbody = document.getElementById('tableBody');
                     
-                    // 渲染表格数据
-                    resData.data.forEach(user => {
-                        const row = `<tr>
-                            <td>${user.username}</td>
-                            <td>${user.password}</td>
-                            <td class="${user.is_vip ? 'vip-yes' : 'vip-no'}">${user.is_vip ? '永久VIP' : '普通'}</td>
-                            <td>${new Date(user.created_at).toLocaleString()}</td>
-                            <td>${user.used_code || '-'}</td>
-                            <td>${user.used_time ? new Date(user.used_time).toLocaleString() : '-'}</td>
-                        </tr>`;
-                        tbody.innerHTML += row;
-                    });
+                    // 把数据存入全局变量，并降序排列（新注册的在最上面）
+                    allUserData = resData.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    document.getElementById('userCount').innerText = `共 ${allUserData.length} 人`;
+                    
+                    renderTable(allUserData); // 初次渲染全部数据
                 } else {
                     document.getElementById('errMsg').style.display = 'block';
+                }
+            });
+        }
+
+        // 渲染表格的独立函数
+        function renderTable(dataArray) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = ''; // 清空旧数据
+            
+            dataArray.forEach(user => {
+                const isBound = user.device_uuid && user.device_uuid !== '';
+                
+                // 判断操作按钮状态
+                const actionBtn = isBound 
+                    ? `<button class="btn-unbind" onclick="forceUnbind('${user.username}')">强制解绑</button>`
+                    : `<button class="btn-disabled" disabled>已空置</button>`;
+                    
+                const uuidDisplay = isBound ? user.device_uuid : `<span style="color:#ef4444;">未绑定任何设备</span>`;
+
+                const row = `<tr>
+                    <td style="font-weight: bold;">${user.username}</td>
+                    <td>${user.password}</td>
+                    <td class="${user.is_vip ? 'vip-yes' : 'vip-no'}">${user.is_vip ? '永久VIP' : '普通'}</td>
+                    <td>${user.used_code || '-'}</td>
+                    <td class="uuid-text">${uuidDisplay}</td>
+                    <td>${actionBtn}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // 纯前端光速搜索过滤
+        function filterTable() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const filteredData = allUserData.filter(user => user.username.toLowerCase().includes(keyword));
+            renderTable(filteredData);
+        }
+
+        // 强制解绑请求
+        function forceUnbind(targetUsername) {
+            if(!confirm(`确定要强制清空账号【${targetUsername}】的设备码吗？\n清空后他可以在新设备直接登录。`)) return;
+
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_unbind_device`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ admin_pwd: currentPwd, p_username: targetUsername })
+            })
+            .then(res => res.json())
+            .then(resData => {
+                if(resData.success) {
+                    alert('✅ ' + resData.msg);
+                    // 解绑成功后，重新拉取一次云端最新数据并刷新表格
+                    fetchData(); 
+                    // 顺便把搜索框清空
+                    document.getElementById('searchInput').value = ''; 
+                } else {
+                    alert('❌ 解绑失败：' + resData.msg);
                 }
             });
         }
