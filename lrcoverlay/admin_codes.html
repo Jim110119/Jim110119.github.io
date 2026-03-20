@@ -37,6 +37,12 @@
 
         function fetchCodes() {
             currentPwd = document.getElementById('adminPwd').value;
+            const btn = document.querySelector('.btn-primary');
+            
+            // 1. 加上加载提示，防止用户连点
+            btn.innerText = "加载中,请稍候..."; 
+            btn.disabled = true;
+
             fetch(`${SUPABASE_URL}/rest/v1/rpc/get_admin_codes`, {
                 method: 'POST',
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
@@ -44,17 +50,30 @@
             })
             .then(res => res.json())
             .then(resData => {
+                // 恢复按钮状态
+                btn.innerText = "解锁卡密库";
+                btn.disabled = false;
+
+                // 🌟 拦截：如果你忘了在 Supabase 跑新增字段的 SQL，这里会精准报错提醒
+                if (resData.message) {
+                    alert("数据库报错: " + resData.message + "\n可能是第一步增加 sell_status 字段的 SQL 忘了执行？");
+                    return;
+                }
+
                 if (resData.success) {
                     document.getElementById('authBox').style.display = 'none';
                     const container = document.getElementById('codesContainer');
                     container.style.display = 'block';
-                    container.innerHTML = `<h3 style="text-align:center;">总库存：${resData.data.length} 条</h3>`;
+                    
+                    // 🌟 核心修复：在内存里先拼接所有的 HTML 字符串
+                    let htmlString = `<h3 style="text-align:center;">总库存：${resData.data.length} 条</h3>`;
                     
                     resData.data.forEach(item => {
                         const cardClass = item.sell_status === '已出售' ? 'status-sold' : 'status-ready';
                         const isActivatedText = item.is_used ? `<span style="color:#ef4444;">已激活 (${item.used_by_user})</span>` : '未激活';
                         
-                        const card = `
+                        // 用 += 拼接到字符串里，而不是直接操作 DOM
+                        htmlString += `
                             <div class="card ${cardClass}">
                                 <div style="flex: 2;">
                                     <div class="code-text">${item.code}</div>
@@ -69,11 +88,19 @@
                                 </div>
                             </div>
                         `;
-                        container.innerHTML += card;
                     });
+                    
+                    // 🌟 致命性能杀招：把拼好的 1000 个卡片，一次性塞入网页！秒开！
+                    container.innerHTML = htmlString;
+                    
                 } else {
                     document.getElementById('errMsg').style.display = 'block';
                 }
+            })
+            .catch(err => {
+                btn.innerText = "解锁卡密库";
+                btn.disabled = false;
+                alert("网络请求失败，请检查网络或配置：" + err);
             });
         }
 
