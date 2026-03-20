@@ -36,6 +36,16 @@
                 <canvas id="dauChart"></canvas>
             </div>
         </div>
+		
+		<div class="card">
+            <h2>💎 注册与付费转化漏斗</h2>
+            <div class="chart-container">
+                <canvas id="vipChart"></canvas>
+            </div>
+            <div style="margin-top: 20px;">
+                <a href="admin_details.html" target="_blank" style="color: #f59e0b; text-decoration: none; font-weight: bold; border: 1px solid #f59e0b; padding: 8px 15px; border-radius: 8px;">👉 进入高级管理员后台 (查明细)</a>
+            </div>
+        </div>
         
         <div class="footer">数据每分钟自动刷新 | 数据来源：Supabase 端云同步架构</div>
     </div>
@@ -122,6 +132,50 @@
             };
             window.requestAnimationFrame(step);
         }
+		
+		// 4. 获取用户注册与VIP统计数据
+        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, {
+            method: 'POST', // RPC 调用一律用 POST
+            headers: headers
+        }).then(res => res.json()).then(data => {
+            const total = data.total || 0;
+            const vip = data.vip || 0;
+            const free = total - vip;
+
+            const ctxVip = document.getElementById('vipChart').getContext('2d');
+            new Chart(ctxVip, {
+                type: 'bar', // 柱状图
+                data: {
+                    labels: ['用户账号结构'],
+                    datasets: [
+                        {
+                            label: '已购 VIP',
+                            data: [vip],
+                            backgroundColor: '#f59e0b', // 金色
+                            stack: 'Stack 0', // 堆叠标识
+                        },
+                        {
+                            label: '未购买 (普通用户)',
+                            data: [free],
+                            backgroundColor: '#475569', // 灰色
+                            stack: 'Stack 0',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { color: '#94a3b8' } },
+                        y: { stacked: true, beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } }
+                    },
+                    plugins: {
+                        tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14 }, padding: 12 }
+                    }
+                }
+            });
+        });
+		
     </script>
 </body>
 </html>
