@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>密钥发货控制台</title>
+    <title>卡密发货控制台</title>
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; font-family: monospace; padding: 15px; margin: 0; }
+        body { background-color: #0f172a; color: #e2e8f0; font-family: monospace; padding: 15px; margin: 0; padding-bottom: 80px; }
         .auth-box { text-align: center; margin-top: 50px; }
         input { padding: 12px; border-radius: 8px; border: 1px solid #38bdf8; background: #1e293b; color: white; width: 80%; max-width: 300px; font-size: 16px; margin-bottom: 15px; outline: none; }
         button.btn-primary { padding: 12px 20px; border-radius: 8px; border: none; background: #0ea5e9; color: white; cursor: pointer; font-weight: bold; font-size: 16px; width: 80%; max-width: 300px; }
@@ -14,8 +14,14 @@
         .info-text { font-size: 12px; color: #94a3b8; }
         .btn-copy { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 8px; width: 100%; }
         select { background: #0f172a; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; outline: none; width: 100%; font-size: 14px; }
-        .status-sold { border-left: 4px solid #f59e0b; opacity: 0.6; } /* 已出售卡片变暗加黄边 */
-        .status-ready { border-left: 4px solid #10b981; } /* 待出售绿边 */
+        .status-sold { border-left: 4px solid #f59e0b; opacity: 0.6; }
+        .status-ready { border-left: 4px solid #10b981; }
+        
+        /* 分页控制台样式 */
+        .pagination { display: none; justify-content: space-between; align-items: center; background: #1e293b; padding: 10px 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
+        .page-btn { background: #334155; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .page-info { color: #38bdf8; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -27,19 +33,28 @@
         <p id="errMsg" style="color: #ef4444; display: none; margin-top: 15px;">密码错误！</p>
     </div>
 
-    <div id="codesContainer" style="display: none; margin-top: 10px;">
+    <div class="pagination" id="paginationTop">
+        <button class="page-btn" id="prevBtn" onclick="changePage(-1)">上一页</button>
+        <div class="page-info" id="pageInfo">1 / 1</div>
+        <button class="page-btn" id="nextBtn" onclick="changePage(1)">下一页</button>
+    </div>
+
+    <div id="codesContainer" style="display: none;">
         </div>
 
     <script>
         const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
         let currentPwd = '';
+        
+        // 分页核心变量
+        let allCodesData = [];   // 把云端数据存在手机内存里
+        let currentPage = 1;     // 当前页码
+        const pageSize = 200;    // 每页显示 200 条
 
         function fetchCodes() {
             currentPwd = document.getElementById('adminPwd').value;
             const btn = document.querySelector('.btn-primary');
-            
-            // 1. 加上加载提示，防止用户连点
             btn.innerText = "加载中,请稍候..."; 
             btn.disabled = true;
 
@@ -50,49 +65,23 @@
             })
             .then(res => res.json())
             .then(resData => {
-                // 恢复按钮状态
                 btn.innerText = "解锁卡密库";
                 btn.disabled = false;
 
-                // 🌟 拦截：如果你忘了在 Supabase 跑新增字段的 SQL，这里会精准报错提醒
                 if (resData.message) {
-                    alert("数据库报错: " + resData.message + "\n可能是第一步增加 sell_status 字段的 SQL 忘了执行？");
+                    alert("数据库报错: " + resData.message);
                     return;
                 }
 
                 if (resData.success) {
                     document.getElementById('authBox').style.display = 'none';
-                    const container = document.getElementById('codesContainer');
-                    container.style.display = 'block';
+                    document.getElementById('paginationTop').style.display = 'flex';
                     
-                    // 🌟 核心修复：在内存里先拼接所有的 HTML 字符串
-                    let htmlString = `<h3 style="text-align:center;">总库存：${resData.data.length} 条</h3>`;
+                    // 把所有数据存入全局变量
+                    allCodesData = resData.data; 
+                    currentPage = 1; // 每次重新拉取回到第一页
                     
-                    resData.data.forEach(item => {
-                        const cardClass = item.sell_status === '已出售' ? 'status-sold' : 'status-ready';
-                        const isActivatedText = item.is_used ? `<span style="color:#ef4444;">已激活 (${item.used_by_user})</span>` : '未激活';
-                        
-                        // 用 += 拼接到字符串里，而不是直接操作 DOM
-                        htmlString += `
-                            <div class="card ${cardClass}">
-                                <div style="flex: 2;">
-                                    <div class="code-text">${item.code}</div>
-                                    <div class="info-text">车机状态: ${isActivatedText}</div>
-                                </div>
-                                <div style="flex: 1; text-align: right;">
-                                    <button class="btn-copy" onclick="copyCode('${item.code}', this)">一键复制</button>
-                                    <select onchange="updateStatus('${item.code}', this.value)">
-                                        <option value="待出售" ${item.sell_status === '待出售' ? 'selected' : ''}>🟢 待出售</option>
-                                        <option value="已出售" ${item.sell_status === '已出售' ? 'selected' : ''}>🟠 已出售</option>
-                                    </select>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    
-                    // 🌟 致命性能杀招：把拼好的 1000 个卡片，一次性塞入网页！秒开！
-                    container.innerHTML = htmlString;
-                    
+                    renderPage(); // 渲染当前页
                 } else {
                     document.getElementById('errMsg').style.display = 'block';
                 }
@@ -100,11 +89,70 @@
             .catch(err => {
                 btn.innerText = "解锁卡密库";
                 btn.disabled = false;
-                alert("网络请求失败，请检查网络或配置：" + err);
+                alert("请求失败: " + err);
             });
         }
 
-        // 核心功能：一键复制到手机剪贴板
+        // 🌟 核心：只渲染当前页的 200 条数据
+        function renderPage() {
+            const container = document.getElementById('codesContainer');
+            container.style.display = 'block';
+            
+            // 计算总页数和当前截取范围
+            const totalPages = Math.ceil(allCodesData.length / pageSize) || 1;
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, allCodesData.length);
+            
+            // 切割出当前页需要显示的数据 (比如 0~200)
+            const currentPageData = allCodesData.slice(startIndex, endIndex);
+
+            // 更新顶部控制台的数字和按钮状态
+            document.getElementById('pageInfo').innerText = `第 ${currentPage} / ${totalPages} 页 (共${allCodesData.length}条)`;
+            document.getElementById('prevBtn').disabled = (currentPage === 1);
+            document.getElementById('nextBtn').disabled = (currentPage === totalPages);
+
+            // 拼装 HTML
+            let htmlString = '';
+            currentPageData.forEach(item => {
+                const cardClass = item.sell_status === '已出售' ? 'status-sold' : 'status-ready';
+                const isActivatedText = item.is_used ? `<span style="color:#ef4444;">已激活 (${item.used_by_user})</span>` : '未激活';
+                
+                htmlString += `
+                    <div class="card ${cardClass}">
+                        <div style="flex: 2;">
+                            <div class="code-text">${item.code}</div>
+                            <div class="info-text">状态: ${isActivatedText}</div>
+                        </div>
+                        <div style="flex: 1; text-align: right;">
+                            <button class="btn-copy" onclick="copyCode('${item.code}', this)">一键复制</button>
+                            <select onchange="updateStatus('${item.code}', this.value)">
+                                <option value="待出售" ${item.sell_status === '待出售' ? 'selected' : ''}>🟢 待出售</option>
+                                <option value="已出售" ${item.sell_status === '已出售' ? 'selected' : ''}>🟠 已出售</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // 一次性渲染
+            container.innerHTML = htmlString;
+        }
+
+        // 🌟 核心：翻页动作
+        function changePage(delta) {
+            const totalPages = Math.ceil(allCodesData.length / pageSize);
+            currentPage += delta;
+            
+            // 防止越界
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            
+            renderPage();
+            
+            // 翻页后，自动平滑滚动回顶部，体验拉满！
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         function copyCode(code, btnElement) {
             navigator.clipboard.writeText(code).then(() => {
                 const originalText = btnElement.innerText;
@@ -115,11 +163,10 @@
                     btnElement.style.background = '#10b981';
                 }, 2000);
             }).catch(err => {
-                alert('复制失败，请手动长按复制');
+                alert('复制失败，请手动复制');
             });
         }
 
-        // 核心功能：下拉框改变状态，实时同步云端
         function updateStatus(code, newStatus) {
             fetch(`${SUPABASE_URL}/rest/v1/rpc/update_code_status`, {
                 method: 'POST',
@@ -129,7 +176,7 @@
             .then(res => res.json())
             .then(resData => {
                 if(resData.success) {
-                    // 如果手滑点错了可以随时改回来，重新拉取一下最新列表刷新UI
+                    // 修改成功后，重新拉取云端数据刷新大盘
                     fetchCodes(); 
                 } else {
                     alert('状态更新失败：' + resData.msg);
