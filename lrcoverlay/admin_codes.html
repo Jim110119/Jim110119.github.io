@@ -21,7 +21,22 @@
         .pagination { display: none; justify-content: space-between; align-items: center; background: #1e293b; padding: 10px 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
         .page-btn { background: #334155; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        .page-info { color: #38bdf8; font-weight: bold; font-size: 14px; }
+        .page-info { color: #38bdf8; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        
+        /* 独立精简的跳页输入框样式 */
+        .jump-input { 
+            width: 45px !important; 
+            padding: 4px !important; 
+            font-size: 16px !important; 
+            text-align: center; 
+            border-radius: 6px !important; 
+            margin: 0 !important; 
+            background: #0f172a !important; 
+            color: #38bdf8 !important; 
+            border: 1px solid #38bdf8 !important; 
+            -moz-appearance: textfield; /* 隐藏原生上下箭头 */
+        }
+        .jump-input::-webkit-outer-spin-button, .jump-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body>
@@ -35,7 +50,10 @@
 
     <div class="pagination" id="paginationTop">
         <button class="page-btn" id="prevBtn" onclick="changePage(-1)">上一页</button>
-        <div class="page-info" id="pageInfo">1 / 1</div>
+        <div class="page-info">
+            <input type="number" id="jumpInput" class="jump-input" onchange="jumpToPage()" onblur="jumpToPage()">
+            <span id="totalPagesText">/ 1 页</span>
+        </div>
         <button class="page-btn" id="nextBtn" onclick="changePage(1)">下一页</button>
     </div>
 
@@ -48,8 +66,8 @@
         let currentPwd = '';
         
         // 分页核心变量
-        let allCodesData = [];   // 把云端数据存在手机内存里
-        let currentPage = 1;     // 当前页码
+        let allCodesData = [];   
+        let currentPage = 1;     
         const pageSize = 200;    // 每页显示 200 条
 
         function fetchCodes() {
@@ -77,11 +95,10 @@
                     document.getElementById('authBox').style.display = 'none';
                     document.getElementById('paginationTop').style.display = 'flex';
                     
-                    // 把所有数据存入全局变量
                     allCodesData = resData.data; 
-                    currentPage = 1; // 每次重新拉取回到第一页
+                    currentPage = 1; 
                     
-                    renderPage(); // 渲染当前页
+                    renderPage(); 
                 } else {
                     document.getElementById('errMsg').style.display = 'block';
                 }
@@ -93,25 +110,22 @@
             });
         }
 
-        // 🌟 核心：只渲染当前页的 200 条数据
         function renderPage() {
             const container = document.getElementById('codesContainer');
             container.style.display = 'block';
             
-            // 计算总页数和当前截取范围
             const totalPages = Math.ceil(allCodesData.length / pageSize) || 1;
             const startIndex = (currentPage - 1) * pageSize;
             const endIndex = Math.min(startIndex + pageSize, allCodesData.length);
             
-            // 切割出当前页需要显示的数据 (比如 0~200)
             const currentPageData = allCodesData.slice(startIndex, endIndex);
 
-            // 更新顶部控制台的数字和按钮状态
-            document.getElementById('pageInfo').innerText = `第 ${currentPage} / ${totalPages} 页 共${allCodesData.length}条`;
+            // 更新顶部控制台的数字、页数文本和按钮状态
+            document.getElementById('jumpInput').value = currentPage;
+            document.getElementById('totalPagesText').innerText = `/ ${totalPages} 页`;
             document.getElementById('prevBtn').disabled = (currentPage === 1);
             document.getElementById('nextBtn').disabled = (currentPage === totalPages);
 
-            // 拼装 HTML
             let htmlString = '';
             currentPageData.forEach(item => {
                 const cardClass = item.sell_status === '已出售' ? 'status-sold' : 'status-ready';
@@ -134,23 +148,35 @@
                 `;
             });
             
-            // 一次性渲染
             container.innerHTML = htmlString;
         }
 
-        // 🌟 核心：翻页动作
         function changePage(delta) {
             const totalPages = Math.ceil(allCodesData.length / pageSize);
             currentPage += delta;
             
-            // 防止越界
             if (currentPage < 1) currentPage = 1;
             if (currentPage > totalPages) currentPage = totalPages;
             
             renderPage();
-            
-            // 翻页后，自动平滑滚动回顶部，体验拉满！
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 🌟 新增：手动输入数字后的跳页逻辑
+        function jumpToPage() {
+            const inputVal = parseInt(document.getElementById('jumpInput').value);
+            const totalPages = Math.ceil(allCodesData.length / pageSize) || 1;
+            
+            if (inputVal >= 1 && inputVal <= totalPages) {
+                if (currentPage !== inputVal) {
+                    currentPage = inputVal;
+                    renderPage();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            } else {
+                // 如果输入的数字越界或为空，直接恢复当前页码
+                document.getElementById('jumpInput').value = currentPage;
+            }
         }
 
         function copyCode(code, btnElement) {
@@ -176,7 +202,6 @@
             .then(res => res.json())
             .then(resData => {
                 if(resData.success) {
-                    // 修改成功后，重新拉取云端数据刷新大盘
                     fetchCodes(); 
                 } else {
                     alert('状态更新失败：' + resData.msg);
