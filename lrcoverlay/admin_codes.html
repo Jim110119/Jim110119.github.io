@@ -107,7 +107,7 @@
             const currentPageData = allCodesData.slice(startIndex, endIndex);
 
             // 更新顶部控制台的数字和按钮状态
-            document.getElementById('pageInfo').innerText = `第 ${currentPage} / ${totalPages} 页 (共${allCodesData.length}条)`;
+            document.getElementById('pageInfo').innerText = `第 ${currentPage} / ${totalPages} 页 共${allCodesData.length}条`;
             document.getElementById('prevBtn').disabled = (currentPage === 1);
             document.getElementById('nextBtn').disabled = (currentPage === totalPages);
 
