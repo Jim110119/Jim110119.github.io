@@ -2,74 +2,108 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>后台管理 - 用户明细与设备控制</title>
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; font-family: monospace; padding: 20px; }
-        .auth-box { text-align: center; margin-top: 100px; }
-        input { padding: 10px; border-radius: 5px; border: 1px solid #38bdf8; background: #1e293b; color: white; outline: none; }
-        button { padding: 10px 20px; border-radius: 5px; border: none; background: #0ea5e9; color: white; cursor: pointer; font-weight: bold; }
+        /* 核心修复 1：全局盒模型，防止 padding 撑爆屏幕 */
+        * { box-sizing: border-box; }
+        body { background-color: #0f172a; color: #e2e8f0; font-family: monospace; padding: 15px; margin: 0; }
         
-        /* 搜索框与控制台容器 */
-        .control-panel { display: none; justify-content: space-between; align-items: center; margin-top: 20px; background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; }
-        .search-box { width: 300px; padding: 8px 15px; border-radius: 20px; }
+        .auth-box { text-align: center; margin-top: 60px; }
+        input.pwd-input { padding: 12px; border-radius: 8px; border: 1px solid #38bdf8; background: #1e293b; color: white; outline: none; width: 100%; max-width: 300px; font-size: 16px; margin-bottom: 15px; }
+        button.btn-primary { padding: 12px 20px; border-radius: 8px; border: none; background: #0ea5e9; color: white; cursor: pointer; font-weight: bold; width: 100%; max-width: 300px; font-size: 16px; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; display: none; }
-        th, td { padding: 12px; border: 1px solid #334155; text-align: left; }
-        th { background: #1e293b; color: #38bdf8; }
+        /* 核心修复 2：控制台响应式弹性布局 (允许折行) */
+        .control-panel { 
+            display: none; 
+            flex-wrap: wrap; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-top: 15px; 
+            background: #1e293b; 
+            padding: 15px; 
+            border-radius: 10px; 
+            border: 1px solid #334155; 
+            gap: 15px; /* 元素挤在一起时自动拉开间距 */
+        }
+        .panel-left { font-size: 16px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 200px; }
+        .search-container { flex: 2; min-width: 250px; }
+        .search-box { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid #475569; background: #0f172a; color: white; outline: none; font-size: 14px; }
+        
+        /* 核心修复 3：表格专属滑动包裹层 */
+        .table-wrapper { 
+            display: none; 
+            width: 100%; 
+            overflow-x: auto; /* 允许横向滑动 */
+            margin-top: 15px; 
+            background: #1e293b; 
+            border-radius: 10px; 
+            border: 1px solid #334155; 
+        }
+        
+        /* 核心修复 4：表格禁止自动换行，保持原生宽度 */
+        table { width: 100%; border-collapse: collapse; min-width: 800px; /* 强制表格最小宽度，不够就滑 */ }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; /* 绝对禁止文字折行挤压 */ }
+        th:last-child, td:last-child { border-right: none; }
+        th { background: #0f172a; color: #38bdf8; position: sticky; top: 0; z-index: 10; }
+        
         .vip-yes { color: #f59e0b; font-weight: bold; }
         .vip-no { color: #94a3b8; }
-        
-        /* 解绑按钮样式 */
-        .btn-unbind { background: #ef4444; padding: 6px 12px; font-size: 12px; }
-        .btn-unbind:hover { background: #dc2626; }
-        .btn-disabled { background: #475569; cursor: not-allowed; color: #94a3b8; padding: 6px 12px; font-size: 12px; border-radius: 5px; border: none; }
-        
-        .uuid-text { font-size: 11px; color: #94a3b8; word-break: break-all; max-width: 150px; }
+        .btn-unbind { background: #ef4444; padding: 8px 15px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
+        .btn-unbind:active { background: #dc2626; }
+        .btn-disabled { background: #475569; padding: 8px 15px; font-size: 13px; border-radius: 6px; border: none; color: #94a3b8; cursor: not-allowed; }
+        .uuid-text { font-size: 12px; color: #94a3b8; font-family: monospace; }
     </style>
 </head>
 <body>
 
     <div class="auth-box" id="authBox">
         <h2>🔒 高级管理员后台</h2>
-        <input type="password" id="adminPwd" placeholder="请输入管理员密码">
-        <button onclick="fetchData()">解锁数据</button>
-        <p id="errMsg" style="color: #ef4444; display: none;">密码错误，拒绝访问！</p>
+        <input type="password" id="adminPwd" class="pwd-input" placeholder="请输入管理员密码">
+        <br>
+        <button class="btn-primary" onclick="fetchData()">解锁数据</button>
+        <p id="errMsg" style="color: #ef4444; display: none; margin-top: 15px;">密码错误，拒绝访问！</p>
     </div>
 
     <div class="control-panel" id="controlPanel">
-        <div>
-            <span style="font-size: 18px; font-weight: bold; color: #38bdf8;">👥 用户总库</span>
-            <span id="userCount" style="margin-left: 10px; color: #94a3b8;">共 0 人</span>
+        <div class="panel-left">
+            <span>👥 用户总库</span>
+            <span id="userCount" style="color: #94a3b8; font-size: 14px;">共 0 人</span>
         </div>
-        <div>
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 输入用户名搜索..." oninput="filterTable()">
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 输入用户名即时搜索..." oninput="filterTable()">
         </div>
     </div>
 
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th>用户名</th>
-                <th>密码</th>
-                <th>状态</th>
-                <th>使用的卡密</th>
-                <th>当前绑定设备 (UUID)</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+    <div class="table-wrapper" id="tableWrapper">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>用户名</th>
+                    <th>密码</th>
+                    <th>VIP状态</th>
+                    <th>使用的卡密</th>
+                    <th>操作控制</th>
+                    <th>当前绑定设备 (UUID)</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
 
     <script>
         const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
         
         let currentPwd = '';
-        let allUserData = []; // 存在内存里的全局数据，用于搜索过滤
+        let allUserData = []; 
 
         function fetchData() {
             currentPwd = document.getElementById('adminPwd').value;
+            const btn = document.querySelector('.btn-primary');
+            btn.innerText = "加载中...";
+            btn.disabled = true;
+
             fetch(`${SUPABASE_URL}/rest/v1/rpc/get_all_user_details`, {
                 method: 'POST',
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
@@ -77,59 +111,64 @@
             })
             .then(res => res.json())
             .then(resData => {
+                btn.innerText = "解锁数据";
+                btn.disabled = false;
+
                 if (resData.success) {
                     document.getElementById('authBox').style.display = 'none';
                     document.getElementById('controlPanel').style.display = 'flex';
-                    document.getElementById('dataTable').style.display = 'table';
+                    // 🌟 注意这里：显示的是包裹层，而不是 table 本身
+                    document.getElementById('tableWrapper').style.display = 'block'; 
                     
-                    // 把数据存入全局变量，并降序排列（新注册的在最上面）
                     allUserData = resData.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     document.getElementById('userCount').innerText = `共 ${allUserData.length} 人`;
                     
-                    renderTable(allUserData); // 初次渲染全部数据
+                    renderTable(allUserData); 
                 } else {
                     document.getElementById('errMsg').style.display = 'block';
                 }
+            })
+            .catch(err => {
+                btn.innerText = "解锁数据";
+                btn.disabled = false;
+                alert("请求失败，请检查网络：" + err);
             });
         }
 
-        // 渲染表格的独立函数
         function renderTable(dataArray) {
             const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = ''; // 清空旧数据
+            let htmlString = ''; 
             
             dataArray.forEach(user => {
                 const isBound = user.device_uuid && user.device_uuid !== '';
                 
-                // 判断操作按钮状态
                 const actionBtn = isBound 
                     ? `<button class="btn-unbind" onclick="forceUnbind('${user.username}')">强制解绑</button>`
                     : `<button class="btn-disabled" disabled>已空置</button>`;
                     
-                const uuidDisplay = isBound ? user.device_uuid : `<span style="color:#ef4444;">未绑定任何设备</span>`;
+                const uuidDisplay = isBound ? user.device_uuid : `<span style="color:#ef4444;">未绑定设备</span>`;
 
-                const row = `<tr>
-                    <td style="font-weight: bold;">${user.username}</td>
+                // 我把操作按钮移到了设备码前面，这样你在手机上滑动时能更快点到按钮
+                htmlString += `<tr>
+                    <td style="font-weight: bold; color: #e2e8f0;">${user.username}</td>
                     <td>${user.password}</td>
                     <td class="${user.is_vip ? 'vip-yes' : 'vip-no'}">${user.is_vip ? '永久VIP' : '普通'}</td>
-                    <td>${user.used_code || '-'}</td>
-                    <td class="uuid-text">${uuidDisplay}</td>
+                    <td style="color: #10b981;">${user.used_code || '-'}</td>
                     <td>${actionBtn}</td>
+                    <td class="uuid-text">${uuidDisplay}</td>
                 </tr>`;
-                tbody.innerHTML += row;
             });
+            tbody.innerHTML = htmlString;
         }
 
-        // 纯前端光速搜索过滤
         function filterTable() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const filteredData = allUserData.filter(user => user.username.toLowerCase().includes(keyword));
             renderTable(filteredData);
         }
 
-        // 强制解绑请求
         function forceUnbind(targetUsername) {
-            if(!confirm(`确定要强制清空账号【${targetUsername}】的设备码吗？\n清空后他可以在新设备直接登录。`)) return;
+            if(!confirm(`⚠️ 危险操作确认\n\n确定要强制清空账号【${targetUsername}】的设备绑定吗？\n清空后他可以在新车机直接登录。`)) return;
 
             fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_unbind_device`, {
                 method: 'POST',
@@ -140,9 +179,7 @@
             .then(resData => {
                 if(resData.success) {
                     alert('✅ ' + resData.msg);
-                    // 解绑成功后，重新拉取一次云端最新数据并刷新表格
                     fetchData(); 
-                    // 顺便把搜索框清空
                     document.getElementById('searchInput').value = ''; 
                 } else {
                     alert('❌ 解绑失败：' + resData.msg);
