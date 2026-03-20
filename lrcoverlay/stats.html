@@ -19,14 +19,19 @@
 </head>
 <body>
     <div class="dashboard">
-        <div style="display: flex; gap: 20px;">
+<div style="display: flex; gap: 20px;">
             <div class="card" style="flex: 1;">
                 <h2>🚀 累计总装机</h2>
                 <div id="installCount" class="number-box loading">...</div>
             </div>
             <div class="card" style="flex: 1;">
-                <h2>🔥 今日实时活跃 (24h)</h2>
+                <h2>🔥 今日实时活跃</h2>
                 <div id="todayActiveCount" class="number-box loading">...</div>
+            </div>
+            <div class="card" style="flex: 1;">
+                <h2>🗑️ 沉睡废弃空号</h2>
+                <div id="abandonedCount" class="number-box loading" style="color: #ef4444; text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">...</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: -10px;">(大于7天未活跃的未付费号)</div>
             </div>
         </div>
 
@@ -174,6 +179,18 @@
                     }
                 }
             });
+        });
+		
+		// 5. 获取废弃沉睡空号数量
+        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_abandoned_users_count`, {
+            method: 'POST', // 调用 RPC 必须用 POST
+            headers: headers
+        }).then(res => res.json()).then(count => {
+            // count 就是云端直接算好的一个整数
+            animateValue("abandonedCount", 0, count || 0, 1500);
+        }).catch(err => {
+            document.getElementById("abandonedCount").innerHTML = "0";
+            document.getElementById("abandonedCount").classList.remove("loading");
         });
 		
     </script>
