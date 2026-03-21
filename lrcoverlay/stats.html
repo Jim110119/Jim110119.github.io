@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>悬浮歌词 - 运营数据大屏</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <style>
         body { margin: 0; padding: 20px; background-color: #0f172a; color: #38bdf8; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
         .dashboard { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 20px; }
@@ -14,30 +15,34 @@
         .loading { font-size: 30px; color: #94a3b8; animation: pulse 1.5s infinite; }
         .footer { margin-top: 20px; font-size: 13px; color: #64748b; text-align: center; }
         .chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
+        
+        /* 独立控制按钮组样式，适配移动端 */
+        .btn-group { display: flex; justify-content: center; gap: 15px; margin-top: 25px; flex-wrap: wrap; }
+        .action-btn { text-decoration: none; font-weight: bold; padding: 10px 20px; border-radius: 8px; font-size: 14px; transition: all 0.3s; }
+        .action-btn:hover { opacity: 0.8; transform: translateY(-2px); }
+        .btn-admin { color: #f59e0b; border: 1px solid #f59e0b; }
+        .btn-codes { color: #10b981; border: 1px solid #10b981; }
+
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
 <body>
     <div class="dashboard">
 		
-         <div style="display: flex; gap: 20px; flex-wrap: wrap; width: 100%;">
-            
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; width: 100%;">
             <div class="card" style="flex: 1; min-width: 250px;">
                 <h2>🚀 累计总装机</h2>
                 <div id="installCount" class="number-box loading">...</div>
             </div>
-            
             <div class="card" style="flex: 1; min-width: 250px;">
                 <h2>🔥 今日实时活跃</h2>
                 <div id="todayActiveCount" class="number-box loading">...</div>
             </div>
-            
             <div class="card" style="flex: 1; min-width: 250px;">
                 <h2>🗑️ 沉睡废弃空号</h2>
                 <div id="abandonedCount" class="number-box loading" style="color: #ef4444; text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">...</div>
                 <div style="font-size: 12px; color: #94a3b8; margin-top: -10px;">(大于7天未活跃的未付费号)</div>
             </div>
-            
         </div>
 
         <div class="card">
@@ -48,92 +53,95 @@
         </div>
 		
 		<div class="card">
-            <h2>💎 注册与付费转化漏斗</h2>
-            <div class="chart-container">
-                <canvas id="vipChart"></canvas>
+            <h2>💎 注册与付费转化结构图</h2>
+            <div class="chart-container" style="height: 250px;"> <canvas id="vipChart"></canvas>
             </div>
-            <div style="margin-top: 20px;">
-                <a href="admin_details.html" target="_blank" style="color: #f59e0b; text-decoration: none; font-weight: bold; border: 1px solid #f59e0b; padding: 8px 15px; border-radius: 8px;">👉 进入高级管理员后台</a>
+            
+            <div class="btn-group">
+                <a href="admin_details.html" target="_blank" class="action-btn btn-admin">👉 高级管理员后台</a>
+                <a href="admin_codes.html" target="_blank" class="action-btn btn-codes">📦 密钥发货控制台</a>
             </div>
-
-            <div style="margin-top: 20px;">
-                <a href="admin_codes.html" target="_blank" style="color: #10b981; text-decoration: none; font-weight: bold; border: 1px solid #10b981; padding: 8px 15px; border-radius: 8px;">👉 进入密钥发货控制台</a>
-            </div>
-			
         </div>
         
         <div class="footer">数据每分钟自动刷新 | 数据来源：Supabase 端云同步架构</div>
     </div>
 
     <script>
-        // ================= 替换为你的 Supabase 配置 =================
+        // 注册 Datalabels 插件
+        Chart.register(ChartDataLabels);
+
         const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
-        
-        const headers = {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json'
-        };
+        const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 
-        // 1. 获取总装机量 (逻辑不变)
-        fetch(`${SUPABASE_URL}/rest/v1/installations?select=id&limit=1`, {
-            method: 'GET',
-            headers: { ...headers, 'Range-Unit': 'items', 'Prefer': 'count=exact' }
-        }).then(res => {
-            const range = res.headers.get('Content-Range');
-            const total = range ? parseInt(range.split('/')[1]) : 0;
-            animateValue("installCount", 0, total, 1500);
+        fetch(`${SUPABASE_URL}/rest/v1/installations?select=id&limit=1`, { method: 'GET', headers: { ...headers, 'Range-Unit': 'items', 'Prefer': 'count=exact' } })
+            .then(res => animateValue("installCount", 0, res.headers.get('Content-Range') ? parseInt(res.headers.get('Content-Range').split('/')[1]) : 0, 1500));
+
+        fetch(`${SUPABASE_URL}/rest/v1/daily_stats?select=*`, { method: 'GET', headers: headers }).then(res => res.json()).then(data => {
+            data.reverse();
+            const labels = data.map(item => item.active_date.substring(5));
+            const counts = data.map(item => item.active_count);
+            animateValue("todayActiveCount", 0, counts.length > 0 ? counts[counts.length - 1] : 0, 1500);
+
+            new Chart(document.getElementById('dauChart').getContext('2d'), {
+                type: 'line',
+                data: { labels: labels, datasets: [{ label: '日活跃车机数', data: counts, borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.2)', borderWidth: 3, pointBackgroundColor: '#fff', pointRadius: 5, fill: true, tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false }, datalabels: { display: false } /* 隐藏折线图的数字标签 */ } }
+            });
         });
 
-        // 2. 获取 7 天活跃数据 (直接请求我们刚才写的 SQL 视图！)
-        fetch(`${SUPABASE_URL}/rest/v1/daily_stats?select=*`, {
-            method: 'GET',
-            headers: headers
-        }).then(res => res.json()).then(data => {
-            // 数据库返回的是倒序（最新日期在前），我们要反转一下方便画图（从左到右显示）
-            data.reverse();
+		// 🌟 核心重写：获取用户结构，并绘制百分比堆叠漏斗图
+        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, { method: 'POST', headers: headers }).then(res => res.json()).then(data => {
+            const total = data.total || 0;
+            const purchasedVip = data.purchased_vip || 0;
+            const giftedVip = data.gifted_vip || 0;
+            const free = total - purchasedVip - giftedVip;
 
-            // 提取图表需要的 X 轴（日期）和 Y 轴（活跃人数）
-            const labels = data.map(item => item.active_date.substring(5)); // 把 "2026-03-09" 变成 "03-09"
-            const counts = data.map(item => item.active_count);
-
-            // 更新今日实时活跃量（取数组最后一天的数据）
-            const todayCount = counts.length > 0 ? counts[counts.length - 1] : 0;
-            animateValue("todayActiveCount", 0, todayCount, 1500);
-
-            // 3. 绘制帅气的折线图
-            const ctx = document.getElementById('dauChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
+            new Chart(document.getElementById('vipChart').getContext('2d'), {
+                type: 'bar', 
                 data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '日活跃车机数',
-                        data: counts,
-                        borderColor: '#0ea5e9',
-                        backgroundColor: 'rgba(14, 165, 233, 0.2)',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointRadius: 5,
-                        fill: true,
-                        tension: 0.3 // 让线条有平滑的弧度
-                    }]
+                    labels: ['用户商业价值层级'],
+                    datasets: [
+                        { label: '💰 真金白银购买VIP', data: [purchasedVip], backgroundColor: '#f59e0b', stack: 'Stack 0' }, // 橙金
+                        { label: '🎁 免费赠送福利VIP', data: [giftedVip], backgroundColor: '#8b5cf6', stack: 'Stack 0' },    // 紫色
+                        { label: '⚪ 普通未付费号', data: [free], backgroundColor: '#475569', stack: 'Stack 0' }          // 灰色
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    // 改为横向显示，更像漏斗切面
+                    indexAxis: 'y', 
                     scales: {
-                        y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                        x: { stacked: true, display: false }, // 隐藏底部的数量轴，保持干净
+                        y: { stacked: true, grid: { display: false }, ticks: { display: false } } // 隐藏左侧文字
                     },
                     plugins: {
-                        legend: { display: false },
-                        tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14 }, padding: 12 }
+                        legend: { position: 'bottom', labels: { color: '#e2e8f0', font: { size: 12 } } },
+                        tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14 }, padding: 12 },
+                        // 🌟 Datalabels 插件配置：在每一块色块上显示数字和百分比
+                        datalabels: {
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 14 },
+                            formatter: (value, ctx) => {
+                                if (value === 0) return ''; // 数量为0不显示文字
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                                // 返回两行文字：数量 和 (百分比)
+                                return value + ' 人\n(' + percentage + ')';
+                            },
+                            textAlign: 'center',
+                            // 文字居中显示在色块中间
+                            anchor: 'center',
+                            align: 'center',
+                        }
                     }
                 }
             });
         });
+
+        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_abandoned_users_count`, { method: 'POST', headers: headers }).then(res => res.json()).then(count => {
+            animateValue("abandonedCount", 0, count || 0, 1500);
+        }).catch(() => { document.getElementById("abandonedCount").innerHTML = "0"; document.getElementById("abandonedCount").classList.remove("loading"); });
 
         function animateValue(id, start, end, duration) {
             let obj = document.getElementById(id);
@@ -147,62 +155,6 @@
             };
             window.requestAnimationFrame(step);
         }
-		
-		// 4. 获取用户注册与VIP统计数据
-        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, {
-            method: 'POST', // RPC 调用一律用 POST
-            headers: headers
-        }).then(res => res.json()).then(data => {
-            const total = data.total || 0;
-            const vip = data.vip || 0;
-            const free = total - vip;
-
-            const ctxVip = document.getElementById('vipChart').getContext('2d');
-            new Chart(ctxVip, {
-                type: 'bar', // 柱状图
-                data: {
-                    labels: ['用户账号结构'],
-                    datasets: [
-                        {
-                            label: '已购 VIP',
-                            data: [vip],
-                            backgroundColor: '#f59e0b', // 金色
-                            stack: 'Stack 0', // 堆叠标识
-                        },
-                        {
-                            label: '未购买 (普通用户)',
-                            data: [free],
-                            backgroundColor: '#475569', // 灰色
-                            stack: 'Stack 0',
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { stacked: true, grid: { display: false }, ticks: { color: '#94a3b8' } },
-                        y: { stacked: true, beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } }
-                    },
-                    plugins: {
-                        tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14 }, padding: 12 }
-                    }
-                }
-            });
-        });
-		
-		// 5. 获取废弃沉睡空号数量
-        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_abandoned_users_count`, {
-            method: 'POST', // 调用 RPC 必须用 POST
-            headers: headers
-        }).then(res => res.json()).then(count => {
-            // count 就是云端直接算好的一个整数
-            animateValue("abandonedCount", 0, count || 0, 1500);
-        }).catch(err => {
-            document.getElementById("abandonedCount").innerHTML = "0";
-            document.getElementById("abandonedCount").classList.remove("loading");
-        });
-		
     </script>
 </body>
 </html>
