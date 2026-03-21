@@ -15,7 +15,6 @@
         .control-panel { display: none; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 15px; background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; gap: 15px; }
         .panel-left { font-size: 16px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 100%; }
         
-        /* 🌟 核心优化：筛选框与搜索框弹性并排 */
         .search-container { display: flex; gap: 10px; flex: 1; min-width: 100%; }
         .search-box { padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; outline: none; font-size: 14px; }
         .filter-select { flex: 1; min-width: 110px; }
@@ -28,10 +27,13 @@
         th:last-child, td:last-child { border-right: none; }
         th { background: #0f172a; color: #38bdf8; position: sticky; top: 0; z-index: 10; }
         
-        /* 🌟 VIP 状态多色支持 */
-        .vip-purchased { color: #f59e0b; font-weight: bold; } /* 购买：土豪金 */
-        .vip-gifted { color: #8b5cf6; font-weight: bold; }    /* 赠送：尊贵紫 */
-        .vip-no { color: #94a3b8; }                           /* 普通：灰白 */
+        /* 🌟 排序表头的专属交互样式 */
+        .sortable-th { cursor: pointer; user-select: none; transition: color 0.2s; }
+        .sortable-th:hover { color: #0ea5e9; }
+        
+        .vip-purchased { color: #f59e0b; font-weight: bold; } 
+        .vip-gifted { color: #8b5cf6; font-weight: bold; }    
+        .vip-no { color: #94a3b8; }                           
         
         .btn-unbind { background: #ef4444; padding: 8px 15px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
         .btn-unbind:active { background: #dc2626; }
@@ -73,6 +75,7 @@
                     <th>密码</th>
                     <th>身份状态</th>
                     <th>使用的密钥</th>
+                    <th id="thLastActive" class="sortable-th" onclick="toggleSort()" title="点击切换：默认 / 远到近 / 近到远">最后活跃时间 ↕️</th>
                     <th>操作控制</th>
                     <th>当前绑定设备 (UUID)</th>
                 </tr>
@@ -87,6 +90,7 @@
         
         let currentPwd = '';
         let allUserData = []; 
+        let sortOrder = 0; // 🌟 0: 默认注册时间倒序, 1: 活跃远到近, 2: 活跃近到远
 
         function fetchData() {
             currentPwd = document.getElementById('adminPwd').value;
@@ -109,9 +113,12 @@
                     document.getElementById('controlPanel').style.display = 'flex';
                     document.getElementById('tableWrapper').style.display = 'block'; 
                     
+                    // 初始化重置为默认排序
+                    sortOrder = 0;
+                    document.getElementById('thLastActive').innerHTML = '最后活跃时间 ↕️';
                     allUserData = resData.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                     
-                    filterTable(); // 初始调用一次渲染
+                    filterTable(); 
                 } else {
                     document.getElementById('errMsg').style.display = 'block';
                 }
@@ -123,11 +130,45 @@
             });
         }
 
-        // 🌟 核心判断逻辑：根据云端传回的密钥状态，鉴定身份
+        // 🌟 核心引擎：处理循环排序逻辑
+        function toggleSort() {
+            sortOrder = (sortOrder + 1) % 3;
+            const th = document.getElementById('thLastActive');
+            
+            if (sortOrder === 0) {
+                th.innerHTML = '最后活跃时间 ↕️';
+                // 恢复默认：按注册时间倒序 (新注册的在前)
+                allUserData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            } 
+            else if (sortOrder === 1) {
+                th.innerHTML = '最后活跃时间 ⬆️ (远到近)';
+                allUserData.sort((a, b) => {
+                    // 无记录的永远垫底
+                    if (!a.last_active && !b.last_active) return 0;
+                    if (!a.last_active) return 1; 
+                    if (!b.last_active) return -1;
+                    return new Date(a.last_active) - new Date(b.last_active);
+                });
+            } 
+            else if (sortOrder === 2) {
+                th.innerHTML = '最后活跃时间 ⬇️ (近到远)';
+                allUserData.sort((a, b) => {
+                    // 无记录的永远垫底
+                    if (!a.last_active && !b.last_active) return 0;
+                    if (!a.last_active) return 1; 
+                    if (!b.last_active) return -1;
+                    return new Date(b.last_active) - new Date(a.last_active);
+                });
+            }
+            
+            // 排序完之后，触发双擎过滤重新渲染 UI
+            filterTable();
+        }
+
         function getUserVipType(user) {
             if (!user.is_vip) return "普通用户";
             if (user.sell_status === '已赠送') return "赠送永久VIP";
-            return "购买永久VIP"; // 凡是 VIP 且不是赠送的，都算购买
+            return "购买永久VIP"; 
         }
 
         function renderTable(dataArray) {
@@ -141,17 +182,22 @@
                     : `<button class="btn-disabled" disabled>已空置</button>`;
                 const uuidDisplay = isBound ? user.device_uuid : `<span style="color:#ef4444;">未绑定设备</span>`;
 
-                // 🌟 获取身份并匹配颜色 CSS
                 const vipType = getUserVipType(user);
                 let vipClass = "vip-no";
                 if (vipType === "购买永久VIP") vipClass = "vip-purchased";
                 if (vipType === "赠送永久VIP") vipClass = "vip-gifted";
+
+                // 🌟 新增：处理最后活跃时间的格式和颜色
+                const activeDisplay = user.last_active 
+                    ? `<span style="color: #10b981; font-weight: bold;">${user.last_active}</span>` 
+                    : `<span style="color: #64748b;">无记录</span>`;
 
                 htmlString += `<tr>
                     <td style="font-weight: bold; color: #e2e8f0;">${user.username}</td>
                     <td>${user.password}</td>
                     <td class="${vipClass}">${vipType}</td>
                     <td style="color: #10b981;">${user.used_code || '-'}</td>
+                    <td>${activeDisplay}</td>
                     <td>${actionBtn}</td>
                     <td class="uuid-text">${uuidDisplay}</td>
                 </tr>`;
@@ -160,19 +206,14 @@
             document.getElementById('userCount').innerText = `共筛出 ${dataArray.length} 人`;
         }
 
-        // 🌟 双擎联动过滤：下拉框 + 输入框 同时生效
         function filterTable() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
             const vipFilter = document.getElementById('vipFilter').value;
 
             const filteredData = allUserData.filter(user => {
-                // 条件 1：用户名包含关键字 (如果没输关键字就是全匹配)
                 const matchKeyword = user.username.toLowerCase().includes(keyword);
-                
-                // 条件 2：身份状态匹配
                 const userType = getUserVipType(user);
                 const matchVip = (vipFilter === '全部') || (userType === vipFilter);
-                
                 return matchKeyword && matchVip;
             });
             
