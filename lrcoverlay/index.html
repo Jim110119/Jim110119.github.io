@@ -758,6 +758,38 @@
     <div class="content-wrapper">
       <div class="versions-container">
 	  
+			  <!-- 请在 data-version=”v3” 的版本块下方，粘贴此代码块 -->
+		<div class="version-block" data-version="v3.2"> <!-- 1. 更新 data-version 属性 -->
+		  <div class="version-content">
+			<div class="version-info-col">
+			  <div class="version-info">
+				<div>
+				  <span class="info-label">版本号：</span>
+				  <span class="info-value">v3.2</span> <!-- 2. 更新显示版本号 -->
+				</div>
+				<span class="file-size-info">3.97 MB</span> <!-- 3. 请填写实际文件大小，如“4.2 MB” -->
+			  </div>
+			  <div class="version-description">
+				1. 用户体验优化：U盘扫描、界面、自启toast优化，
+				2. 仪表支持单歌名显示，关闭视频壁纸可自定义静态壁纸。
+				3. 联网歌词增加自定义API列表，切换更便捷。
+				4. 新增高级功能：任意应用仪表副驾飞屏一键开关、仪表双模式飞屏、开机全自动飞屏、飞屏遥控器。
+				5. 支持一键开启无障碍持久。 <!-- 4. 请填写v3.2版本的更新说明 -->
+			  </div>
+			</div>
+			<div class="download-col">
+			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
+			  <a href="./release/lrcoverlay-release_v3.2.apk" class="download-btn" data-version="v3.2">
+				<i class="fas fa-download"></i> 立即下载
+			  </a>
+			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
+			  <div class="download-count" id="count-v3.2">
+				<i class="fas fa-users"></i> 加载中...
+			  </div>
+			</div>
+		  </div>
+		</div>
+	  	  
 	    <div class="version-block" data-version="v3">
           <div class="version-content">
             <div class="version-info-col">
@@ -910,6 +942,7 @@
       
       // 根据用户要求，只保留 v2.0 和 v1.2.0 版本的下载统计
       versionKeys: {
+	    v3.2: 'downloads_v3_2', // 【新增】v3.2的专属下载量房间
 	    v3: 'downloads_v3_0', // 【新增】v3.0的专属下载量房间
 	    v2: 'downloads_v2_0', // v2.0的专属下载量房间
         stable: 'downloads_v1_2_0',
