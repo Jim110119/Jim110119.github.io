@@ -14,8 +14,11 @@
         .info-text { font-size: 12px; color: #94a3b8; }
         .btn-copy { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 8px; width: 100%; }
         select { background: #0f172a; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; outline: none; width: 100%; font-size: 14px; }
-        .status-sold { border-left: 4px solid #f59e0b; opacity: 0.6; }
-        .status-ready { border-left: 4px solid #10b981; }
+        
+        /* 🌟 状态颜色配置 */
+        .status-ready { border-left: 4px solid #10b981; } /* 待出售：绿边 */
+        .status-sold { border-left: 4px solid #f59e0b; opacity: 0.6; } /* 已出售：橙边变暗 */
+        .status-gifted { border-left: 4px solid #8b5cf6; opacity: 0.6; } /* 已赠送：紫边变暗 */
         
         /* 分页控制台样式 */
         .pagination { display: none; justify-content: space-between; align-items: center; background: #1e293b; padding: 10px 15px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
@@ -34,7 +37,7 @@
             background: #0f172a !important; 
             color: #38bdf8 !important; 
             border: 1px solid #38bdf8 !important; 
-            -moz-appearance: textfield; /* 隐藏原生上下箭头 */
+            -moz-appearance: textfield; 
         }
         .jump-input::-webkit-outer-spin-button, .jump-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
@@ -65,10 +68,9 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
         let currentPwd = '';
         
-        // 分页核心变量
         let allCodesData = [];   
         let currentPage = 1;     
-        const pageSize = 200;    // 每页显示 200 条
+        const pageSize = 200;    
 
         function fetchCodes() {
             currentPwd = document.getElementById('adminPwd').value;
@@ -120,7 +122,6 @@
             
             const currentPageData = allCodesData.slice(startIndex, endIndex);
 
-            // 更新顶部控制台的数字、页数文本和按钮状态
             document.getElementById('jumpInput').value = currentPage;
             document.getElementById('totalPagesText').innerText = `/ ${totalPages} 页`;
             document.getElementById('prevBtn').disabled = (currentPage === 1);
@@ -128,9 +129,14 @@
 
             let htmlString = '';
             currentPageData.forEach(item => {
-                const cardClass = item.sell_status === '已出售' ? 'status-sold' : 'status-ready';
+                // 🌟 核心判断：自动匹配新状态和 CSS 颜色
+                let cardClass = 'status-ready';
+                if (item.sell_status === '已出售') cardClass = 'status-sold';
+                else if (item.sell_status === '已赠送') cardClass = 'status-gifted';
+                
                 const isActivatedText = item.is_used ? `<span style="color:#ef4444;">已激活 (${item.used_by_user})</span>` : '未激活';
                 
+                // 🌟 新增选项：<option value="已赠送">🎁 已赠送</option>
                 htmlString += `
                     <div class="card ${cardClass}">
                         <div style="flex: 2;">
@@ -142,6 +148,7 @@
                             <select onchange="updateStatus('${item.code}', this.value)">
                                 <option value="待出售" ${item.sell_status === '待出售' ? 'selected' : ''}>🟢 待出售</option>
                                 <option value="已出售" ${item.sell_status === '已出售' ? 'selected' : ''}>🟠 已出售</option>
+                                <option value="已赠送" ${item.sell_status === '已赠送' ? 'selected' : ''}>🎁 已赠送</option>
                             </select>
                         </div>
                     </div>
@@ -162,7 +169,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 🌟 新增：手动输入数字后的跳页逻辑
         function jumpToPage() {
             const inputVal = parseInt(document.getElementById('jumpInput').value);
             const totalPages = Math.ceil(allCodesData.length / pageSize) || 1;
@@ -174,7 +180,6 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             } else {
-                // 如果输入的数字越界或为空，直接恢复当前页码
                 document.getElementById('jumpInput').value = currentPage;
             }
         }
