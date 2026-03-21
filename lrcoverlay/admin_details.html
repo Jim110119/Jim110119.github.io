@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>后台管理 - 用户明细与设备控制</title>
     <style>
-        /* 核心修复 1：全局盒模型，防止 padding 撑爆屏幕 */
         * { box-sizing: border-box; }
         body { background-color: #0f172a; color: #e2e8f0; font-family: monospace; padding: 15px; margin: 0; }
         
@@ -13,42 +12,27 @@
         input.pwd-input { padding: 12px; border-radius: 8px; border: 1px solid #38bdf8; background: #1e293b; color: white; outline: none; width: 100%; max-width: 300px; font-size: 16px; margin-bottom: 15px; }
         button.btn-primary { padding: 12px 20px; border-radius: 8px; border: none; background: #0ea5e9; color: white; cursor: pointer; font-weight: bold; width: 100%; max-width: 300px; font-size: 16px; }
         
-        /* 核心修复 2：控制台响应式弹性布局 (允许折行) */
-        .control-panel { 
-            display: none; 
-            flex-wrap: wrap; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-top: 15px; 
-            background: #1e293b; 
-            padding: 15px; 
-            border-radius: 10px; 
-            border: 1px solid #334155; 
-            gap: 15px; /* 元素挤在一起时自动拉开间距 */
-        }
-        .panel-left { font-size: 16px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 200px; }
-        .search-container { flex: 2; min-width: 250px; }
-        .search-box { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid #475569; background: #0f172a; color: white; outline: none; font-size: 14px; }
+        .control-panel { display: none; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 15px; background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; gap: 15px; }
+        .panel-left { font-size: 16px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 100%; }
         
-        /* 核心修复 3：表格专属滑动包裹层 */
-        .table-wrapper { 
-            display: none; 
-            width: 100%; 
-            overflow-x: auto; /* 允许横向滑动 */
-            margin-top: 15px; 
-            background: #1e293b; 
-            border-radius: 10px; 
-            border: 1px solid #334155; 
-        }
+        /* 🌟 核心优化：筛选框与搜索框弹性并排 */
+        .search-container { display: flex; gap: 10px; flex: 1; min-width: 100%; }
+        .search-box { padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; outline: none; font-size: 14px; }
+        .filter-select { flex: 1; min-width: 110px; }
+        .input-text { flex: 2; min-width: 150px; }
         
-        /* 核心修复 4：表格禁止自动换行，保持原生宽度 */
-        table { width: 100%; border-collapse: collapse; min-width: 800px; /* 强制表格最小宽度，不够就滑 */ }
-        th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; /* 绝对禁止文字折行挤压 */ }
+        .table-wrapper { display: none; width: 100%; overflow-x: auto; margin-top: 15px; background: #1e293b; border-radius: 10px; border: 1px solid #334155; }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; }
         th:last-child, td:last-child { border-right: none; }
         th { background: #0f172a; color: #38bdf8; position: sticky; top: 0; z-index: 10; }
         
-        .vip-yes { color: #f59e0b; font-weight: bold; }
-        .vip-no { color: #94a3b8; }
+        /* 🌟 VIP 状态多色支持 */
+        .vip-purchased { color: #f59e0b; font-weight: bold; } /* 购买：土豪金 */
+        .vip-gifted { color: #8b5cf6; font-weight: bold; }    /* 赠送：尊贵紫 */
+        .vip-no { color: #94a3b8; }                           /* 普通：灰白 */
+        
         .btn-unbind { background: #ef4444; padding: 8px 15px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
         .btn-unbind:active { background: #dc2626; }
         .btn-disabled { background: #475569; padding: 8px 15px; font-size: 13px; border-radius: 6px; border: none; color: #94a3b8; cursor: not-allowed; }
@@ -71,7 +55,13 @@
             <span id="userCount" style="color: #94a3b8; font-size: 14px;">共 0 人</span>
         </div>
         <div class="search-container">
-            <input type="text" id="searchInput" class="search-box" placeholder="🔍 输入用户名即时搜索..." oninput="filterTable()">
+            <select id="vipFilter" class="search-box filter-select" onchange="filterTable()">
+                <option value="全部">全部状态</option>
+                <option value="购买永久VIP">🟠 仅看购买VIP</option>
+                <option value="赠送永久VIP">🎁 仅看赠送VIP</option>
+                <option value="普通用户">⚪ 仅看普通用户</option>
+            </select>
+            <input type="text" id="searchInput" class="search-box input-text" placeholder="🔍 搜用户名..." oninput="filterTable()">
         </div>
     </div>
 
@@ -81,7 +71,7 @@
                 <tr>
                     <th>用户名</th>
                     <th>密码</th>
-                    <th>VIP状态</th>
+                    <th>身份状态</th>
                     <th>使用的卡密</th>
                     <th>操作控制</th>
                     <th>当前绑定设备 (UUID)</th>
@@ -117,13 +107,11 @@
                 if (resData.success) {
                     document.getElementById('authBox').style.display = 'none';
                     document.getElementById('controlPanel').style.display = 'flex';
-                    // 🌟 注意这里：显示的是包裹层，而不是 table 本身
                     document.getElementById('tableWrapper').style.display = 'block'; 
                     
                     allUserData = resData.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-                    document.getElementById('userCount').innerText = `共 ${allUserData.length} 人`;
                     
-                    renderTable(allUserData); 
+                    filterTable(); // 初始调用一次渲染
                 } else {
                     document.getElementById('errMsg').style.display = 'block';
                 }
@@ -135,35 +123,59 @@
             });
         }
 
+        // 🌟 核心判断逻辑：根据云端传回的卡密状态，鉴定身份
+        function getUserVipType(user) {
+            if (!user.is_vip) return "普通用户";
+            if (user.sell_status === '已赠送') return "赠送永久VIP";
+            return "购买永久VIP"; // 凡是 VIP 且不是赠送的，都算购买
+        }
+
         function renderTable(dataArray) {
             const tbody = document.getElementById('tableBody');
             let htmlString = ''; 
             
             dataArray.forEach(user => {
                 const isBound = user.device_uuid && user.device_uuid !== '';
-                
                 const actionBtn = isBound 
                     ? `<button class="btn-unbind" onclick="forceUnbind('${user.username}')">强制解绑</button>`
                     : `<button class="btn-disabled" disabled>已空置</button>`;
-                    
                 const uuidDisplay = isBound ? user.device_uuid : `<span style="color:#ef4444;">未绑定设备</span>`;
 
-                // 我把操作按钮移到了设备码前面，这样你在手机上滑动时能更快点到按钮
+                // 🌟 获取身份并匹配颜色 CSS
+                const vipType = getUserVipType(user);
+                let vipClass = "vip-no";
+                if (vipType === "购买永久VIP") vipClass = "vip-purchased";
+                if (vipType === "赠送永久VIP") vipClass = "vip-gifted";
+
                 htmlString += `<tr>
                     <td style="font-weight: bold; color: #e2e8f0;">${user.username}</td>
                     <td>${user.password}</td>
-                    <td class="${user.is_vip ? 'vip-yes' : 'vip-no'}">${user.is_vip ? '永久VIP' : '普通'}</td>
+                    <td class="${vipClass}">${vipType}</td>
                     <td style="color: #10b981;">${user.used_code || '-'}</td>
                     <td>${actionBtn}</td>
                     <td class="uuid-text">${uuidDisplay}</td>
                 </tr>`;
             });
             tbody.innerHTML = htmlString;
+            document.getElementById('userCount').innerText = `共筛出 ${dataArray.length} 人`;
         }
 
+        // 🌟 双擎联动过滤：下拉框 + 输入框 同时生效
         function filterTable() {
             const keyword = document.getElementById('searchInput').value.toLowerCase();
-            const filteredData = allUserData.filter(user => user.username.toLowerCase().includes(keyword));
+            const vipFilter = document.getElementById('vipFilter').value;
+
+            const filteredData = allUserData.filter(user => {
+                // 条件 1：用户名包含关键字 (如果没输关键字就是全匹配)
+                const matchKeyword = user.username.toLowerCase().includes(keyword);
+                
+                // 条件 2：身份状态匹配
+                const userType = getUserVipType(user);
+                const matchVip = (vipFilter === '全部') || (userType === vipFilter);
+                
+                return matchKeyword && matchVip;
+            });
+            
             renderTable(filteredData);
         }
 
@@ -180,7 +192,6 @@
                 if(resData.success) {
                     alert('✅ ' + resData.msg);
                     fetchData(); 
-                    document.getElementById('searchInput').value = ''; 
                 } else {
                     alert('❌ 解绑失败：' + resData.msg);
                 }
