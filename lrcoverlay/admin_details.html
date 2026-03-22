@@ -20,6 +20,11 @@
         .filter-select { flex: 1; min-width: 110px; }
         .input-text { flex: 2; min-width: 150px; }
         
+        /* 🌟 新增：导出按钮专属样式 */
+        .btn-export { background: #10b981; padding: 10px 15px; border-radius: 8px; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s; white-space: nowrap; }
+        .btn-export:hover { background: #059669; }
+        .btn-export:active { background: #047857; }
+        
         .table-wrapper { display: none; width: 100%; overflow-x: auto; margin-top: 15px; background: #1e293b; border-radius: 10px; border: 1px solid #334155; }
         
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
@@ -30,13 +35,11 @@
         .sortable-th { cursor: pointer; user-select: none; transition: color 0.2s; }
         .sortable-th:hover { color: #0ea5e9; }
         
-        /* 🌟 VIP 状态多色支持 */
         .vip-purchased { color: #f59e0b; font-weight: bold; } 
         .vip-gifted { color: #8b5cf6; font-weight: bold; }    
         .vip-no { color: #94a3b8; }                           
-        .vip-unreg { color: #64748b; font-style: italic; } /* 新增未注册颜色 */
+        .vip-unreg { color: #64748b; font-style: italic; } 
         
-        /* 🌟 按钮组样式 */
         .action-group { display: flex; gap: 8px; }
         .btn-unbind { background: #0ea5e9; padding: 8px 12px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
         .btn-unbind:active { background: #0284c7; }
@@ -71,6 +74,7 @@
                 <option value="未注册用户">👻 仅看未注册用户</option>
             </select>
             <input type="text" id="searchInput" class="search-box input-text" placeholder="🔍 搜用户名/UUID..." oninput="filterTable()">
+            <button class="btn-export" onclick="exportToCSV()">📥 导出.csv</button>
         </div>
     </div>
 
@@ -97,6 +101,7 @@
         
         let currentPwd = '';
         let allUserData = []; 
+        let currentFilteredData = []; // 🌟 新增：用来存当前筛选/排序后的数据，供导出使用
         let sortOrder = 0; 
 
         function fetchData() {
@@ -123,7 +128,6 @@
                     sortOrder = 0;
                     document.getElementById('thLastActive').innerHTML = '最后活跃时间 ↕️';
                     
-                    // 🌟 安全排序：防止未注册用户(没有created_at)导致JS崩溃，强制把他们垫底
                     allUserData = resData.data.sort((a, b) => {
                         const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
                         const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -177,7 +181,6 @@
         }
 
         function getUserVipType(user) {
-            // 🌟 识别未注册设备
             if (!user.username) return "未注册用户";
             if (!user.is_vip) return "普通用户";
             if (user.sell_status === '已赠送') return "赠送永久VIP";
@@ -196,7 +199,6 @@
                 const isBound = user.device_uuid && user.device_uuid !== '';
                 const uuidDisplay = isBound ? user.device_uuid : `<span style="color:#ef4444;">未绑定设备</span>`;
 
-                // 🌟 新增：操作控制区合并（解绑 + 删除）
                 let actionBtn = '';
                 if (isUnreg) {
                     actionBtn = `<span style="color:#64748b; font-size:12px;">自动抓取无操作</span>`;
@@ -237,7 +239,6 @@
             const vipFilter = document.getElementById('vipFilter').value;
 
             const filteredData = allUserData.filter(user => {
-                // 🌟 智能搜索：把用户名和 UUID 拼接起来搜，这样即使是未注册用户也能通过搜 UUID 找出来
                 const searchStr = (user.username || "") + " " + (user.device_uuid || "");
                 const matchKeyword = searchStr.toLowerCase().includes(keyword);
                 
@@ -247,7 +248,58 @@
                 return matchKeyword && matchVip;
             });
             
+            // 🌟 记录当前视图的数据，给导出工具用
+            currentFilteredData = filteredData;
             renderTable(filteredData);
+        }
+
+        // 🌟 核心新增：一键导出当前表格为 CSV 引擎
+        function exportToCSV() {
+            if (currentFilteredData.length === 0) {
+                alert("⚠️ 当前列表为空，没有可导出的数据！");
+                return;
+            }
+
+            // 1. 定义表头
+            const headers = ['用户名', '密码', '身份状态', '使用的密钥', '最后活跃时间', '当前绑定设备(UUID)'];
+            
+            // 2. CSV 特殊字符转义器 (防止密码里有逗号导致串列)
+            const escapeCSV = (str) => {
+                if (str === null || str === undefined) return '""';
+                const s = String(str);
+                return '"' + s.replace(/"/g, '""') + '"'; // 用双引号包裹，并将内部的双引号转义
+            };
+
+            // 3. 提取每一行数据
+            const rows = currentFilteredData.map(user => {
+                const username = user.username ? user.username : '(未注册设备)';
+                const password = user.password ? user.password : '-';
+                const vipType = getUserVipType(user);
+                const code = user.used_code ? user.used_code : '-';
+                const lastActive = user.last_active ? user.last_active : '无记录';
+                const uuid = user.device_uuid ? user.device_uuid : '未绑定设备';
+                
+                return [username, password, vipType, code, lastActive, uuid].map(escapeCSV).join(',');
+            });
+
+            // 4. 合并表头和内容，并在开头拼接 \uFEFF 防乱码！
+            const csvContent = "\uFEFF" + headers.map(escapeCSV).join(',') + "\n" + rows.join("\n");
+            
+            // 5. 生成 Blob 和隐式下载链接
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            
+            // 按日期生成文件名
+            const dateStr = new Date().toISOString().slice(0, 10);
+            link.setAttribute("download", `用户明细报表_${dateStr}.csv`);
+            
+            // 触发静默下载
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
 
         function forceUnbind(targetUsername) {
@@ -269,12 +321,8 @@
             });
         }
 
-        // 🌟 新增：带双重确认的删除用户逻辑
         function deleteUser(targetUsername) {
-            // 第一重拦截
             if(!confirm(`🚨 极度危险操作！\n\n确定要彻底删除账号【${targetUsername}】吗？\n删除后该用户的卡密会被重置为【未激活】供你再次使用！`)) return;
-            
-            // 第二重防呆拦截
             if(!confirm(`⚠️ 最后一次警告！\n\n如果该用户仍在使用车机，只要不登出他依然是VIP。但如果他登出，将永远无法找回账号！\n\n确定继续删除？`)) return;
 
             fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_delete_user`, {
@@ -286,7 +334,7 @@
             .then(resData => {
                 if(resData.success) {
                     alert('✅ ' + resData.msg);
-                    fetchData(); // 重新拉取数据刷新界面
+                    fetchData(); 
                 } else {
                     alert('❌ 删除失败：' + resData.msg);
                 }
