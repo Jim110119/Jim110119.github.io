@@ -62,6 +62,7 @@
                 <option value="赠送永久VIP">🎁 仅看赠送VIP</option>
                 <option value="普通用户">⚪ 仅看普通用户</option>
                 <option value="未注册用户">👻 仅看未注册用户</option>
+                <option value="排除未注册用户">🚫 排除未注册用户</option>
             </select>
             <input type="text" id="searchInput" class="search-box input-text" placeholder="🔍 搜用户名/UUID..." oninput="filterTable()">
             <button class="btn-export" onclick="exportToCSV()">📥 导出.csv</button>
@@ -190,14 +191,20 @@
                 const isBound = user.device_uuid && user.device_uuid !== '';
                 const uuidDisplay = isBound ? user.device_uuid : `<span style="color:#ef4444;">未绑定设备</span>`;
 
+                // 🌟 核心：提取安全参数，防止 undefined 报错
+                const safeUsername = user.username ? user.username : '';
+                const safeUuid = user.device_uuid ? user.device_uuid : '';
+                const deleteHtml = `<button class="btn-delete" onclick="deleteUser('${safeUsername}', '${safeUuid}')">删除</button>`;
+
                 let actionBtn = '';
                 if (isUnreg) {
-                    actionBtn = `<span style="color:#64748b; font-size:12px;">自动抓取无操作</span>`;
+                    // 未注册用户：只显示删除按钮（清理垃圾数据用）
+                    actionBtn = `<div class="action-group">${deleteHtml}</div>`;
                 } else {
+                    // 注册用户：解绑 + 删除
                     const unbindHtml = isBound 
                         ? `<button class="btn-unbind" onclick="forceUnbind('${user.username}')">解绑</button>`
                         : `<button class="btn-disabled" disabled>解绑</button>`;
-                    const deleteHtml = `<button class="btn-delete" onclick="deleteUser('${user.username}')">删除</button>`;
                     actionBtn = `<div class="action-group">${unbindHtml}${deleteHtml}</div>`;
                 }
 
@@ -207,7 +214,6 @@
                 else if (vipType === "赠送永久VIP") vipClass = "vip-gifted";
                 else if (vipType === "未注册用户") vipClass = "vip-unreg";
 
-                // 🌟 新增版本号的显示
                 const appVersion = user.app_version ? `<span class="version-text">${user.app_version}</span>` : `<span style="color: #64748b;">-</span>`;
 
                 const activeDisplay = user.last_active 
@@ -236,8 +242,18 @@
             const filteredData = allUserData.filter(user => {
                 const searchStr = (user.username || "") + " " + (user.device_uuid || "");
                 const matchKeyword = searchStr.toLowerCase().includes(keyword);
+                
                 const userType = getUserVipType(user);
-                const matchVip = (vipFilter === '全部') || (userType === vipFilter);
+                
+                let matchVip = false;
+                if (vipFilter === '全部') {
+                    matchVip = true;
+                } else if (vipFilter === '排除未注册用户') {
+                    matchVip = (userType !== '未注册用户'); 
+                } else {
+                    matchVip = (userType === vipFilter);
+                }
+                
                 return matchKeyword && matchVip;
             });
             
@@ -251,7 +267,6 @@
                 return;
             }
 
-            // 🌟 加入了 App 版本表头
             const headers = ['用户名', '密码', '身份状态', '使用的密钥', 'App版本', '最后活跃时间', '当前绑定设备(UUID)'];
             
             const escapeCSV = (str) => {
@@ -265,7 +280,7 @@
                 const password = user.password ? user.password : '-';
                 const vipType = getUserVipType(user);
                 const code = user.used_code ? user.used_code : '-';
-                const appVersion = user.app_version ? user.app_version : '-'; // 🌟 导出版本号数据
+                const appVersion = user.app_version ? user.app_version : '-';
                 const lastActive = user.last_active ? user.last_active : '无记录';
                 const uuid = user.device_uuid ? user.device_uuid : '未绑定设备';
                 
@@ -304,14 +319,26 @@
             });
         }
 
-        function deleteUser(targetUsername) {
-            if(!confirm(`🚨 极度危险操作！\n\n确定要彻底删除账号【${targetUsername}】吗？\n删除后该用户的卡密会被重置为【未激活】供你再次使用！`)) return;
-            if(!confirm(`⚠️ 最后一次警告！\n\n如果该用户仍在使用车机，只要不登出他依然是VIP。但如果他登出，将永远无法找回账号！\n\n确定继续删除？`)) return;
+        // 🌟 新增：智能判断并请求新 RPC 接口
+        function deleteUser(targetUsername, targetUuid) {
+            let confirmMsg = '';
+            if (targetUsername) {
+                confirmMsg = `🚨 极度危险操作！\n\n确定要彻底删除账号【${targetUsername}】及该设备的所有记录吗？\n删除后卡密将被重置为【未激活】供二次使用！`;
+            } else {
+                confirmMsg = `🗑️ 确认清理？\n\n确定要彻底清除这台未注册设备【${targetUuid}】的全部打卡痕迹吗？\n清理后将从日活及装机报表中彻底移除。`;
+            }
 
-            fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_delete_user`, {
+            if(!confirm(confirmMsg)) return;
+
+            if (targetUsername) {
+                if(!confirm(`⚠️ 最后一次警告！\n\n如果该用户仍在使用车机，只要不登出他依然是VIP。但如果他登出，将永远无法找回账号！\n\n确定继续删除？`)) return;
+            }
+
+            // 调用新的超级删除引擎
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_delete_trace`, {
                 method: 'POST',
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ admin_pwd: currentPwd, p_username: targetUsername })
+                body: JSON.stringify({ admin_pwd: currentPwd, p_username: targetUsername, p_uuid: targetUuid })
             })
             .then(res => res.json())
             .then(resData => {
