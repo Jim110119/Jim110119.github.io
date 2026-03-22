@@ -1,6 +1,6 @@
 {
-  "versionCode": 4,
-  "versionName": "v3.2",
-  "updateLog": "• 用户体验优化：U盘扫描、界面、自启toast优化，\n• 仪表支持单歌名显示，关闭视频壁纸可自定义静态壁纸。\n• 联网歌词增加自定义API列表，切换更便捷。\n• 新增高级功能：任意应用仪表副驾飞屏一键开关、仪表双模式飞屏、开机全自动飞屏、飞屏遥控器。\n• 支持一键开启无障碍持久。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v3.2.apk"
+  "versionCode": 5,
+  "versionName": "v3.6",
+  "updateLog": "\n• 优化歌词乱滚问题。\n• 优化开机歌词掉线问题。\n• 新增遮罩跟随深浅色主题自动切换。\n• 新增支持开机自动应用动态壁纸。\n• 用户体验优化：U盘扫描、界面、自启toast优化。\n• 仪表支持单歌名显示。 ",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v3.6.apk"
 }
