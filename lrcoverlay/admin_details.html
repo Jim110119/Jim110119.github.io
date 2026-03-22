@@ -7,47 +7,37 @@
     <style>
         * { box-sizing: border-box; }
         body { background-color: #0f172a; color: #e2e8f0; font-family: monospace; padding: 15px; margin: 0; }
-        
         .auth-box { text-align: center; margin-top: 60px; }
         input.pwd-input { padding: 12px; border-radius: 8px; border: 1px solid #38bdf8; background: #1e293b; color: white; outline: none; width: 100%; max-width: 300px; font-size: 16px; margin-bottom: 15px; }
         button.btn-primary { padding: 12px 20px; border-radius: 8px; border: none; background: #0ea5e9; color: white; cursor: pointer; font-weight: bold; width: 100%; max-width: 300px; font-size: 16px; }
-        
         .control-panel { display: none; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 15px; background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; gap: 15px; }
         .panel-left { font-size: 16px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 100%; }
-        
         .search-container { display: flex; gap: 10px; flex: 1; min-width: 100%; }
         .search-box { padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; outline: none; font-size: 14px; }
         .filter-select { flex: 1; min-width: 110px; }
         .input-text { flex: 2; min-width: 150px; }
-        
-        /* 🌟 新增：导出按钮专属样式 */
         .btn-export { background: #10b981; padding: 10px 15px; border-radius: 8px; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s; white-space: nowrap; }
         .btn-export:hover { background: #059669; }
         .btn-export:active { background: #047857; }
-        
         .table-wrapper { display: none; width: 100%; overflow-x: auto; margin-top: 15px; background: #1e293b; border-radius: 10px; border: 1px solid #334155; }
-        
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
         th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; }
         th:last-child, td:last-child { border-right: none; }
         th { background: #0f172a; color: #38bdf8; position: sticky; top: 0; z-index: 10; }
-        
         .sortable-th { cursor: pointer; user-select: none; transition: color 0.2s; }
         .sortable-th:hover { color: #0ea5e9; }
-        
         .vip-purchased { color: #f59e0b; font-weight: bold; } 
         .vip-gifted { color: #8b5cf6; font-weight: bold; }    
         .vip-no { color: #94a3b8; }                           
         .vip-unreg { color: #64748b; font-style: italic; } 
-        
         .action-group { display: flex; gap: 8px; }
         .btn-unbind { background: #0ea5e9; padding: 8px 12px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
         .btn-unbind:active { background: #0284c7; }
         .btn-delete { background: #ef4444; padding: 8px 12px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
         .btn-delete:active { background: #b91c1c; }
         .btn-disabled { background: #475569; padding: 8px 12px; font-size: 13px; border-radius: 6px; border: none; color: #94a3b8; cursor: not-allowed; }
-        
         .uuid-text { font-size: 12px; color: #94a3b8; font-family: monospace; }
+        .version-text { font-weight: bold; color: #38bdf8; }
     </style>
 </head>
 <body>
@@ -86,6 +76,7 @@
                     <th>密码</th>
                     <th>身份状态</th>
                     <th>使用的密钥</th>
+                    <th>App版本</th>
                     <th id="thLastActive" class="sortable-th" onclick="toggleSort()" title="点击切换：默认 / 远到近 / 近到远">最后活跃时间 ↕️</th>
                     <th>操作控制</th>
                     <th>当前绑定设备 (UUID)</th>
@@ -101,7 +92,7 @@
         
         let currentPwd = '';
         let allUserData = []; 
-        let currentFilteredData = []; // 🌟 新增：用来存当前筛选/排序后的数据，供导出使用
+        let currentFilteredData = []; 
         let sortOrder = 0; 
 
         function fetchData() {
@@ -216,6 +207,9 @@
                 else if (vipType === "赠送永久VIP") vipClass = "vip-gifted";
                 else if (vipType === "未注册用户") vipClass = "vip-unreg";
 
+                // 🌟 新增版本号的显示
+                const appVersion = user.app_version ? `<span class="version-text">${user.app_version}</span>` : `<span style="color: #64748b;">-</span>`;
+
                 const activeDisplay = user.last_active 
                     ? `<span style="color: #10b981; font-weight: bold;">${user.last_active}</span>` 
                     : `<span style="color: #64748b;">无记录</span>`;
@@ -225,6 +219,7 @@
                     <td>${displayPassword}</td>
                     <td class="${vipClass}">${vipType}</td>
                     <td style="color: #10b981;">${user.used_code || '-'}</td>
+                    <td>${appVersion}</td>
                     <td>${activeDisplay}</td>
                     <td>${actionBtn}</td>
                     <td class="uuid-text">${uuidDisplay}</td>
@@ -241,62 +236,50 @@
             const filteredData = allUserData.filter(user => {
                 const searchStr = (user.username || "") + " " + (user.device_uuid || "");
                 const matchKeyword = searchStr.toLowerCase().includes(keyword);
-                
                 const userType = getUserVipType(user);
                 const matchVip = (vipFilter === '全部') || (userType === vipFilter);
-                
                 return matchKeyword && matchVip;
             });
             
-            // 🌟 记录当前视图的数据，给导出工具用
             currentFilteredData = filteredData;
             renderTable(filteredData);
         }
 
-        // 🌟 核心新增：一键导出当前表格为 CSV 引擎
         function exportToCSV() {
             if (currentFilteredData.length === 0) {
                 alert("⚠️ 当前列表为空，没有可导出的数据！");
                 return;
             }
 
-            // 1. 定义表头
-            const headers = ['用户名', '密码', '身份状态', '使用的密钥', '最后活跃时间', '当前绑定设备(UUID)'];
+            // 🌟 加入了 App 版本表头
+            const headers = ['用户名', '密码', '身份状态', '使用的密钥', 'App版本', '最后活跃时间', '当前绑定设备(UUID)'];
             
-            // 2. CSV 特殊字符转义器 (防止密码里有逗号导致串列)
             const escapeCSV = (str) => {
                 if (str === null || str === undefined) return '""';
                 const s = String(str);
-                return '"' + s.replace(/"/g, '""') + '"'; // 用双引号包裹，并将内部的双引号转义
+                return '"' + s.replace(/"/g, '""') + '"'; 
             };
 
-            // 3. 提取每一行数据
             const rows = currentFilteredData.map(user => {
                 const username = user.username ? user.username : '(未注册设备)';
                 const password = user.password ? user.password : '-';
                 const vipType = getUserVipType(user);
                 const code = user.used_code ? user.used_code : '-';
+                const appVersion = user.app_version ? user.app_version : '-'; // 🌟 导出版本号数据
                 const lastActive = user.last_active ? user.last_active : '无记录';
                 const uuid = user.device_uuid ? user.device_uuid : '未绑定设备';
                 
-                return [username, password, vipType, code, lastActive, uuid].map(escapeCSV).join(',');
+                return [username, password, vipType, code, appVersion, lastActive, uuid].map(escapeCSV).join(',');
             });
 
-            // 4. 合并表头和内容，并在开头拼接 \uFEFF 防乱码！
             const csvContent = "\uFEFF" + headers.map(escapeCSV).join(',') + "\n" + rows.join("\n");
-            
-            // 5. 生成 Blob 和隐式下载链接
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            
-            // 按日期生成文件名
             const dateStr = new Date().toISOString().slice(0, 10);
             link.setAttribute("download", `用户明细报表_${dateStr}.csv`);
-            
-            // 触发静默下载
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
