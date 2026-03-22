@@ -27,17 +27,23 @@
         th:last-child, td:last-child { border-right: none; }
         th { background: #0f172a; color: #38bdf8; position: sticky; top: 0; z-index: 10; }
         
-        /* 🌟 排序表头的专属交互样式 */
         .sortable-th { cursor: pointer; user-select: none; transition: color 0.2s; }
         .sortable-th:hover { color: #0ea5e9; }
         
+        /* 🌟 VIP 状态多色支持 */
         .vip-purchased { color: #f59e0b; font-weight: bold; } 
         .vip-gifted { color: #8b5cf6; font-weight: bold; }    
         .vip-no { color: #94a3b8; }                           
+        .vip-unreg { color: #64748b; font-style: italic; } /* 新增未注册颜色 */
         
-        .btn-unbind { background: #ef4444; padding: 8px 15px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
-        .btn-unbind:active { background: #dc2626; }
-        .btn-disabled { background: #475569; padding: 8px 15px; font-size: 13px; border-radius: 6px; border: none; color: #94a3b8; cursor: not-allowed; }
+        /* 🌟 按钮组样式 */
+        .action-group { display: flex; gap: 8px; }
+        .btn-unbind { background: #0ea5e9; padding: 8px 12px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
+        .btn-unbind:active { background: #0284c7; }
+        .btn-delete { background: #ef4444; padding: 8px 12px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
+        .btn-delete:active { background: #b91c1c; }
+        .btn-disabled { background: #475569; padding: 8px 12px; font-size: 13px; border-radius: 6px; border: none; color: #94a3b8; cursor: not-allowed; }
+        
         .uuid-text { font-size: 12px; color: #94a3b8; font-family: monospace; }
     </style>
 </head>
@@ -62,8 +68,9 @@
                 <option value="购买永久VIP">🟠 仅看购买VIP</option>
                 <option value="赠送永久VIP">🎁 仅看赠送VIP</option>
                 <option value="普通用户">⚪ 仅看普通用户</option>
+                <option value="未注册用户">👻 仅看未注册用户</option>
             </select>
-            <input type="text" id="searchInput" class="search-box input-text" placeholder="🔍 搜用户名..." oninput="filterTable()">
+            <input type="text" id="searchInput" class="search-box input-text" placeholder="🔍 搜用户名/UUID..." oninput="filterTable()">
         </div>
     </div>
 
@@ -90,7 +97,7 @@
         
         let currentPwd = '';
         let allUserData = []; 
-        let sortOrder = 0; // 🌟 0: 默认注册时间倒序, 1: 活跃远到近, 2: 活跃近到远
+        let sortOrder = 0; 
 
         function fetchData() {
             currentPwd = document.getElementById('adminPwd').value;
@@ -113,10 +120,15 @@
                     document.getElementById('controlPanel').style.display = 'flex';
                     document.getElementById('tableWrapper').style.display = 'block'; 
                     
-                    // 初始化重置为默认排序
                     sortOrder = 0;
                     document.getElementById('thLastActive').innerHTML = '最后活跃时间 ↕️';
-                    allUserData = resData.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    
+                    // 🌟 安全排序：防止未注册用户(没有created_at)导致JS崩溃，强制把他们垫底
+                    allUserData = resData.data.sort((a, b) => {
+                        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                        return timeB - timeA;
+                    });
                     
                     filterTable(); 
                 } else {
@@ -130,20 +142,21 @@
             });
         }
 
-        // 🌟 核心引擎：处理循环排序逻辑
         function toggleSort() {
             sortOrder = (sortOrder + 1) % 3;
             const th = document.getElementById('thLastActive');
             
             if (sortOrder === 0) {
                 th.innerHTML = '最后活跃时间 ↕️';
-                // 恢复默认：按注册时间倒序 (新注册的在前)
-                allUserData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                allUserData.sort((a, b) => {
+                    const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+                    const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+                    return timeB - timeA;
+                });
             } 
             else if (sortOrder === 1) {
                 th.innerHTML = '最后活跃时间 ⬆️ (远到近)';
                 allUserData.sort((a, b) => {
-                    // 无记录的永远垫底
                     if (!a.last_active && !b.last_active) return 0;
                     if (!a.last_active) return 1; 
                     if (!b.last_active) return -1;
@@ -153,7 +166,6 @@
             else if (sortOrder === 2) {
                 th.innerHTML = '最后活跃时间 ⬇️ (近到远)';
                 allUserData.sort((a, b) => {
-                    // 无记录的永远垫底
                     if (!a.last_active && !b.last_active) return 0;
                     if (!a.last_active) return 1; 
                     if (!b.last_active) return -1;
@@ -161,11 +173,12 @@
                 });
             }
             
-            // 排序完之后，触发双擎过滤重新渲染 UI
             filterTable();
         }
 
         function getUserVipType(user) {
+            // 🌟 识别未注册设备
+            if (!user.username) return "未注册用户";
             if (!user.is_vip) return "普通用户";
             if (user.sell_status === '已赠送') return "赠送永久VIP";
             return "购买永久VIP"; 
@@ -176,25 +189,38 @@
             let htmlString = ''; 
             
             dataArray.forEach(user => {
+                const isUnreg = !user.username;
+                const displayUsername = isUnreg ? `<span style="color:#64748b; font-style:italic;">(未注册设备)</span>` : user.username;
+                const displayPassword = isUnreg ? `<span style="color:#64748b;">-</span>` : user.password;
+                
                 const isBound = user.device_uuid && user.device_uuid !== '';
-                const actionBtn = isBound 
-                    ? `<button class="btn-unbind" onclick="forceUnbind('${user.username}')">强制解绑</button>`
-                    : `<button class="btn-disabled" disabled>已空置</button>`;
                 const uuidDisplay = isBound ? user.device_uuid : `<span style="color:#ef4444;">未绑定设备</span>`;
+
+                // 🌟 新增：操作控制区合并（解绑 + 删除）
+                let actionBtn = '';
+                if (isUnreg) {
+                    actionBtn = `<span style="color:#64748b; font-size:12px;">自动抓取无操作</span>`;
+                } else {
+                    const unbindHtml = isBound 
+                        ? `<button class="btn-unbind" onclick="forceUnbind('${user.username}')">解绑</button>`
+                        : `<button class="btn-disabled" disabled>解绑</button>`;
+                    const deleteHtml = `<button class="btn-delete" onclick="deleteUser('${user.username}')">删除</button>`;
+                    actionBtn = `<div class="action-group">${unbindHtml}${deleteHtml}</div>`;
+                }
 
                 const vipType = getUserVipType(user);
                 let vipClass = "vip-no";
                 if (vipType === "购买永久VIP") vipClass = "vip-purchased";
-                if (vipType === "赠送永久VIP") vipClass = "vip-gifted";
+                else if (vipType === "赠送永久VIP") vipClass = "vip-gifted";
+                else if (vipType === "未注册用户") vipClass = "vip-unreg";
 
-                // 🌟 新增：处理最后活跃时间的格式和颜色
                 const activeDisplay = user.last_active 
                     ? `<span style="color: #10b981; font-weight: bold;">${user.last_active}</span>` 
                     : `<span style="color: #64748b;">无记录</span>`;
 
                 htmlString += `<tr>
-                    <td style="font-weight: bold; color: #e2e8f0;">${user.username}</td>
-                    <td>${user.password}</td>
+                    <td style="font-weight: bold; color: #e2e8f0;">${displayUsername}</td>
+                    <td>${displayPassword}</td>
                     <td class="${vipClass}">${vipType}</td>
                     <td style="color: #10b981;">${user.used_code || '-'}</td>
                     <td>${activeDisplay}</td>
@@ -203,7 +229,7 @@
                 </tr>`;
             });
             tbody.innerHTML = htmlString;
-            document.getElementById('userCount').innerText = `共筛出 ${dataArray.length} 人`;
+            document.getElementById('userCount').innerText = `共筛出 ${dataArray.length} 台设备`;
         }
 
         function filterTable() {
@@ -211,9 +237,13 @@
             const vipFilter = document.getElementById('vipFilter').value;
 
             const filteredData = allUserData.filter(user => {
-                const matchKeyword = user.username.toLowerCase().includes(keyword);
+                // 🌟 智能搜索：把用户名和 UUID 拼接起来搜，这样即使是未注册用户也能通过搜 UUID 找出来
+                const searchStr = (user.username || "") + " " + (user.device_uuid || "");
+                const matchKeyword = searchStr.toLowerCase().includes(keyword);
+                
                 const userType = getUserVipType(user);
                 const matchVip = (vipFilter === '全部') || (userType === vipFilter);
+                
                 return matchKeyword && matchVip;
             });
             
@@ -235,6 +265,30 @@
                     fetchData(); 
                 } else {
                     alert('❌ 解绑失败：' + resData.msg);
+                }
+            });
+        }
+
+        // 🌟 新增：带双重确认的删除用户逻辑
+        function deleteUser(targetUsername) {
+            // 第一重拦截
+            if(!confirm(`🚨 极度危险操作！\n\n确定要彻底删除账号【${targetUsername}】吗？\n删除后该用户的卡密会被重置为【未激活】供你再次使用！`)) return;
+            
+            // 第二重防呆拦截
+            if(!confirm(`⚠️ 最后一次警告！\n\n如果该用户仍在使用车机，只要不登出他依然是VIP。但如果他登出，将永远无法找回账号！\n\n确定继续删除？`)) return;
+
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_delete_user`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ admin_pwd: currentPwd, p_username: targetUsername })
+            })
+            .then(res => res.json())
+            .then(resData => {
+                if(resData.success) {
+                    alert('✅ ' + resData.msg);
+                    fetchData(); // 重新拉取数据刷新界面
+                } else {
+                    alert('❌ 删除失败：' + resData.msg);
                 }
             });
         }
