@@ -38,6 +38,8 @@
         .btn-disabled { background: #475569; padding: 8px 12px; font-size: 13px; border-radius: 6px; border: none; color: #94a3b8; cursor: not-allowed; }
         .uuid-text { font-size: 12px; color: #94a3b8; font-family: monospace; }
         .version-text { font-weight: bold; color: #38bdf8; }
+        /* 🌟 新增：车机型号专用颜色，一眼看穿 */
+        .model-text { font-weight: bold; color: #f97316; } 
     </style>
 </head>
 <body>
@@ -78,6 +80,7 @@
                     <th>身份状态</th>
                     <th>使用的密钥</th>
                     <th>App版本</th>
+                    <th>车机型号/系统</th>
                     <th id="thLastActive" class="sortable-th" onclick="toggleSort()" title="点击切换：默认 / 远到近 / 近到远">最后活跃时间 ↕️</th>
                     <th>操作控制</th>
                     <th>当前绑定设备 (UUID)</th>
@@ -191,17 +194,14 @@
                 const isBound = user.device_uuid && user.device_uuid !== '';
                 const uuidDisplay = isBound ? user.device_uuid : `<span style="color:#ef4444;">未绑定设备</span>`;
 
-                // 🌟 核心：提取安全参数，防止 undefined 报错
                 const safeUsername = user.username ? user.username : '';
                 const safeUuid = user.device_uuid ? user.device_uuid : '';
                 const deleteHtml = `<button class="btn-delete" onclick="deleteUser('${safeUsername}', '${safeUuid}')">删除</button>`;
 
                 let actionBtn = '';
                 if (isUnreg) {
-                    // 未注册用户：只显示删除按钮（清理垃圾数据用）
                     actionBtn = `<div class="action-group">${deleteHtml}</div>`;
                 } else {
-                    // 注册用户：解绑 + 删除
                     const unbindHtml = isBound 
                         ? `<button class="btn-unbind" onclick="forceUnbind('${user.username}')">解绑</button>`
                         : `<button class="btn-disabled" disabled>解绑</button>`;
@@ -215,6 +215,9 @@
                 else if (vipType === "未注册用户") vipClass = "vip-unreg";
 
                 const appVersion = user.app_version ? `<span class="version-text">${user.app_version}</span>` : `<span style="color: #64748b;">-</span>`;
+                
+                // 🌟 解析新增的车机型号
+                const deviceModel = user.device_model ? `<span class="model-text">${user.device_model}</span>` : `<span style="color: #64748b;">-</span>`;
 
                 const activeDisplay = user.last_active 
                     ? `<span style="color: #10b981; font-weight: bold;">${user.last_active}</span>` 
@@ -226,6 +229,7 @@
                     <td class="${vipClass}">${vipType}</td>
                     <td style="color: #10b981;">${user.used_code || '-'}</td>
                     <td>${appVersion}</td>
+                    <td>${deviceModel}</td>
                     <td>${activeDisplay}</td>
                     <td>${actionBtn}</td>
                     <td class="uuid-text">${uuidDisplay}</td>
@@ -267,7 +271,8 @@
                 return;
             }
 
-            const headers = ['用户名', '密码', '身份状态', '使用的密钥', 'App版本', '最后活跃时间', '当前绑定设备(UUID)'];
+            // 🌟 导出工具加入新表头
+            const headers = ['用户名', '密码', '身份状态', '使用的密钥', 'App版本', '车机型号/系统', '最后活跃时间', '当前绑定设备(UUID)'];
             
             const escapeCSV = (str) => {
                 if (str === null || str === undefined) return '""';
@@ -281,10 +286,11 @@
                 const vipType = getUserVipType(user);
                 const code = user.used_code ? user.used_code : '-';
                 const appVersion = user.app_version ? user.app_version : '-';
+                const deviceModel = user.device_model ? user.device_model : '-'; // 🌟 解析导出数据
                 const lastActive = user.last_active ? user.last_active : '无记录';
                 const uuid = user.device_uuid ? user.device_uuid : '未绑定设备';
                 
-                return [username, password, vipType, code, appVersion, lastActive, uuid].map(escapeCSV).join(',');
+                return [username, password, vipType, code, appVersion, deviceModel, lastActive, uuid].map(escapeCSV).join(',');
             });
 
             const csvContent = "\uFEFF" + headers.map(escapeCSV).join(',') + "\n" + rows.join("\n");
@@ -319,7 +325,6 @@
             });
         }
 
-        // 🌟 新增：智能判断并请求新 RPC 接口
         function deleteUser(targetUsername, targetUuid) {
             let confirmMsg = '';
             if (targetUsername) {
@@ -334,7 +339,6 @@
                 if(!confirm(`⚠️ 最后一次警告！\n\n如果该用户仍在使用车机，只要不登出他依然是VIP。但如果他登出，将永远无法找回账号！\n\n确定继续删除？`)) return;
             }
 
-            // 调用新的超级删除引擎
             fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_delete_trace`, {
                 method: 'POST',
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
