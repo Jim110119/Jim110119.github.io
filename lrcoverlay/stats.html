@@ -24,33 +24,6 @@
         .btn-codes { color: #10b981; border: 1px solid #10b981; }
 
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-        /* --- 新增：自定义结构图图例样式 --- */
-        .custom-legend-container {
-            display: flex;
-            justify-content: center; /* 核心：让内部的块整体居中 */
-            margin-top: 15px;
-            width: 100%;
-        }
-        .custom-legend-box {
-            display: inline-flex;
-            flex-direction: column; /* 竖向排列 */
-            align-items: flex-start; /* 核心：内部元素严格左对齐（颜色块对齐） */
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            color: #e2e8f0;
-            font-size: 13px;
-            margin-bottom: 8px;
-        }
-        .legend-color-box {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            margin-right: 10px;
-            display: inline-block;
-        }
     </style>
 </head>
 <body>
@@ -61,7 +34,6 @@
                 <h2>🚀 累计总装机</h2>
                 <div id="installCount" class="number-box loading">...</div>
             </div>
-    
             <div class="card" style="flex: 1; min-width: 250px;">
                 <h2>🔥 今日实时活跃</h2>
                 <div id="todayActiveCount" class="number-box loading">...</div>
@@ -82,17 +54,7 @@
 		
 		<div class="card">
             <h2>💎 注册与付费转化结构图</h2>
-            
-            <div class="chart-container" style="height: 80px; margin-top: 10px;"> 
-                <canvas id="vipChart"></canvas>
-            </div>
-            
-            <div class="custom-legend-container">
-                <div class="custom-legend-box">
-                    <div class="legend-item"><span class="legend-color-box" style="background-color: #f59e0b;"></span>💰 真金白银购买VIP</div>
-                    <div class="legend-item"><span class="legend-color-box" style="background-color: #8b5cf6;"></span>🎁 免费赠送福利VIP</div>
-                    <div class="legend-item"><span class="legend-color-box" style="background-color: #475569;"></span>⚪ 普通未付费号</div>
-                </div>
+            <div class="chart-container" style="height: 250px;"> <canvas id="vipChart"></canvas>
             </div>
             
             <div class="btn-group">
@@ -107,6 +69,7 @@
     <script>
         // 注册 Datalabels 插件
         Chart.register(ChartDataLabels);
+
         const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
         const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
@@ -139,9 +102,9 @@
                 data: {
                     labels: ['用户商业价值层级'],
                     datasets: [
-                        { label: '💰 真金白银购买VIP', data: [purchasedVip], backgroundColor: '#f59e0b', stack: 'Stack 0' }, // 橙金
-                        { label: '🎁 免费赠送福利VIP', data: [giftedVip], backgroundColor: '#8b5cf6', stack: 'Stack 0' },    // 紫色
-                        { label: '⚪ 普通未付费号', data: [free], backgroundColor: '#475569', stack: 'Stack 0' }      // 灰色
+                        { label: '💰 购买VIP人数', data: [purchasedVip], backgroundColor: '#f59e0b', stack: 'Stack 0' }, // 橙金
+                        { label: '🎁 赠送VIP人数', data: [giftedVip], backgroundColor: '#8b5cf6', stack: 'Stack 0' },    // 紫色
+                        { label: '⚪ 普通未付费号', data: [free], backgroundColor: '#475569', stack: 'Stack 0' }          // 灰色
                     ]
                 },
                 options: {
@@ -151,10 +114,10 @@
                     indexAxis: 'y', 
                     scales: {
                         x: { stacked: true, display: false }, // 隐藏底部的数量轴，保持干净
-                        y: { stacked: true, display: false } // 隐藏左侧文字和留白，绝对居中
+                        y: { stacked: true, grid: { display: false }, ticks: { display: false } } // 隐藏左侧文字
                     },
                     plugins: {
-                        legend: { display: false }, // 彻底关闭自带图例
+                        legend: { position: 'bottom', labels: { color: '#e2e8f0', font: { size: 12 } } },
                         tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14 }, padding: 12 },
                         // 🌟 Datalabels 插件配置：在每一块色块上显示数字和百分比
                         datalabels: {
