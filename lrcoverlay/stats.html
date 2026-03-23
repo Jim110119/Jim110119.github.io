@@ -16,7 +16,6 @@
         .footer { margin-top: 20px; font-size: 13px; color: #64748b; text-align: center; }
         .chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
         
-        /* 独立控制按钮组样式，适配移动端 */
         .btn-group { display: flex; justify-content: center; gap: 15px; margin-top: 25px; flex-wrap: wrap; }
         .action-btn { text-decoration: none; font-weight: bold; padding: 10px 20px; border-radius: 8px; font-size: 14px; transition: all 0.3s; }
         .action-btn:hover { opacity: 0.8; transform: translateY(-2px); }
@@ -34,6 +33,7 @@
                 <h2>🚀 累计总装机</h2>
                 <div id="installCount" class="number-box loading">...</div>
             </div>
+    
             <div class="card" style="flex: 1; min-width: 250px;">
                 <h2>🔥 今日实时活跃</h2>
                 <div id="todayActiveCount" class="number-box loading">...</div>
@@ -54,11 +54,14 @@
 		
         <div class="card">
             <h2>💎 注册与付费转化结构图</h2>
-            <div style="font-size: 13px; color: #94a3b8; margin-top: -5px; margin-bottom: 10px;">
-                安装总设备数：<span id="uniqueDeviceCount" class="loading" style="color: #38bdf8; font-weight: bold; font-size: 15px;">...</span> 台
+            
+            <div style="font-size: 13px; color: #94a3b8; margin-top: 25px; margin-bottom: 0px; line-height: 2;">
+                <div>安装总设备数：<span id="uniqueDeviceCount" class="loading" style="color: #38bdf8; font-weight: bold; font-size: 15px;">...</span> 台</div>
+                <div>会员总营收：<span style="color: #f59e0b; font-weight: bold; font-size: 15px;">¥ <span id="totalRevenue" class="loading">...</span></span></div>
             </div>
             
-            <div class="chart-container" style="height: 250px;"> <canvas id="vipChart"></canvas>
+            <div class="chart-container" style="height: 250px;"> 
+                <canvas id="vipChart"></canvas>
             </div>
             
             <div class="btn-group">
@@ -71,7 +74,6 @@
     </div>
 
     <script>
-        // 注册 Datalabels 插件
         Chart.register(ChartDataLabels);
 
         const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
@@ -90,11 +92,10 @@
             new Chart(document.getElementById('dauChart').getContext('2d'), {
                 type: 'line',
                 data: { labels: labels, datasets: [{ label: '日活跃车机数', data: counts, borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.2)', borderWidth: 3, pointBackgroundColor: '#fff', pointRadius: 5, fill: true, tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false }, datalabels: { display: false } /* 隐藏折线图的数字标签 */ } }
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false }, datalabels: { display: false } } }
             });
         });
 
-		// 🌟 核心重写：获取用户结构，并绘制百分比堆叠漏斗图
         fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, { method: 'POST', headers: headers }).then(res => res.json()).then(data => {
             const total = data.total || 0;
             const purchasedVip = data.purchased_vip || 0;
@@ -106,35 +107,31 @@
                 data: {
                     labels: ['用户商业价值层级'],
                     datasets: [
-                        { label: '💰 购买会员人数', data: [purchasedVip], backgroundColor: '#f59e0b', stack: 'Stack 0' }, // 橙金
-                        { label: '🎁 赠送会员人数', data: [giftedVip], backgroundColor: '#8b5cf6', stack: 'Stack 0' },    // 紫色
-                        { label: '⚪ 普通未付费号', data: [free], backgroundColor: '#475569', stack: 'Stack 0' }          // 灰色
+                        { label: '💰 购买会员人数', data: [purchasedVip], backgroundColor: '#f59e0b', stack: 'Stack 0' }, 
+                        { label: '🎁 赠送会员人数', data: [giftedVip], backgroundColor: '#8b5cf6', stack: 'Stack 0' },    
+                        { label: '⚪ 普通未付费号', data: [free], backgroundColor: '#475569', stack: 'Stack 0' }      
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    // 改为横向显示，更像漏斗切面
                     indexAxis: 'y', 
                     scales: {
-                        x: { stacked: true, display: false }, // 隐藏底部的数量轴，保持干净
-                        y: { stacked: true, grid: { display: false }, ticks: { display: false } } // 隐藏左侧文字
+                        x: { stacked: true, display: false }, 
+                        y: { stacked: true, grid: { display: false }, ticks: { display: false } } 
                     },
                     plugins: {
                         legend: { position: 'bottom', labels: { color: '#e2e8f0', font: { size: 12 } } },
                         tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14 }, padding: 12 },
-                        // 🌟 Datalabels 插件配置：在每一块色块上显示数字和百分比
                         datalabels: {
                             color: '#ffffff',
                             font: { weight: 'bold', size: 14 },
                             formatter: (value, ctx) => {
-                                if (value === 0) return ''; // 数量为0不显示文字
+                                if (value === 0) return '';
                                 const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
-                                // 返回两行文字：数量 和 (百分比)
                                 return value + ' 人\n(' + percentage + ')';
                             },
                             textAlign: 'center',
-                            // 文字居中显示在色块中间
                             anchor: 'center',
                             align: 'center',
                         }
@@ -146,8 +143,8 @@
         fetch(`${SUPABASE_URL}/rest/v1/rpc/get_abandoned_users_count`, { method: 'POST', headers: headers }).then(res => res.json()).then(count => {
             animateValue("abandonedCount", 0, count || 0, 1500);
         }).catch(() => { document.getElementById("abandonedCount").innerHTML = "0"; document.getElementById("abandonedCount").classList.remove("loading"); });
-
-        // 🌟 新增：请求云端精确去重后的真实设备数，并触发数字跳动动画
+        
+        // 获取精确去重设备数
         fetch(`${SUPABASE_URL}/rest/v1/rpc/get_unique_device_count`, { method: 'POST', headers: headers })
             .then(res => res.json())
             .then(count => {
@@ -156,6 +153,17 @@
             .catch(() => { 
                 document.getElementById("uniqueDeviceCount").innerHTML = "0"; 
                 document.getElementById("uniqueDeviceCount").classList.remove("loading"); 
+            });
+
+        // 🌟 新增：获取会员总营收
+        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_total_revenue`, { method: 'POST', headers: headers })
+            .then(res => res.json())
+            .then(revenue => {
+                animateValue("totalRevenue", 0, revenue || 0, 1500);
+            })
+            .catch(() => { 
+                document.getElementById("totalRevenue").innerHTML = "0"; 
+                document.getElementById("totalRevenue").classList.remove("loading"); 
             });
 
         function animateValue(id, start, end, duration) {
