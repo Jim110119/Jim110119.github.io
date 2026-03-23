@@ -21,7 +21,7 @@
         .btn-export:active { background: #047857; }
         .table-wrapper { display: none; width: 100%; overflow-x: auto; margin-top: 15px; background: #1e293b; border-radius: 10px; border: 1px solid #334155; }
         
-        table { width: 100%; border-collapse: collapse; min-width: 1400px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1500px; } /* 稍微加宽一点适配新列 */
         th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; vertical-align: middle; }
         th:last-child, td:last-child { border-right: none; }
         th { background: #0f172a; color: #38bdf8; position: sticky; top: 0; z-index: 10; }
@@ -78,6 +78,7 @@
                     <th>用户名</th>
                     <th>密码</th>
                     <th>身份状态</th>
+                    <th>售价</th>
                     <th>使用的密钥</th>
                     <th>注册 / 核销时间</th>
                     <th id="thFirstActive" class="sortable-th" onclick="toggleFirstActiveSort()" title="点击切换：默认 / 远到近 / 近到远">首次安装 ↕️</th>
@@ -100,8 +101,6 @@
         let currentPwd = '';
         let allUserData = []; 
         let currentFilteredData = []; 
-        
-        // 🌟 独立的两套排序状态指针
         let lastActiveSortOrder = 0; 
         let firstActiveSortOrder = 0;
 
@@ -186,10 +185,9 @@
             });
         }
 
-        // 🌟 最新：最后活跃时间排序逻辑
         function toggleLastActiveSort() {
             lastActiveSortOrder = (lastActiveSortOrder + 1) % 3;
-            firstActiveSortOrder = 0; // 重置另一个表头状态
+            firstActiveSortOrder = 0; 
             
             document.getElementById('thFirstActive').innerHTML = '首次安装 ↕️';
             const th = document.getElementById('thLastActive');
@@ -223,10 +221,9 @@
             filterTable();
         }
 
-        // 🌟 全新：首次安装时间排序逻辑
         function toggleFirstActiveSort() {
             firstActiveSortOrder = (firstActiveSortOrder + 1) % 3;
-            lastActiveSortOrder = 0; // 重置另一个表头状态
+            lastActiveSortOrder = 0; 
             
             document.getElementById('thLastActive').innerHTML = '最后活跃时间 ↕️';
             const th = document.getElementById('thFirstActive');
@@ -300,6 +297,11 @@
                 else if (vipType === "赠送永久VIP") vipClass = "vip-gifted";
                 else if (vipType === "未注册用户") vipClass = "vip-unreg";
 
+                // 🌟 新增：解析展示“售价”字段
+                const priceDisplay = (user.price !== null && user.price !== undefined) 
+                    ? `<span style="color:#f59e0b; font-weight:bold;">¥ ${user.price}</span>` 
+                    : `<span style="color:#64748b;">-</span>`;
+
                 const regTime = user.created_at ? `<div style="font-size:12px;color:#94a3b8;margin-bottom:4px;" title="注册时间">📝 ${formatTime(user.created_at)}</div>` : '';
                 const actTime = user.used_time ? `<div style="font-size:12px;color:#f59e0b;" title="核销时间">🔑 ${formatTime(user.used_time)}</div>` : '';
                 const timeBox = (regTime || actTime) ? `${regTime}${actTime}` : `<span style="color: #64748b;">-</span>`;
@@ -318,6 +320,7 @@
                     <td style="font-weight: bold; color: #e2e8f0;">${displayUsername}</td>
                     <td>${displayPassword}</td>
                     <td class="${vipClass}">${vipType}</td>
+                    <td>${priceDisplay}</td>
                     <td style="color: #10b981;">${user.used_code || '-'}</td>
                     <td>${timeBox}</td>
                     <td>${firstActive}</td>
@@ -365,7 +368,8 @@
                 return;
             }
 
-            const headers = ['用户名', '密码', '身份状态', '使用的密钥', '注册时间', '核销时间', '首次安装时间', '7日活跃记录(打卡日期)', 'App版本', '车机型号/系统', '最后活跃时间', '当前绑定设备(UUID)'];
+            // 🌟 导出工具加入“售价”表头
+            const headers = ['用户名', '密码', '身份状态', '售价(元)', '使用的密钥', '注册时间', '核销时间', '首次安装时间', '7日活跃记录(打卡日期)', 'App版本', '车机型号/系统', '最后活跃时间', '当前绑定设备(UUID)'];
             
             const escapeCSV = (str) => {
                 if (str === null || str === undefined) return '""';
@@ -377,6 +381,7 @@
                 const username = user.username ? user.username : '(未注册设备)';
                 const password = user.password ? user.password : '-';
                 const vipType = getUserVipType(user);
+                const price = (user.price !== null && user.price !== undefined) ? user.price : '-'; // 🌟 导出数据
                 const code = user.used_code ? user.used_code : '-';
                 
                 const regTimeStr = user.created_at ? formatTime(user.created_at) : '-';
@@ -389,7 +394,7 @@
                 const lastActive = user.last_active ? user.last_active : '无记录';
                 const uuid = user.device_uuid ? user.device_uuid : '未绑定设备';
                 
-                return [username, password, vipType, code, regTimeStr, actTimeStr, firstActiveStr, recent7DaysStr, appVersion, deviceModel, lastActive, uuid].map(escapeCSV).join(',');
+                return [username, password, vipType, price, code, regTimeStr, actTimeStr, firstActiveStr, recent7DaysStr, appVersion, deviceModel, lastActive, uuid].map(escapeCSV).join(',');
             });
 
             const csvContent = "\uFEFF" + headers.map(escapeCSV).join(',') + "\n" + rows.join("\n");
