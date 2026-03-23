@@ -173,8 +173,9 @@
                     
                     filterTable(); 
                 } else {
-                    // 🌟 核心：如实反映云端传回来的具体错误！
-                    document.getElementById('errMsg').innerText = resData.msg;
+                    // 🌟 核心：同时抓取我们自定义的 msg 和 数据库原生报错的 message！
+                    const errorStr = resData.msg || resData.message || "未知数据库错误：" + JSON.stringify(resData);
+                    document.getElementById('errMsg').innerText = errorStr;
                     document.getElementById('errMsg').style.display = 'block';
                 }
             })
