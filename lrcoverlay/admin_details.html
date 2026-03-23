@@ -21,7 +21,6 @@
         .btn-export:active { background: #047857; }
         .table-wrapper { display: none; width: 100%; overflow-x: auto; margin-top: 15px; background: #1e293b; border-radius: 10px; border: 1px solid #334155; }
         
-        /* 🌟 表格宽度拉大，容纳新字段 */
         table { width: 100%; border-collapse: collapse; min-width: 1500px; }
         th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; vertical-align: middle; }
         th:last-child, td:last-child { border-right: none; }
@@ -53,7 +52,7 @@
         <input type="password" id="adminPwd" class="pwd-input" placeholder="请输入管理员密码">
         <br>
         <button class="btn-primary" onclick="fetchData()">解锁数据</button>
-        <p id="errMsg" style="color: #ef4444; display: none; margin-top: 15px;">密码错误，拒绝访问！</p>
+        <p id="errMsg" style="color: #ef4444; display: none; margin-top: 15px; font-weight: bold;"></p>
     </div>
 
     <div class="control-panel" id="controlPanel">
@@ -107,7 +106,6 @@
         let currentFilteredData = []; 
         let sortOrder = 0; 
 
-        // 🌟 辅助函数：将 ISO 时间转成紧凑的 YYYY-MM-DD HH:mm
         function formatTime(isoString) {
             if (!isoString) return '';
             const d = new Date(isoString);
@@ -120,12 +118,10 @@
             return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
         }
 
-        // 🌟 辅助函数：极客版 7日活跃度红绿灯引擎
         function generateTrafficLights(recentDatesStrArray) {
             const dates = recentDatesStrArray || [];
             let html = '<div style="display:flex; gap:6px; align-items:center;">';
             const today = new Date();
-            // 从 6 天前开始画，一直画到今天
             for (let i = 6; i >= 0; i--) {
                 const d = new Date(today);
                 d.setDate(d.getDate() - i);
@@ -133,13 +129,10 @@
                 const mm = String(d.getMonth() + 1).padStart(2, '0');
                 const dd = String(d.getDate()).padStart(2, '0');
                 const dateStr = `${yyyy}-${mm}-${dd}`;
-                
                 const isActive = dates.includes(dateStr);
-                // 绿灯发光，暗红(灰)灯熄灭
                 const color = isActive ? '#10b981' : '#334155'; 
                 const shadow = isActive ? 'box-shadow: 0 0 6px #10b981;' : '';
                 const title = isActive ? `${dateStr} (已打卡)` : `${dateStr} (未上线)`;
-                
                 html += `<div title="${title}" style="width:12px; height:12px; border-radius:50%; background-color:${color}; ${shadow} cursor:help;"></div>`;
             }
             html += '</div>';
@@ -147,7 +140,8 @@
         }
 
         function fetchData() {
-            currentPwd = document.getElementById('adminPwd').value;
+            // 🌟 核心：加入 .trim()，一刀斩断任何看不见的空格！
+            currentPwd = document.getElementById('adminPwd').value.trim();
             const btn = document.querySelector('.btn-primary');
             btn.innerText = "加载中...";
             btn.disabled = true;
@@ -163,6 +157,7 @@
                 btn.disabled = false;
 
                 if (resData.success) {
+                    document.getElementById('errMsg').style.display = 'none'; // 成功就隐藏报错
                     document.getElementById('authBox').style.display = 'none';
                     document.getElementById('controlPanel').style.display = 'flex';
                     document.getElementById('tableWrapper').style.display = 'block'; 
@@ -178,13 +173,16 @@
                     
                     filterTable(); 
                 } else {
+                    // 🌟 核心：如实反映云端传回来的具体错误！
+                    document.getElementById('errMsg').innerText = resData.msg;
                     document.getElementById('errMsg').style.display = 'block';
                 }
             })
             .catch(err => {
                 btn.innerText = "解锁数据";
                 btn.disabled = false;
-                alert("请求失败，请检查网络：" + err);
+                document.getElementById('errMsg').innerText = "请求失败，请检查网络：" + err;
+                document.getElementById('errMsg').style.display = 'block';
             });
         }
 
@@ -277,7 +275,6 @@
                 else if (vipType === "赠送永久VIP") vipClass = "vip-gifted";
                 else if (vipType === "未注册用户") vipClass = "vip-unreg";
 
-                // 🌟 新增字段 UI 渲染
                 const regTime = user.created_at ? `<div style="font-size:12px;color:#94a3b8;margin-bottom:4px;" title="注册时间">📝 ${formatTime(user.created_at)}</div>` : '';
                 const actTime = user.used_time ? `<div style="font-size:12px;color:#f59e0b;" title="核销时间">🔑 ${formatTime(user.used_time)}</div>` : '';
                 const timeBox = (regTime || actTime) ? `${regTime}${actTime}` : `<span style="color: #64748b;">-</span>`;
@@ -344,7 +341,6 @@
                 return;
             }
 
-            // 🌟 导出工具加入全面表头
             const headers = ['用户名', '密码', '身份状态', '使用的密钥', '注册时间', '核销时间', '首次安装时间', '7日活跃记录(打卡日期)', 'App版本', '车机型号/系统', '最后活跃时间', '当前绑定设备(UUID)'];
             
             const escapeCSV = (str) => {
@@ -359,7 +355,6 @@
                 const vipType = getUserVipType(user);
                 const code = user.used_code ? user.used_code : '-';
                 
-                // 🌟 解析新的导出数据
                 const regTimeStr = user.created_at ? formatTime(user.created_at) : '-';
                 const actTimeStr = user.used_time ? formatTime(user.used_time) : '-';
                 const firstActiveStr = user.first_active || '-';
