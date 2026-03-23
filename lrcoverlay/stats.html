@@ -8,7 +8,15 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <style>
         body { margin: 0; padding: 20px; background-color: #0f172a; color: #38bdf8; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
-        .dashboard { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 20px; }
+        
+        /* 🌟 新增的登录框样式 */
+        .auth-box { text-align: center; margin-top: 15vh; width: 100%; }
+        input.pwd-input { padding: 12px; border-radius: 8px; border: 1px solid #38bdf8; background: #1e293b; color: white; outline: none; width: 80%; max-width: 300px; font-size: 16px; margin-bottom: 15px; text-align: center; }
+        button.btn-primary { padding: 12px 20px; border-radius: 8px; border: none; background: #0ea5e9; color: white; cursor: pointer; font-weight: bold; width: 80%; max-width: 300px; font-size: 16px; transition: background 0.2s; }
+        button.btn-primary:hover { background: #0284c7; }
+
+        /* 大屏主体样式 */
+        .dashboard { width: 100%; max-width: 800px; display: none; flex-direction: column; gap: 20px; }
         .card { background: rgba(30, 41, 59, 0.7); padding: 30px; border-radius: 16px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); border: 1px solid #334155; text-align: center; }
         h2 { font-size: 20px; color: #e2e8f0; margin-top: 0; margin-bottom: 10px; letter-spacing: 1px; }
         .number-box { font-size: 60px; font-weight: bold; color: #0ea5e9; text-shadow: 0 0 15px rgba(14, 165, 233, 0.5); margin: 10px 0; }
@@ -26,14 +34,21 @@
     </style>
 </head>
 <body>
-    <div class="dashboard">
-		
+
+    <div class="auth-box" id="authBox">
+        <h2>📊 核心运营大盘</h2>
+        <input type="password" id="adminPwd" class="pwd-input" placeholder="请输入管理员密码" onkeypress="if(event.keyCode===13) checkLogin()">
+        <br>
+        <button class="btn-primary" id="loginBtn" onclick="checkLogin()">进入控制中心</button>
+        <p id="errMsg" style="color: #ef4444; display: none; margin-top: 15px; font-weight: bold;">密码错误，拒绝访问！</p>
+    </div>
+
+    <div class="dashboard" id="mainDashboard">
         <div style="display: flex; gap: 20px; flex-wrap: wrap; width: 100%;">
             <div class="card" style="flex: 1; min-width: 250px;">
                 <h2>🚀 累计总装机</h2>
                 <div id="installCount" class="number-box loading">...</div>
             </div>
-    
             <div class="card" style="flex: 1; min-width: 250px;">
                 <h2>🔥 今日实时活跃</h2>
                 <div id="todayActiveCount" class="number-box loading">...</div>
@@ -54,7 +69,6 @@
 		
         <div class="card">
             <h2>💎 注册与付费转化结构图</h2>
-            
             <div style="font-size: 13px; color: #94a3b8; margin-top: 25px; margin-bottom: 0px; line-height: 2;">
                 <div>安装总设备数：<span id="uniqueDeviceCount" class="loading" style="color: #38bdf8; font-weight: bold; font-size: 15px;">...</span> 台</div>
                 <div>会员总营收：<span style="color: #f59e0b; font-weight: bold; font-size: 15px;">¥ <span id="totalRevenue" class="loading">...</span></span></div>
@@ -80,91 +94,126 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
         const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 
-        fetch(`${SUPABASE_URL}/rest/v1/installations?select=id&limit=1`, { method: 'GET', headers: { ...headers, 'Range-Unit': 'items', 'Prefer': 'count=exact' } })
-            .then(res => animateValue("installCount", 0, res.headers.get('Content-Range') ? parseInt(res.headers.get('Content-Range').split('/')[1]) : 0, 1500));
+        // 🌟 密码核验逻辑
+        function checkLogin() {
+            const pwd = document.getElementById('adminPwd').value.trim();
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = "验证中...";
+            btn.disabled = true;
 
-        fetch(`${SUPABASE_URL}/rest/v1/daily_stats?select=*`, { method: 'GET', headers: headers }).then(res => res.json()).then(data => {
-            data.reverse();
-            const labels = data.map(item => item.active_date.substring(5));
-            const counts = data.map(item => item.active_count);
-            animateValue("todayActiveCount", 0, counts.length > 0 ? counts[counts.length - 1] : 0, 1500);
-
-            new Chart(document.getElementById('dauChart').getContext('2d'), {
-                type: 'line',
-                data: { labels: labels, datasets: [{ label: '日活跃车机数', data: counts, borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.2)', borderWidth: 3, pointBackgroundColor: '#fff', pointRadius: 5, fill: true, tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false }, datalabels: { display: false } } }
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/verify_admin_password`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ admin_pwd: pwd })
+            })
+            .then(res => res.json())
+            .then(isValid => {
+                btn.innerText = "进入控制中心";
+                btn.disabled = false;
+                
+                if (isValid === true) {
+                    // 密码正确，切换面板并加载数据
+                    document.getElementById('authBox').style.display = 'none';
+                    document.getElementById('mainDashboard').style.display = 'flex';
+                    loadDashboardData();
+                } else {
+                    document.getElementById('errMsg').style.display = 'block';
+                }
+            })
+            .catch(err => {
+                btn.innerText = "进入控制中心";
+                btn.disabled = false;
+                document.getElementById('errMsg').innerText = "网络连接失败，请重试";
+                document.getElementById('errMsg').style.display = 'block';
             });
-        });
+        }
 
-        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, { method: 'POST', headers: headers }).then(res => res.json()).then(data => {
-            const total = data.total || 0;
-            const purchasedVip = data.purchased_vip || 0;
-            const giftedVip = data.gifted_vip || 0;
-            const free = total - purchasedVip - giftedVip;
+        // 🌟 将所有拉取图表的逻辑包裹起来，验证通过后才执行
+        function loadDashboardData() {
+            fetch(`${SUPABASE_URL}/rest/v1/installations?select=id&limit=1`, { method: 'GET', headers: { ...headers, 'Range-Unit': 'items', 'Prefer': 'count=exact' } })
+                .then(res => animateValue("installCount", 0, res.headers.get('Content-Range') ? parseInt(res.headers.get('Content-Range').split('/')[1]) : 0, 1500));
 
-            new Chart(document.getElementById('vipChart').getContext('2d'), {
-                type: 'bar', 
-                data: {
-                    labels: ['用户商业价值层级'],
-                    datasets: [
-                        { label: '💰 购买会员人数', data: [purchasedVip], backgroundColor: '#f59e0b', stack: 'Stack 0' }, 
-                        { label: '🎁 赠送会员人数', data: [giftedVip], backgroundColor: '#8b5cf6', stack: 'Stack 0' },    
-                        { label: '⚪ 普通未付费号', data: [free], backgroundColor: '#475569', stack: 'Stack 0' }      
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'y', 
-                    scales: {
-                        x: { stacked: true, display: false }, 
-                        y: { stacked: true, grid: { display: false }, ticks: { display: false } } 
+            fetch(`${SUPABASE_URL}/rest/v1/daily_stats?select=*`, { method: 'GET', headers: headers }).then(res => res.json()).then(data => {
+                data.reverse();
+                const labels = data.map(item => item.active_date.substring(5));
+                const counts = data.map(item => item.active_count);
+                animateValue("todayActiveCount", 0, counts.length > 0 ? counts[counts.length - 1] : 0, 1500);
+
+                new Chart(document.getElementById('dauChart').getContext('2d'), {
+                    type: 'line',
+                    data: { labels: labels, datasets: [{ label: '日活跃车机数', data: counts, borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.2)', borderWidth: 3, pointBackgroundColor: '#fff', pointRadius: 5, fill: true, tension: 0.3 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false }, datalabels: { display: false } } }
+                });
+            });
+
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, { method: 'POST', headers: headers }).then(res => res.json()).then(data => {
+                const total = data.total || 0;
+                const purchasedVip = data.purchased_vip || 0;
+                const giftedVip = data.gifted_vip || 0;
+                const free = total - purchasedVip - giftedVip;
+
+                new Chart(document.getElementById('vipChart').getContext('2d'), {
+                    type: 'bar', 
+                    data: {
+                        labels: ['用户商业价值层级'],
+                        datasets: [
+                            { label: '💰 购买会员人数', data: [purchasedVip], backgroundColor: '#f59e0b', stack: 'Stack 0' }, 
+                            { label: '🎁 赠送会员人数', data: [giftedVip], backgroundColor: '#8b5cf6', stack: 'Stack 0' },    
+                            { label: '⚪ 普通未付费号', data: [free], backgroundColor: '#475569', stack: 'Stack 0' }      
+                        ]
                     },
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: '#e2e8f0', font: { size: 12 } } },
-                        tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14 }, padding: 12 },
-                        datalabels: {
-                            color: '#ffffff',
-                            font: { weight: 'bold', size: 14 },
-                            formatter: (value, ctx) => {
-                                if (value === 0) return '';
-                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
-                                return value + ' 人\n(' + percentage + ')';
-                            },
-                            textAlign: 'center',
-                            anchor: 'center',
-                            align: 'center',
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y', 
+                        scales: {
+                            x: { stacked: true, display: false }, 
+                            y: { stacked: true, grid: { display: false }, ticks: { display: false } } 
+                        },
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: '#e2e8f0', font: { size: 12 } } },
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14 }, padding: 12 },
+                            datalabels: {
+                                color: '#ffffff',
+                                font: { weight: 'bold', size: 14 },
+                                formatter: (value, ctx) => {
+                                    if (value === 0) return '';
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                                    return value + ' 人\n(' + percentage + ')';
+                                },
+                                textAlign: 'center',
+                                anchor: 'center',
+                                align: 'center',
+                            }
                         }
                     }
-                }
-            });
-        });
-
-        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_abandoned_users_count`, { method: 'POST', headers: headers }).then(res => res.json()).then(count => {
-            animateValue("abandonedCount", 0, count || 0, 1500);
-        }).catch(() => { document.getElementById("abandonedCount").innerHTML = "0"; document.getElementById("abandonedCount").classList.remove("loading"); });
-        
-        // 获取精确去重设备数
-        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_unique_device_count`, { method: 'POST', headers: headers })
-            .then(res => res.json())
-            .then(count => {
-                animateValue("uniqueDeviceCount", 0, count || 0, 1500);
-            })
-            .catch(() => { 
-                document.getElementById("uniqueDeviceCount").innerHTML = "0"; 
-                document.getElementById("uniqueDeviceCount").classList.remove("loading"); 
+                });
             });
 
-        // 🌟 新增：获取会员总营收
-        fetch(`${SUPABASE_URL}/rest/v1/rpc/get_total_revenue`, { method: 'POST', headers: headers })
-            .then(res => res.json())
-            .then(revenue => {
-                animateValue("totalRevenue", 0, revenue || 0, 1500);
-            })
-            .catch(() => { 
-                document.getElementById("totalRevenue").innerHTML = "0"; 
-                document.getElementById("totalRevenue").classList.remove("loading"); 
-            });
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_abandoned_users_count`, { method: 'POST', headers: headers }).then(res => res.json()).then(count => {
+                animateValue("abandonedCount", 0, count || 0, 1500);
+            }).catch(() => { document.getElementById("abandonedCount").innerHTML = "0"; document.getElementById("abandonedCount").classList.remove("loading"); });
+            
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_unique_device_count`, { method: 'POST', headers: headers })
+                .then(res => res.json())
+                .then(count => {
+                    animateValue("uniqueDeviceCount", 0, count || 0, 1500);
+                })
+                .catch(() => { 
+                    document.getElementById("uniqueDeviceCount").innerHTML = "0"; 
+                    document.getElementById("uniqueDeviceCount").classList.remove("loading"); 
+                });
+
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_total_revenue`, { method: 'POST', headers: headers })
+                .then(res => res.json())
+                .then(revenue => {
+                    animateValue("totalRevenue", 0, revenue || 0, 1500);
+                })
+                .catch(() => { 
+                    document.getElementById("totalRevenue").innerHTML = "0"; 
+                    document.getElementById("totalRevenue").classList.remove("loading"); 
+                });
+        }
 
         function animateValue(id, start, end, duration) {
             let obj = document.getElementById(id);
