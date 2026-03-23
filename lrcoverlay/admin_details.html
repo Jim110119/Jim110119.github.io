@@ -20,8 +20,10 @@
         .btn-export:hover { background: #059669; }
         .btn-export:active { background: #047857; }
         .table-wrapper { display: none; width: 100%; overflow-x: auto; margin-top: 15px; background: #1e293b; border-radius: 10px; border: 1px solid #334155; }
-        table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; }
+        
+        /* 🌟 表格宽度拉大，容纳新字段 */
+        table { width: 100%; border-collapse: collapse; min-width: 1500px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; vertical-align: middle; }
         th:last-child, td:last-child { border-right: none; }
         th { background: #0f172a; color: #38bdf8; position: sticky; top: 0; z-index: 10; }
         .sortable-th { cursor: pointer; user-select: none; transition: color 0.2s; }
@@ -33,12 +35,14 @@
         .action-group { display: flex; gap: 8px; }
         .btn-unbind { background: #0ea5e9; padding: 8px 12px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
         .btn-unbind:active { background: #0284c7; }
+        .btn-remote-preset { background: #10b981; padding: 8px 12px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; transition: background 0.2s; }
+        .btn-remote-preset:hover { background: #059669; }
+        .btn-remote-preset:active { background: #047857; }
         .btn-delete { background: #ef4444; padding: 8px 12px; font-size: 13px; font-weight: bold; border-radius: 6px; border: none; color: white; cursor: pointer; }
         .btn-delete:active { background: #b91c1c; }
         .btn-disabled { background: #475569; padding: 8px 12px; font-size: 13px; border-radius: 6px; border: none; color: #94a3b8; cursor: not-allowed; }
         .uuid-text { font-size: 12px; color: #94a3b8; font-family: monospace; }
         .version-text { font-weight: bold; color: #38bdf8; }
-        /* 🌟 新增：车机型号专用颜色，一眼看穿 */
         .model-text { font-weight: bold; color: #f97316; } 
     </style>
 </head>
@@ -79,8 +83,12 @@
                     <th>密码</th>
                     <th>身份状态</th>
                     <th>使用的密钥</th>
+                    <th>注册 / 核销时间</th>
+                    <th>首次安装</th>
+                    <th title="最右侧为今天，绿色代表上线">7日活跃轨迹 💡</th>
                     <th>App版本</th>
                     <th>车机型号/系统</th>
+                    <th>远程控制中心</th>
                     <th id="thLastActive" class="sortable-th" onclick="toggleSort()" title="点击切换：默认 / 远到近 / 近到远">最后活跃时间 ↕️</th>
                     <th>操作控制</th>
                     <th>当前绑定设备 (UUID)</th>
@@ -98,6 +106,45 @@
         let allUserData = []; 
         let currentFilteredData = []; 
         let sortOrder = 0; 
+
+        // 🌟 辅助函数：将 ISO 时间转成紧凑的 YYYY-MM-DD HH:mm
+        function formatTime(isoString) {
+            if (!isoString) return '';
+            const d = new Date(isoString);
+            if (isNaN(d.getTime())) return '';
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+        }
+
+        // 🌟 辅助函数：极客版 7日活跃度红绿灯引擎
+        function generateTrafficLights(recentDatesStrArray) {
+            const dates = recentDatesStrArray || [];
+            let html = '<div style="display:flex; gap:6px; align-items:center;">';
+            const today = new Date();
+            // 从 6 天前开始画，一直画到今天
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const dateStr = `${yyyy}-${mm}-${dd}`;
+                
+                const isActive = dates.includes(dateStr);
+                // 绿灯发光，暗红(灰)灯熄灭
+                const color = isActive ? '#10b981' : '#334155'; 
+                const shadow = isActive ? 'box-shadow: 0 0 6px #10b981;' : '';
+                const title = isActive ? `${dateStr} (已打卡)` : `${dateStr} (未上线)`;
+                
+                html += `<div title="${title}" style="width:12px; height:12px; border-radius:50%; background-color:${color}; ${shadow} cursor:help;"></div>`;
+            }
+            html += '</div>';
+            return html;
+        }
 
         function fetchData() {
             currentPwd = document.getElementById('adminPwd').value;
@@ -199,13 +246,29 @@
                 const deleteHtml = `<button class="btn-delete" onclick="deleteUser('${safeUsername}', '${safeUuid}')">删除</button>`;
 
                 let actionBtn = '';
+                let remoteActionBtn = '';
+
                 if (isUnreg) {
                     actionBtn = `<div class="action-group">${deleteHtml}</div>`;
+                    remoteActionBtn = `<span style="color:#64748b; font-size:12px;">无权限</span>`;
                 } else {
                     const unbindHtml = isBound 
                         ? `<button class="btn-unbind" onclick="forceUnbind('${user.username}')">解绑</button>`
                         : `<button class="btn-disabled" disabled>解绑</button>`;
                     actionBtn = `<div class="action-group">${unbindHtml}${deleteHtml}</div>`;
+                    
+                    if (isBound && user.app_version && user.app_version !== '(远程指令下发中)' && user.app_version !== '-') {
+                        const canRemote = (getUserVipType(user) === '购买永久VIP' || getUserVipType(user) === '赠送永久VIP');
+                        if (canRemote) {
+                             remoteActionBtn = `<div class="action-group">
+                                <button class="btn-remote-preset" onclick="applyRemotePresetWallpaper('${user.username}')">📥 应用预设静态壁纸</button>
+                            </div>`;
+                        } else {
+                            remoteActionBtn = `<span style="color:#64748b; font-size:12px;">限VIP可用</span>`;
+                        }
+                    } else {
+                        remoteActionBtn = `<span style="color:#64748b; font-size:12px;">等待拉取...</span>`;
+                    }
                 }
 
                 const vipType = getUserVipType(user);
@@ -214,9 +277,15 @@
                 else if (vipType === "赠送永久VIP") vipClass = "vip-gifted";
                 else if (vipType === "未注册用户") vipClass = "vip-unreg";
 
+                // 🌟 新增字段 UI 渲染
+                const regTime = user.created_at ? `<div style="font-size:12px;color:#94a3b8;margin-bottom:4px;" title="注册时间">📝 ${formatTime(user.created_at)}</div>` : '';
+                const actTime = user.used_time ? `<div style="font-size:12px;color:#f59e0b;" title="核销时间">🔑 ${formatTime(user.used_time)}</div>` : '';
+                const timeBox = (regTime || actTime) ? `${regTime}${actTime}` : `<span style="color: #64748b;">-</span>`;
+
+                const firstActive = user.first_active ? `<span style="color: #38bdf8; font-weight:bold;">${user.first_active}</span>` : `<span style="color: #64748b;">-</span>`;
+                const trafficLights = generateTrafficLights(user.recent_7_days);
+
                 const appVersion = user.app_version ? `<span class="version-text">${user.app_version}</span>` : `<span style="color: #64748b;">-</span>`;
-                
-                // 🌟 解析新增的车机型号
                 const deviceModel = user.device_model ? `<span class="model-text">${user.device_model}</span>` : `<span style="color: #64748b;">-</span>`;
 
                 const activeDisplay = user.last_active 
@@ -228,8 +297,12 @@
                     <td>${displayPassword}</td>
                     <td class="${vipClass}">${vipType}</td>
                     <td style="color: #10b981;">${user.used_code || '-'}</td>
+                    <td>${timeBox}</td>
+                    <td>${firstActive}</td>
+                    <td>${trafficLights}</td>
                     <td>${appVersion}</td>
                     <td>${deviceModel}</td>
+                    <td>${remoteActionBtn}</td>
                     <td>${activeDisplay}</td>
                     <td>${actionBtn}</td>
                     <td class="uuid-text">${uuidDisplay}</td>
@@ -271,8 +344,8 @@
                 return;
             }
 
-            // 🌟 导出工具加入新表头
-            const headers = ['用户名', '密码', '身份状态', '使用的密钥', 'App版本', '车机型号/系统', '最后活跃时间', '当前绑定设备(UUID)'];
+            // 🌟 导出工具加入全面表头
+            const headers = ['用户名', '密码', '身份状态', '使用的密钥', '注册时间', '核销时间', '首次安装时间', '7日活跃记录(打卡日期)', 'App版本', '车机型号/系统', '最后活跃时间', '当前绑定设备(UUID)'];
             
             const escapeCSV = (str) => {
                 if (str === null || str === undefined) return '""';
@@ -285,12 +358,19 @@
                 const password = user.password ? user.password : '-';
                 const vipType = getUserVipType(user);
                 const code = user.used_code ? user.used_code : '-';
+                
+                // 🌟 解析新的导出数据
+                const regTimeStr = user.created_at ? formatTime(user.created_at) : '-';
+                const actTimeStr = user.used_time ? formatTime(user.used_time) : '-';
+                const firstActiveStr = user.first_active || '-';
+                const recent7DaysStr = (user.recent_7_days || []).join(' | ') || '-';
+
                 const appVersion = user.app_version ? user.app_version : '-';
-                const deviceModel = user.device_model ? user.device_model : '-'; // 🌟 解析导出数据
+                const deviceModel = user.device_model ? user.device_model : '-'; 
                 const lastActive = user.last_active ? user.last_active : '无记录';
                 const uuid = user.device_uuid ? user.device_uuid : '未绑定设备';
                 
-                return [username, password, vipType, code, appVersion, deviceModel, lastActive, uuid].map(escapeCSV).join(',');
+                return [username, password, vipType, code, regTimeStr, actTimeStr, firstActiveStr, recent7DaysStr, appVersion, deviceModel, lastActive, uuid].map(escapeCSV).join(',');
             });
 
             const csvContent = "\uFEFF" + headers.map(escapeCSV).join(',') + "\n" + rows.join("\n");
@@ -300,7 +380,7 @@
             const link = document.createElement("a");
             link.setAttribute("href", url);
             const dateStr = new Date().toISOString().slice(0, 10);
-            link.setAttribute("download", `用户明细报表_${dateStr}.csv`);
+            link.setAttribute("download", `用户明细全量报表_${dateStr}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -321,6 +401,24 @@
                     fetchData(); 
                 } else {
                     alert('❌ 解绑失败：' + resData.msg);
+                }
+            });
+        }
+
+        function applyRemotePresetWallpaper(targetUsername) {
+            if(!confirm(`⚙️ 远程指令下发确认\n\n确定要远程命令账号【${targetUsername}】的车机终端立即销毁视频层，并应用原车预设静态壁纸吗？\n\n指令将在设备下一次打卡时执行。`)) return;
+
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_apply_remote_preset_wallpaper`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ admin_pwd: currentPwd, p_username: targetUsername })
+            })
+            .then(res => res.json())
+            .then(resData => {
+                if(resData.success) {
+                    alert('✅ ' + resData.msg);
+                } else {
+                    alert('❌ 下发失败：' + resData.msg);
                 }
             });
         }
