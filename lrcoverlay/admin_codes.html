@@ -13,26 +13,24 @@
         .code-text { font-size: 18px; font-weight: bold; color: #38bdf8; margin-bottom: 8px; letter-spacing: 1px; }
         .info-text { font-size: 12px; color: #94a3b8; }
         .btn-copy { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 8px; width: 100%; }
-        select { background: #0f172a; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; outline: none; width: 100%; font-size: 14px; }
+        select { background: #0f172a; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; outline: none; width: 100%; font-size: 14px; margin-bottom: 8px; }
         
         .status-ready { border-left: 4px solid #10b981; } 
         .status-sold { border-left: 4px solid #f59e0b; opacity: 0.6; } 
         .status-gifted { border-left: 4px solid #8b5cf6; opacity: 0.6; } 
         
-        /* 优化分页控制台：让它能放下筛选框 */
         .pagination { display: none; justify-content: space-between; align-items: center; background: #1e293b; padding: 10px 10px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
         .page-btn { background: #334155; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
         .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-        
-        /* 中间区域包裹跳页和筛选框 */
         .center-controls { display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .page-info { color: #38bdf8; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-        
         .jump-input { width: 40px !important; padding: 4px !important; font-size: 14px !important; text-align: center; border-radius: 6px !important; margin: 0 !important; background: #0f172a !important; color: #38bdf8 !important; border: 1px solid #38bdf8 !important; -moz-appearance: textfield; }
         .jump-input::-webkit-outer-spin-button, .jump-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .filter-select { width: auto !important; padding: 4px 8px !important; font-size: 12px !important; border-radius: 6px; border: 1px solid #38bdf8; color: #e2e8f0; margin-bottom: 0; }
         
-        /* 独立精简的顶部筛选框样式 */
-        .filter-select { width: auto !important; padding: 4px 8px !important; font-size: 12px !important; border-radius: 6px; border: 1px solid #38bdf8; color: #e2e8f0; }
+        /* 新增售价输入框小容器样式 */
+        .price-box { display: flex; align-items: center; justify-content: space-between; background: #0f172a; border: 1px solid #475569; border-radius: 6px; padding: 2px 8px; width: 100%; box-sizing: border-box; }
+        .price-box input { background: transparent; border: none; color: #10b981; font-weight: bold; text-align: right; margin: 0; padding: 4px; width: 100%; outline: none; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -46,7 +44,6 @@
 
     <div class="pagination" id="paginationTop">
         <button class="page-btn" id="prevBtn" onclick="changePage(-1)">上一页</button>
-        
         <div class="center-controls">
             <select id="statusFilter" class="filter-select" onchange="applyFilter(true)">
                 <option value="全部">全部状态</option>
@@ -54,32 +51,28 @@
                 <option value="已出售">🟠 仅看已出售</option>
                 <option value="已赠送">🎁 仅看已赠送</option>
             </select>
-            
             <div class="page-info">
                 <input type="number" id="jumpInput" class="jump-input" onchange="jumpToPage()" onblur="jumpToPage()">
                 <span id="totalPagesText">/ 1 页</span>
             </div>
         </div>
-
         <button class="page-btn" id="nextBtn" onclick="changePage(1)">下一页</button>
     </div>
 
-    <div id="codesContainer" style="display: none;">
-        </div>
+    <div id="codesContainer" style="display: none;"></div>
 
     <script>
         const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
         let currentPwd = '';
         
-        // 分页核心变量
-        let allCodesData = [];     // 存在内存里的原始全量数据
-        let filteredData = [];     // 经过顶部筛选框过滤后的数据
+        let allCodesData = [];
+        let filteredData = [];
         let currentPage = 1;     
-        const pageSize = 200;    
+        const pageSize = 200;
 
         function fetchCodes() {
-            currentPwd = document.getElementById('adminPwd').value;
+            currentPwd = document.getElementById('adminPwd').value.trim();
             const btn = document.querySelector('.btn-primary');
             btn.innerText = "加载中,请稍候..."; 
             btn.disabled = true;
@@ -102,13 +95,11 @@
                 if (resData.success) {
                     document.getElementById('authBox').style.display = 'none';
                     document.getElementById('paginationTop').style.display = 'flex';
-                    
                     allCodesData = resData.data; 
-                    
-                    // 🌟 拉取完数据后，执行纯本地过滤渲染
                     applyFilter(true); 
                 } else {
                     document.getElementById('errMsg').style.display = 'block';
+                    document.getElementById('errMsg').innerText = resData.msg;
                 }
             })
             .catch(err => {
@@ -118,23 +109,16 @@
             });
         }
 
-        // 🌟 新增核心：纯本地瞬间过滤逻辑
         function applyFilter(resetPage) {
             const filterVal = document.getElementById('statusFilter').value;
-            
             if (filterVal === '全部') {
-                filteredData = allCodesData; // 不过滤，全量显示
+                filteredData = allCodesData;
             } else {
                 filteredData = allCodesData.filter(item => item.sell_status === filterVal);
             }
-            
-            // 如果切换了下拉框，自动跳回第一页
             if (resetPage) currentPage = 1;
-            
-            // 防止过滤后页码越界
             const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
             if (currentPage > totalPages) currentPage = totalPages;
-            
             renderPage();
         }
 
@@ -142,11 +126,9 @@
             const container = document.getElementById('codesContainer');
             container.style.display = 'block';
             
-            // 🌟 分页计算改用 filteredData
             const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
             const startIndex = (currentPage - 1) * pageSize;
             const endIndex = Math.min(startIndex + pageSize, filteredData.length);
-            
             const currentPageData = filteredData.slice(startIndex, endIndex);
 
             document.getElementById('jumpInput').value = currentPage;
@@ -161,6 +143,7 @@
                 else if (item.sell_status === '已赠送') cardClass = 'status-gifted';
                 
                 const isActivatedText = item.is_used ? `<span style="color:#ef4444;">已激活 (${item.used_by_user})</span>` : '未激活';
+                const currentPrice = item.price || 0; // 取出价格
                 
                 htmlString += `
                     <div class="card ${cardClass}">
@@ -168,33 +151,34 @@
                             <div class="code-text">${item.code}</div>
                             <div class="info-text">状态: ${isActivatedText}</div>
                         </div>
-                        <div style="flex: 1; text-align: right;">
+                        <div style="flex: 1; text-align: right; display: flex; flex-direction: column;">
                             <button class="btn-copy" onclick="copyCode('${item.code}', this)">一键复制</button>
-                            <select onchange="updateStatus('${item.code}', this.value)">
+                            <select id="status_${item.code}" onchange="onStatusChange('${item.code}')">
                                 <option value="待出售" ${item.sell_status === '待出售' ? 'selected' : ''}>🟢 待出售</option>
                                 <option value="已出售" ${item.sell_status === '已出售' ? 'selected' : ''}>🟠 已出售</option>
                                 <option value="已赠送" ${item.sell_status === '已赠送' ? 'selected' : ''}>🎁 已赠送</option>
                             </select>
+                            
+                            <div class="price-box">
+                                <span style="font-size:12px; color:#94a3b8;">¥</span>
+                                <input type="number" id="price_${item.code}" value="${currentPrice}" onchange="updateInfo('${item.code}')" placeholder="0">
+                            </div>
                         </div>
                     </div>
                 `;
             });
             
-            // 如果筛选后没数据，给个友好提示
             if (filteredData.length === 0) {
                 htmlString = '<div style="text-align:center; margin-top:50px; color:#94a3b8;">该状态下暂无卡密</div>';
             }
-            
             container.innerHTML = htmlString;
         }
 
         function changePage(delta) {
             const totalPages = Math.ceil(filteredData.length / pageSize);
             currentPage += delta;
-            
             if (currentPage < 1) currentPage = 1;
             if (currentPage > totalPages) currentPage = totalPages;
-            
             renderPage();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -202,7 +186,6 @@
         function jumpToPage() {
             const inputVal = parseInt(document.getElementById('jumpInput').value);
             const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
-            
             if (inputVal >= 1 && inputVal <= totalPages) {
                 if (currentPage !== inputVal) {
                     currentPage = inputVal;
@@ -228,25 +211,40 @@
             });
         }
 
-        function updateStatus(code, newStatus) {
-            fetch(`${SUPABASE_URL}/rest/v1/rpc/update_code_status`, {
+        // 🌟 核心智能联动：改状态自动清零售价，并提交
+        function onStatusChange(code) {
+            const newStatus = document.getElementById(`status_${code}`).value;
+            const priceInput = document.getElementById(`price_${code}`);
+            
+            // 如果改成未售或赠送，直接帮用户把金额归 0
+            if (newStatus === '已赠送' || newStatus === '待出售') {
+                priceInput.value = 0;
+            }
+            updateInfo(code); // 调用统一更新引擎
+        }
+
+        // 🌟 统一的静默提交引擎：无论改价格还是改状态，都能一次性保存
+        function updateInfo(code) {
+            const newStatus = document.getElementById(`status_${code}`).value;
+            const newPrice = parseFloat(document.getElementById(`price_${code}`).value) || 0;
+
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/update_code_info`, {
                 method: 'POST',
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ admin_pwd: currentPwd, p_code: code, p_status: newStatus })
+                body: JSON.stringify({ admin_pwd: currentPwd, p_code: code, p_status: newStatus, p_price: newPrice })
             })
             .then(res => res.json())
             .then(resData => {
                 if(resData.success) {
-                    // 🌟 致命级体验优化：不再调用 fetchCodes() 请求网络重排
-                    // 而是直接在本地内存里修改那条记录的状态
+                    // 更新本地内存
                     const itemIndex = allCodesData.findIndex(i => i.code === code);
                     if (itemIndex > -1) {
                         allCodesData[itemIndex].sell_status = newStatus;
+                        allCodesData[itemIndex].price = newPrice;
                     }
-                    // 重新应用当前的过滤条件，并传 false 保持停留在当前页！
-                    applyFilter(false); 
+                    applyFilter(false); // 重绘当前页
                 } else {
-                    alert('状态更新失败：' + resData.msg);
+                    alert('数据保存失败：' + resData.msg);
                 }
             });
         }
