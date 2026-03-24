@@ -1,1 +1,139 @@
 
+-- ==========================================
+-- 1. 注册新账号 (V2 升维版)
+-- ==========================================
+CREATE OR REPLACE FUNCTION register_account_v2(p_username TEXT, p_password TEXT, p_uuid TEXT)
+RETURNS json AS $$
+BEGIN
+    -- 1. 查重：看看用户名是不是被抢占了
+    IF EXISTS (SELECT 1 FROM app_users WHERE username = p_username) THEN
+        RETURN json_build_object('success', false, 'msg', '该账号已被注册，请换一个名字');
+    END IF;
+
+    -- 2. 放行：写入数据库，默认不是 VIP
+    INSERT INTO app_users (username, password, device_uuid, is_vip)
+    VALUES (p_username, p_password, p_uuid, false);
+
+    RETURN json_build_object('success', true, 'msg', '注册成功');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- ==========================================
+-- 2. 账号密码登录验证 (V2 升维版)
+-- ==========================================
+CREATE OR REPLACE FUNCTION login_device_v2(p_username TEXT, p_password TEXT, p_uuid TEXT)
+RETURNS json AS $$
+DECLARE
+    v_db_password TEXT;
+    v_db_uuid TEXT;
+    v_is_vip BOOLEAN;
+BEGIN
+    -- 1. 查账号是否存在
+    SELECT password, device_uuid, is_vip 
+    INTO v_db_password, v_db_uuid, v_is_vip 
+    FROM app_users 
+    WHERE username = p_username;
+
+    IF NOT FOUND THEN
+        RETURN json_build_object('success', false, 'msg', '账号不存在，请先注册');
+    END IF;
+
+    -- 2. 校验密码
+    IF v_db_password != p_password THEN
+        RETURN json_build_object('success', false, 'msg', '密码错误，请重新输入');
+    END IF;
+
+    -- 3. 智能设备锁校验
+    -- 如果数据库里是 NULL 或者空字符串，说明是新注册或刚解绑，直接绑上新设备！
+    IF (v_db_uuid IS NULL OR v_db_uuid = '') THEN
+        UPDATE app_users SET device_uuid = p_uuid WHERE username = p_username;
+        RETURN json_build_object('success', true, 'is_vip', v_is_vip, 'msg', '登录成功，已绑定当前车机');
+        
+    -- 如果数据库里有值，且跟当前来敲门的设备码不一样，无情拦截！
+    ELSIF v_db_uuid != p_uuid THEN
+        RETURN json_build_object('success', false, 'msg', '该账号已绑定其他车机！如需换绑，请在原车机退出或联系客服');
+    END IF;
+
+    -- 4. 正常情况：已绑定，且设备码一致，直接放行
+    RETURN json_build_object('success', true, 'is_vip', v_is_vip, 'msg', '登录成功，欢迎回来');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- ==========================================
+-- 3. 安全退出解绑 (V2 升维版)
+-- ==========================================
+CREATE OR REPLACE FUNCTION unbind_device_v2(p_username TEXT, p_uuid TEXT)
+RETURNS json AS $$
+DECLARE
+    v_real_uuid TEXT;
+BEGIN
+    -- 1. 尝试查找该账号
+    SELECT device_uuid INTO v_real_uuid FROM app_users WHERE username = p_username;
+
+    -- 2. 如果因为某种原因没找到（防错机制）
+    IF NOT FOUND THEN
+        RETURN json_build_object('success', false, 'msg', '账号不存在');
+    END IF;
+
+    -- 3. 安全校验：防止别人拿着你的用户名恶意解绑
+    IF v_real_uuid != p_uuid AND v_real_uuid IS NOT NULL AND v_real_uuid != '' THEN
+        RETURN json_build_object('success', false, 'msg', '当前车机与云端绑定的设备不符，拒绝解绑');
+    END IF;
+
+    -- 4. 执行解绑：把该账号绑定的车机特征码清空
+    UPDATE app_users SET device_uuid = '' WHERE username = p_username;
+
+    RETURN json_build_object('success', true, 'msg', '解绑成功，您可以随时在其他车机登录该账号');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- ==========================================
+-- 4. 卡密核销 (V2 升维版)
+-- ==========================================
+CREATE OR REPLACE FUNCTION verify_code_v2(p_username TEXT, p_code TEXT)
+RETURNS json AS $$
+DECLARE
+    v_is_used BOOLEAN;
+    v_code_exists BOOLEAN;
+BEGIN
+    -- 第一关：检查卡密到底存不存在？
+    SELECT EXISTS(SELECT 1 FROM activation_codes WHERE code = p_code) INTO v_code_exists;
+    IF NOT v_code_exists THEN
+        RETURN json_build_object('success', false, 'msg', '无效的卡密，请检查是否输入错误');
+    END IF;
+
+    -- 第二关：检查卡密是不是被人用过了？
+    SELECT is_used INTO v_is_used FROM activation_codes WHERE code = p_code;
+    IF v_is_used THEN
+        RETURN json_build_object('success', false, 'msg', '该卡密已被使用，请重新购买或联系客服');
+    END IF;
+
+    -- 第三关：两表连动，瞬间核销！(事务级别的原子操作，绝对安全)
+    -- a. 作废卡密，记录元凶
+    UPDATE activation_codes 
+    SET is_used = true, 
+        used_by_user = p_username, 
+        used_time = NOW() 
+    WHERE code = p_code;
+
+    -- b. 给用户发放永久 VIP 特权
+    UPDATE app_users 
+    SET is_vip = true 
+    WHERE username = p_username;
+
+    -- 大功告成，返回成功信号
+    RETURN json_build_object('success', true, 'msg', '激活成功！高级功能已永久解锁');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- ==========================================
+-- ⚠️ 终极拉闸命令：删除所有 V1 老接
+-- ==========================================
+DROP FUNCTION IF EXISTS login_device(TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS register_account(TEXT, TEXT, TEXT);
+DROP FUNCTION IF EXISTS verify_code(TEXT, TEXT);
+DROP FUNCTION IF EXISTS unbind_device(TEXT, TEXT);
