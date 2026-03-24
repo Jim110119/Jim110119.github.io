@@ -1,6 +1,6 @@
 {
   "versionCode": 5,
-  "versionName": "v3.6",
-  "updateLog": "\n• 优化歌词乱滚问题。\n• 优化开机歌词掉线问题。\n• 新增遮罩跟随深浅色主题自动切换。\n• 新增支持开机自动应用动态壁纸。\n• 用户体验优化：U盘扫描、界面、自启toast优化。\n• 仪表支持单歌名显示。 ",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v3.6.apk"
+  "versionName": "v3.7",
+  "updateLog": "\n• 支持仪表歌名居左。\n• 优化应用列表扫描用户已安装app不全的问题。\n• 优化开机自动应用静态壁纸出现黑边的问题。\n• 优化飞屏UX，增加飞屏自定义时延设置。 \n• 优化副驾桌面歌词残留问题。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v3.7.apk"
 }
