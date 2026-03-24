@@ -9,258 +9,325 @@
     <style>
         body { margin: 0; padding: 20px; background-color: #0f172a; color: #38bdf8; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
         
-        /* 登录框样式 */
+        /* 🌟 登录框样式 */
         .auth-box { text-align: center; margin-top: 15vh; width: 100%; }
         input.pwd-input { padding: 12px; border-radius: 8px; border: 1px solid #38bdf8; background: #1e293b; color: white; outline: none; width: 80%; max-width: 300px; font-size: 16px; margin-bottom: 15px; text-align: center; }
-        button.btn-primary { padding: 12px 20px; border-radius: 8px; background: #0284c7; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button.btn-primary { padding: 12px 20px; border-radius: 8px; border: none; background: #0ea5e9; color: white; cursor: pointer; font-weight: bold; width: 80%; max-width: 300px; font-size: 16px; transition: background 0.2s; }
+        button.btn-primary:hover { background: #0284c7; }
+
+        /* 大屏主体样式 */
+        .dashboard { width: 100%; max-width: 1200px; display: none; flex-direction: column; gap: 20px; }
+        .card { background: rgba(30, 41, 59, 0.7); padding: 30px; border-radius: 16px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); border: 1px solid #334155; text-align: center; }
+        h2 { font-size: 20px; color: #e2e8f0; margin-top: 0; margin-bottom: 10px; letter-spacing: 1px; }
+        h3 { color: #e2e8f0; margin-top: 0; margin-bottom: 10px; }
+        .number-box { font-size: 60px; font-weight: bold; color: #0ea5e9; text-shadow: 0 0 15px rgba(14, 165, 233, 0.5); margin: 10px 0; }
+        .loading { font-size: 30px; color: #94a3b8; animation: pulse 1.5s infinite; }
+        .footer { margin-top: 20px; font-size: 13px; color: #64748b; text-align: center; }
+        .chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
         
-        /* 基础数据框 */
-        .container { display: flex; justify-content: space-around; width: 100%; max-width: 1200px; margin-bottom: 20px; flex-wrap: wrap; }
-        .stat-box { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 20px; width: 22%; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); margin-bottom: 15px; }
-        .stat-box h3 { margin: 0 0 10px 0; font-size: 14px; color: #94a3b8; }
-        .stat-value { font-size: 32px; font-weight: bold; color: #f8fafc; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+        .btn-group { display: flex; justify-content: center; gap: 15px; margin-top: 25px; flex-wrap: wrap; }
+        .action-btn { text-decoration: none; font-weight: bold; padding: 10px 20px; border-radius: 8px; font-size: 14px; transition: all 0.3s; }
+        .action-btn:hover { opacity: 0.8; transform: translateY(-2px); }
+        .btn-admin { color: #f59e0b; border: 1px solid #f59e0b; }
+        .btn-codes { color: #10b981; border: 1px solid #10b981; }
 
-        /* 💎 注册付费漏斗样式 (原有) */
-        .conversion-funnel { display: flex; align-items: center; justify-content: center; width: 100%; max-width: 1200px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-        /* (这里省略了你原有的 .step 样式，如果你原来有，请保留，我这里用简化的展示) */
-
-        /* ========================================================= */
-        /* 🌟 新增：卡密细长结构图专属样式 */
-        /* ========================================================= */
-        .coupon-structure-container {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-            width: 100%;
-            max-width: 1200px;
-            margin-top: 10px;
-            margin-bottom: 30px;
-        }
-
-        .coupon-structure-item {
-            flex: 1;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(56, 189, 248, 0.2);
-            border-radius: 12px;
-            padding: 20px 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .coupon-title-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #e2e8f0;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 15px;
-            width: 100%;
-            text-align: center;
-        }
-
-        .coupon-funnel {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            height: 60px; /* 细长高度 */
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .coupon-block {
-            height: 100%;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            color: white;
-            text-align: center;
-            padding: 5px;
-        }
-
-        .coupon-block::after {
-            content: '';
-            position: absolute;
-            top: 0; right: 0; bottom: 0; left: 0;
-            transform: skewX(-15deg); /* 斜切效果 */
-            border-radius: 4px;
-            z-index: 1;
-        }
-
-        .coupon-block span { position: relative; z-index: 2; }
-        .coupon-label { font-size: 11px; color: rgba(255,255,255,0.8); }
-        .coupon-num { font-size: 18px; font-weight: 800; }
-
-        /* 4大专属渐变色 */
-        .block-sold-t::after { background: linear-gradient(135deg, #166534 0%, #15803d 100%); }
-        .block-sold-u::after { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); }
-        .block-gift-t::after { background: linear-gradient(135deg, #6b21a8 0%, #7e22ce 100%); }
-        .block-gift-u::after { background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); }
-        .block-dist-total::after { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
-        .block-dist-d::after { background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); }
-        .block-total-active::after { background: linear-gradient(135deg, #075985 0%, #0369a1 100%); }
-
-        .coupon-arrow { color: rgba(56, 189, 248, 0.4); font-size: 16px; margin: 0 5px; position: relative; z-index: 3; }
-        .loading { opacity: 0.5; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* 🌟 修改：一致的密钥数据卡片样式 */
+        .key-stat-card { background: rgba(30, 41, 59, 0.7); padding: 20px; border-radius: 12px; border: 1px solid #334155; text-align: center; min-width: 200px; flex: 1; }
+        .key-stat-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%; margin-top: 20px; }
+        .key-stat-card h3 { font-size: 16px; margin-bottom: 10px; color: #cbd5e1; }
+        .key-stat-value { font-size: 40px; font-weight: bold; color: #0ea5e9; line-height: 1; margin-bottom: 5px; }
+        .key-stat-ratio { font-size: 18px; color: #94a3b8; }
+        .key-stat-label { font-size: 13px; color: #64748b; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div class="auth-box" id="authBox">
-        <h1 style="color: #f8fafc; margin-bottom: 30px;">🛡️ 悬浮歌词运营指挥中心</h1>
-        <input type="password" id="adminPwd" class="pwd-input" placeholder="请输入超级管理员密码" onkeypress="if(event.keyCode===13) checkPwd()"><br>
-        <button class="btn-primary" onclick="checkPwd()">进入系统</button>
+        <h2>📊 核心运营大盘</h2>
+        <input type="password" id="adminPwd" class="pwd-input" placeholder="请输入管理员密码" onkeypress="if(event.keyCode===13) checkLogin()">
+        <br>
+        <button class="btn-primary" id="loginBtn" onclick="checkLogin()">进入控制中心</button>
+        <p id="errMsg" style="color: #ef4444; display: none; margin-top: 15px; font-weight: bold;">密码错误，拒绝访问！</p>
     </div>
 
-    <div id="dashboard" style="display: none; width: 100%; flex-direction: column; align-items: center;">
-        
-        <div class="container">
-            <div class="stat-box"><h3>💎 总注册用户</h3><div class="stat-value loading" id="totalUsers">0</div></div>
-            <div class="stat-box"><h3>🔥 今日活跃 (DAU)</h3><div class="stat-value loading" id="todayDau">0</div></div>
-            <div class="stat-box"><h3>📱 独立设备总数</h3><div class="stat-value loading" id="uniqueDeviceCount">0</div></div>
-            <div class="stat-box"><h3>💰 预估总流水</h3><div class="stat-value loading" id="totalRevenue">0</div></div>
+    <div class="dashboard" id="mainDashboard">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; width: 100%;">
+            <div class="card" style="flex: 1; min-width: 250px;">
+                <h2>🚀 累计总装机</h2>
+                <div id="installCount" class="number-box loading">...</div>
+            </div>
+            <div class="card" style="flex: 1; min-width: 250px;">
+                <h2>🔥 今日实时活跃</h2>
+                <div id="todayActiveCount" class="number-box loading">...</div>
+            </div>
+            <div class="card" style="flex: 1; min-width: 250px;">
+                <h2>🗑️ 沉睡废弃空号</h2>
+                <div id="abandonedCount" class="number-box loading" style="color: #ef4444; text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">...</div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: -10px;">(大于7天未活跃的未付费号)</div>
+            </div>
         </div>
 
-        <h3 style="width: 100%; max-width: 1200px; text-align: left; color: #e2e8f0;">💎 注册与付费转化结构图</h3>
-        <div class="conversion-funnel loading" id="regFunnel">
-             <div style="color: #94a3b8;">(原有注册付费转化漏斗)</div>
+        <div class="card">
+            <h2>📈 最近 7 天活跃趋势 (DAU)</h2>
+            <div class="chart-container">
+                <canvas id="dauChart"></canvas>
+            </div>
         </div>
-
-        <h3 style="width: 100%; max-width: 1200px; text-align: left; margin-top: 25px; margin-bottom: 10px; color: #e2e8f0;">🎫 卡密流转与转化率</h3>
-        <div class="coupon-structure-container">
+		
+		<!-- 🌟 修改：密钥流转与转化率 - 简约卡片风格 -->
+        <div class="card">
+            <h2>💳 密钥流转与转化率</h2>
+            <div class="key-stat-container" id="codeFlowCards">
+                <!-- 出售转化 -->
+                <div class="key-stat-card">
+                    <h3>出售转化</h3>
+                    <div id="statSoldValue" class="key-stat-value loading">...</div>
+                    <div class="key-stat-ratio" id="statSoldRatio">(激活/售出)</div>
+                    <div class="key-stat-label">已激活 / 已售出</div>
+                </div>
+                <!-- 赠送转化 -->
+                <div class="key-stat-card">
+                    <h3>赠送转化</h3>
+                    <div id="statGiftValue" class="key-stat-value loading">...</div>
+                    <div class="key-stat-ratio" id="statGiftRatio">(激活/赠出)</div>
+                    <div class="key-stat-label">已激活 / 已赠送</div>
+                </div>
+                <!-- 派发进度 -->
+                <div class="key-stat-card">
+                    <h3>派发进度</h3>
+                    <div id="statDistValue" class="key-stat-value loading">...</div>
+                    <div class="key-stat-ratio" id="statDistRatio">(已派发/总盘)</div>
+                    <div class="key-stat-label">已售出+赠送 / 密钥总数</div>
+                </div>
+                <!-- 总盘激活 -->
+                <div class="key-stat-card">
+                    <h3>总盘激活</h3>
+                    <div id="statTotalActiveValue" class="key-stat-value loading">...</div>
+                    <div class="key-stat-ratio" id="statTotalActiveRatio">(已激活/总盘)</div>
+                    <div class="key-stat-label">总激活数 / 密钥总数</div>
+                </div>
+            </div>
+        </div>
+		
+        <div class="card">
+            <h2>💎 注册与付费转化结构图</h2>
+            <div style="font-size: 13px; color: #94a3b8; margin-top: 25px; margin-bottom: 0px; line-height: 2;">
+                <div>安装总设备数：<span id="uniqueDeviceCount" class="loading" style="color: #38bdf8; font-weight: bold; font-size: 15px;">...</span> 台</div>
+                <div>会员总营收：<span style="color: #f59e0b; font-weight: bold; font-size: 15px;">¥ <span id="totalRevenue" class="loading">...</span></span></div>
+            </div>
             
-            <div class="coupon-structure-item">
-                <div class="coupon-title-row"><span>💰 出售转化 (激活/售出)</span></div>
-                <div class="coupon-funnel loading" id="funnelSold">
-                    <div class="coupon-block block-sold-t"><span class="coupon-label">售出(分母)</span><span class="coupon-num" id="cpSoldT">0</span></div>
-                    <div class="coupon-arrow">➜</div>
-                    <div class="coupon-block block-sold-u"><span class="coupon-label">激活(分子)</span><span class="coupon-num" id="cpSoldU">0</span></div>
-                </div>
-                <div style="font-size: 11px; color: #22c55e; font-weight: bold;" id="cpSoldRatio">转化率: 0%</div>
+            <div class="chart-container" style="height: 250px;"> 
+                <canvas id="vipChart"></canvas>
             </div>
-
-            <div class="coupon-structure-item">
-                <div class="coupon-title-row"><span>🎁 赠送转化 (激活/赠出)</span></div>
-                <div class="coupon-funnel loading" id="funnelGift">
-                    <div class="coupon-block block-gift-t"><span class="coupon-label">赠出(分母)</span><span class="coupon-num" id="cpGiftT">0</span></div>
-                    <div class="coupon-arrow">➜</div>
-                    <div class="coupon-block block-gift-u"><span class="coupon-label">激活(分子)</span><span class="coupon-num" id="cpGiftU">0</span></div>
-                </div>
-                <div style="font-size: 11px; color: #ec4899; font-weight: bold;" id="cpGiftRatio">转化率: 0%</div>
+            
+            <div class="btn-group">
+                <a href="admin_details.html" target="_blank" class="action-btn btn-admin">👉 高级管理员后台</a>
+                <a href="admin_codes.html" target="_blank" class="action-btn btn-codes">📦 密钥发货控制台</a>
             </div>
-
-            <div class="coupon-structure-item">
-                <div class="coupon-title-row"><span>📦 派发进度 (已派发/总盘)</span></div>
-                <div class="coupon-funnel loading" id="funnelDist">
-                    <div class="coupon-block block-dist-total"><span class="coupon-label">总库存(分母)</span><span class="coupon-num" id="cpTotalAll1">0</span></div>
-                    <div class="coupon-arrow">➜</div>
-                    <div class="coupon-block block-dist-d"><span class="coupon-label">派发(S+G)</span><span class="coupon-num" id="cpDistT">0</span></div>
-                </div>
-                <div style="font-size: 11px; color: #f97316; font-weight: bold;" id="cpDistRatio">总占有率: 0%</div>
-            </div>
-
-            <div class="coupon-structure-item">
-                <div class="coupon-title-row"><span>⭐ 总盘激活 (已激活/总盘)</span></div>
-                <div class="coupon-funnel loading" id="funnelTotalActive">
-                    <div class="coupon-block block-dist-total"><span class="coupon-label">总库存(分母)</span><span class="coupon-num" id="cpTotalAll2">0</span></div>
-                    <div class="coupon-arrow">➜</div>
-                    <div class="coupon-block block-total-active"><span class="coupon-label">激活(总)</span><span class="coupon-num" id="cpTotalActiveU">0</span></div>
-                </div>
-                <div style="font-size: 11px; color: #38bdf8; font-weight: bold;" id="cpTotalActiveRatio">全局激活率: 0%</div>
-            </div>
-
         </div>
-
-        </div>
+        
+        <div class="footer">数据每分钟自动刷新 | 数据来源：Supabase 端云同步架构</div>
+    </div>
 
     <script>
-        // ⚠️ 记得填入你的真实参数！
-        const SUPABASE_URL = "https://clefvejumahurbbzdwbe.supabase.co"; 
-        const ANON_KEY = "eyJhbG... (填入你原本的前端公钥)";
-        
-        let headers = {
-            "apikey": ANON_KEY,
-            "Authorization": `Bearer ${ANON_KEY}`,
-            "Content-Type": "application/json"
-        };
+        Chart.register(ChartDataLabels);
 
-        function checkPwd() {
-            // 填入你的大屏查看密码
-            if(document.getElementById("adminPwd").value === "Ljm199447!") {
-                document.getElementById("authBox").style.display = "none";
-                document.getElementById("dashboard").style.display = "flex";
-                loadDashboardData();
-            } else {
-                alert("密码错误！");
-            }
+        const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
+        const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+
+        // 🌟 密码核验逻辑
+        function checkLogin() {
+            const pwd = document.getElementById('adminPwd').value.trim();
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = "验证中...";
+            btn.disabled = true;
+
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/verify_admin_password`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ admin_pwd: pwd })
+            })
+            .then(res => res.json())
+            .then(isValid => {
+                btn.innerText = "进入控制中心";
+                btn.disabled = false;
+                
+                if (isValid === true) {
+                    // 密码正确，切换面板并加载数据
+                    document.getElementById('authBox').style.display = 'none';
+                    document.getElementById('mainDashboard').style.display = 'flex';
+                    loadDashboardData();
+                } else {
+                    document.getElementById('errMsg').style.display = 'block';
+                }
+            })
+            .catch(err => {
+                btn.innerText = "进入控制中心";
+                btn.disabled = false;
+                document.getElementById('errMsg').innerText = "网络连接失败，请重试";
+                document.getElementById('errMsg').style.display = 'block';
+            });
         }
 
+        // 🌟 将所有拉取图表的逻辑包裹起来，验证通过后才执行
         function loadDashboardData() {
-            // ... (此处保留你原有的获取总注册、日活、收入等数据的 fetch 代码) ...
+            fetch(`${SUPABASE_URL}/rest/v1/installations?select=id&limit=1`, { method: 'GET', headers: { ...headers, 'Range-Unit': 'items', 'Prefer': 'count=exact' } })
+                .then(res => animateValue("installCount", 0, res.headers.get('Content-Range') ? parseInt(res.headers.get('Content-Range').split('/')[1]) : 0, 1500));
 
-            // =================================================================
-            // 🌟 核心新增：请求后台统计卡密数据，并渲染到全新的结构图中
-            // =================================================================
+            fetch(`${SUPABASE_URL}/rest/v1/daily_stats?select=*`, { method: 'GET', headers: headers }).then(res => res.json()).then(data => {
+                data.reverse();
+                const labels = data.map(item => item.active_date.substring(5));
+                const counts = data.map(item => item.active_count);
+                animateValue("todayActiveCount", 0, counts.length > 0 ? counts[counts.length - 1] : 0, 1500);
+
+                new Chart(document.getElementById('dauChart').getContext('2d'), {
+                    type: 'line',
+                    data: { labels: labels, datasets: [{ label: '日活跃车机数', data: counts, borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.2)', borderWidth: 3, pointBackgroundColor: '#fff', pointRadius: 5, fill: true, tension: 0.3 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false }, datalabels: { display: false } } }
+                });
+            });
+
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, { method: 'POST', headers: headers }).then(res => res.json()).then(data => {
+                const total = data.total || 0;
+                const purchasedVip = data.purchased_vip || 0;
+                const giftedVip = data.gifted_vip || 0;
+                const free = total - purchasedVip - giftedVip;
+
+                new Chart(document.getElementById('vipChart').getContext('2d'), {
+                    type: 'bar', 
+                    data: {
+                        labels: ['用户商业价值层级'],
+                        datasets: [
+                            { label: '💰 购买会员人数', data: [purchasedVip], backgroundColor: '#f59e0b', stack: 'Stack 0' }, 
+                            { label: '🎁 赠送会员人数', data: [giftedVip], backgroundColor: '#8b5cf6', stack: 'Stack 0' },    
+                            { label: '⚪ 普通未付费号', data: [free], backgroundColor: '#475569', stack: 'Stack 0' }      
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y', 
+                        scales: {
+                            x: { stacked: true, display: false }, 
+                            y: { stacked: true, grid: { display: false }, ticks: { display: false } } 
+                        },
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: '#e2e8f0', font: { size: 12 } } },
+                            tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)', titleFont: { size: 14 }, bodyFont: { size: 14 }, padding: 12 },
+                            datalabels: {
+                                color: '#ffffff',
+                                font: { weight: 'bold', size: 14 },
+                                formatter: (value, ctx) => {
+                                    if (value === 0) return '';
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+                                    return value + ' 人\n(' + percentage + ')';
+                                },
+                                textAlign: 'center',
+                                anchor: 'center',
+                                align: 'center',
+                            }
+                        }
+                    }
+                });
+            });
+
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_abandoned_users_count`, { method: 'POST', headers: headers }).then(res => res.json()).then(count => {
+                animateValue("abandonedCount", 0, count || 0, 1500);
+            }).catch(() => { document.getElementById("abandonedCount").innerHTML = "0"; document.getElementById("abandonedCount").classList.remove("loading"); });
+            
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_unique_device_count`, { method: 'POST', headers: headers })
+                .then(res => res.json())
+                .then(count => {
+                    animateValue("uniqueDeviceCount", 0, count || 0, 1500);
+                })
+                .catch(() => { 
+                    document.getElementById("uniqueDeviceCount").innerHTML = "0"; 
+                    document.getElementById("uniqueDeviceCount").classList.remove("loading"); 
+                });
+
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_total_revenue`, { method: 'POST', headers: headers })
+                .then(res => res.json())
+                .then(revenue => {
+                    animateValue("totalRevenue", 0, revenue || 0, 1500);
+                })
+                .catch(() => { 
+                    document.getElementById("totalRevenue").innerHTML = "0"; 
+                    document.getElementById("totalRevenue").classList.remove("loading"); 
+                });
+				
+				// 🌟 修改：获取密钥流转数据并渲染为卡片
             fetch(`${SUPABASE_URL}/rest/v1/rpc/get_code_stats`, { method: 'POST', headers: headers })
                 .then(res => res.json())
                 .then(data => {
-                    const soldTotal = data.sold_total || 0;
-                    const soldUsed = data.sold_used || 0;
-                    const giftTotal = data.gift_total || 0;
-                    const giftUsed = data.gift_used || 0;
-                    const totalAll = data.total || 0;
-                    
-                    // 派发逻辑计算
-                    const distributedTotal = soldTotal + giftTotal; 
-                    const distributedUsed = soldUsed + giftUsed;   
-
-                    // 转化率计算
-                    const calculateRatio = (n, d) => d === 0 ? 0 : Math.round((n / d) * 100);
-                    const ratioSold = calculateRatio(soldUsed, soldTotal);
-                    const ratioGift = calculateRatio(giftUsed, giftTotal);
-                    const ratioDist = calculateRatio(distributedTotal, totalAll);
-                    const ratioTotalActive = calculateRatio(distributedUsed, totalAll);
-
-                    // 渲染数字到界面
-                    document.getElementById("cpSoldT").innerText = soldTotal;
-                    document.getElementById("cpSoldU").innerText = soldUsed;
-                    document.getElementById("cpSoldRatio").innerText = `出售转化率: ${ratioSold}%`;
-
-                    document.getElementById("cpGiftT").innerText = giftTotal;
-                    document.getElementById("cpGiftU").innerText = giftUsed;
-                    document.getElementById("cpGiftRatio").innerText = `赠送转化率: ${ratioGift}%`;
-
-                    document.getElementById("cpTotalAll1").innerText = totalAll;
-                    document.getElementById("cpDistT").innerText = distributedTotal;
-                    document.getElementById("cpDistRatio").innerText = `总占有率 (已派发): ${ratioDist}%`;
-
-                    document.getElementById("cpTotalAll2").innerText = totalAll;
-                    document.getElementById("cpTotalActiveU").innerText = distributedUsed;
-                    document.getElementById("cpTotalActiveRatio").innerText = `全局激活率 (激活/总盘): ${ratioTotalActive}%`;
-
-                    // 移除所有的加载闪烁动画
-                    ["funnelSold", "funnelGift", "funnelDist", "funnelTotalActive"].forEach(id => {
-                        const el = document.getElementById(id);
-                        if(el) el.classList.remove("loading");
-                    });
+                    renderCodeCards(data);
                 })
                 .catch(err => {
-                    console.error("卡密数据加载失败", err);
+                    console.error("密钥数据加载失败", err);
+                    // 如果失败，设置默认值
+                    ["statSoldValue", "statGiftValue", "statDistValue", "statTotalActiveValue"].forEach(id => {
+                        const el = document.getElementById(id);
+                        if(el) {
+                            el.innerHTML = "0";
+                            el.classList.remove("loading");
+                        }
+                    });
                 });
+				
         }
 
-        // 附带你原本的数字滚动动画器
+        // 🌟 新增：渲染密钥数据卡片的函数
+        function renderCodeCards(data) {
+            if (!data) return;
+
+            const soldTotal = data.sold_total || 0;
+            const soldUsed = data.sold_used || 0;
+            const giftTotal = data.gift_total || 0;
+            const giftUsed = data.gift_used || 0;
+            const total = data.total || 0;
+            
+            const distributedTotal = soldTotal + giftTotal; // 已派发总数
+            const distributedUsed = soldUsed + giftUsed; // 已派发且激活总数
+
+            // 填充数据并移除加载状态
+            const soldValueEl = document.getElementById("statSoldValue");
+            if(soldValueEl) {
+                soldValueEl.innerHTML = `${soldUsed}`;
+                soldValueEl.classList.remove("loading");
+            }
+            const soldRatioEl = document.getElementById("statSoldRatio");
+            if(soldRatioEl) soldRatioEl.innerHTML = `(${soldUsed}/${soldTotal})`;
+
+            const giftValueEl = document.getElementById("statGiftValue");
+            if(giftValueEl) {
+                giftValueEl.innerHTML = `${giftUsed}`;
+                giftValueEl.classList.remove("loading");
+            }
+            const giftRatioEl = document.getElementById("statGiftRatio");
+            if(giftRatioEl) giftRatioEl.innerHTML = `(${giftUsed}/${giftTotal})`;
+
+            const distValueEl = document.getElementById("statDistValue");
+            if(distValueEl) {
+                distValueEl.innerHTML = `${distributedTotal}`;
+                distValueEl.classList.remove("loading");
+            }
+            const distRatioEl = document.getElementById("statDistRatio");
+            if(distRatioEl) distRatioEl.innerHTML = `(${distributedTotal}/${total})`;
+
+            const totalActiveValueEl = document.getElementById("statTotalActiveValue");
+            if(totalActiveValueEl) {
+                totalActiveValueEl.innerHTML = `${distributedUsed}`;
+                totalActiveValueEl.classList.remove("loading");
+            }
+            const totalActiveRatioEl = document.getElementById("statTotalActiveRatio");
+            if(totalActiveRatioEl) totalActiveRatioEl.innerHTML = `(${distributedUsed}/${total})`;
+        }
+
         function animateValue(id, start, end, duration) {
             let obj = document.getElementById(id);
-            if(!obj) return;
+            if (!obj) return;
             obj.classList.remove("loading");
             let startTimestamp = null;
             const step = (timestamp) => {
