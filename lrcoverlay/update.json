@@ -1,5 +1,5 @@
 {
-  "versionCode": 5,
+  "versionCode": 6,
   "versionName": "v3.7",
   "updateLog": "\n• 支持仪表歌名居左。\n• 优化应用列表扫描用户已安装app不全的问题。\n• 优化开机自动应用静态壁纸出现黑边的问题。\n• 优化飞屏UX，增加飞屏自定义时延设置。 \n• 优化副驾桌面歌词残留问题。",
   "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v3.7.apk"
