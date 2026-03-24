@@ -67,6 +67,26 @@
             </div>
         </div>
 		
+		<h3 style="width: 100%; max-width: 1200px; text-align: left; margin-top: 30px; margin-bottom: 10px; color: #e2e8f0;">💳 卡密流转与转化率</h3>
+		<div class="container" style="margin-top: 0;">
+			<div class="stat-box">
+				<h3>出售转化 (激活/售出)</h3>
+				<div class="stat-value loading" id="statSoldRatio">0 <span style="font-size: 18px; color: #64748b;">/ 0</span></div>
+			</div>
+			<div class="stat-box">
+				<h3>赠送转化 (激活/赠出)</h3>
+				<div class="stat-value loading" id="statGiftRatio">0 <span style="font-size: 18px; color: #64748b;">/ 0</span></div>
+			</div>
+			<div class="stat-box">
+				<h3>派发进度 (已派发/总盘)</h3>
+				<div class="stat-value loading" id="statDistRatio">0 <span style="font-size: 18px; color: #64748b;">/ 0</span></div>
+			</div>
+			<div class="stat-box">
+				<h3>总盘激活 (已激活/总盘)</h3>
+				<div class="stat-value loading" id="statTotalActiveRatio">0 <span style="font-size: 18px; color: #64748b;">/ 0</span></div>
+			</div>
+		</div>
+				
         <div class="card">
             <h2>💎 注册与付费转化结构图</h2>
             <div style="font-size: 13px; color: #94a3b8; margin-top: 25px; margin-bottom: 0px; line-height: 2;">
@@ -213,6 +233,38 @@
                     document.getElementById("totalRevenue").innerHTML = "0"; 
                     document.getElementById("totalRevenue").classList.remove("loading"); 
                 });
+				
+				// 🌟 新增：获取卡密流转数据
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_code_stats`, { method: 'POST', headers: headers })
+                .then(res => res.json())
+                .then(data => {
+                    const soldTotal = data.sold_total || 0;
+                    const soldUsed = data.sold_used || 0;
+                    const giftTotal = data.gift_total || 0;
+                    const giftUsed = data.gift_used || 0;
+                    const total = data.total || 0;
+                    
+                    // 核心计算逻辑：
+                    // 已出售&赠送卡密数 (已派发)
+                    const distributedTotal = soldTotal + giftTotal;
+                    // 已出售&赠送激活卡密数 (总激活)
+                    const distributedUsed = soldUsed + giftUsed;
+
+                    // 渲染到界面 (大字显示分子，小字显示分母)
+                    document.getElementById("statSoldRatio").innerHTML = `${soldUsed} <span style="font-size: 18px; color: #64748b;">/ ${soldTotal}</span>`;
+                    document.getElementById("statGiftRatio").innerHTML = `${giftUsed} <span style="font-size: 18px; color: #64748b;">/ ${giftTotal}</span>`;
+                    document.getElementById("statDistRatio").innerHTML = `${distributedTotal} <span style="font-size: 18px; color: #64748b;">/ ${total}</span>`;
+                    document.getElementById("statTotalActiveRatio").innerHTML = `${distributedUsed} <span style="font-size: 18px; color: #64748b;">/ ${total}</span>`;
+                    
+                    // 移除加载动画
+                    ["statSoldRatio", "statGiftRatio", "statDistRatio", "statTotalActiveRatio"].forEach(id => {
+                        document.getElementById(id).classList.remove("loading");
+                    });
+                })
+                .catch(err => {
+                    console.error("卡密数据加载失败", err);
+                });
+				
         }
 
         function animateValue(id, start, end, duration) {
