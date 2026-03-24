@@ -79,7 +79,7 @@ BEGIN
 
     -- 3. 安全校验：防止别人拿着你的用户名恶意解绑
     IF v_real_uuid != p_uuid AND v_real_uuid IS NOT NULL AND v_real_uuid != '' THEN
-        RETURN json_build_object('success', false, 'msg', '当前车机与云端绑定的设备不符，拒绝解绑');
+        RETURN json_build_object('success', false, 'msg', '当前车机与校验绑定的设备不符，拒绝解绑');
     END IF;
 
     -- 4. 执行解绑：把该账号绑定的车机特征码清空
