@@ -129,6 +129,81 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- ==========================================
+-- 5. 终端状态暗哨审计 (V3 蜜罐探针)
+-- 作用：让终端主动上报它的 VIP 状态，服务器进行测谎
+-- ==========================================
+CREATE OR REPLACE FUNCTION audit_client_status(p_username TEXT, p_client_is_vip BOOLEAN)
+RETURNS json AS $$
+DECLARE
+    v_db_is_vip BOOLEAN;
+BEGIN
+    -- 1. 查出服务器里记录的绝对真相
+    SELECT is_vip INTO v_db_is_vip FROM app_users WHERE username = p_username;
+
+    IF NOT FOUND THEN
+        RETURN json_build_object('success', false, 'msg', '账号不存在');
+    END IF;
+
+    -- 2. 🌟 核心测谎逻辑：信息差比对 🌟
+    -- 如果服务器里他明明不是 VIP，但他上传的参数却说自己是 VIP...
+    IF v_db_is_vip = false AND p_client_is_vip = true THEN
+        
+        -- 抓到内鬼了！悄悄给他打上破解标签，记录作案时间
+        UPDATE app_users 
+        SET is_cracked = true, 
+            crack_report_time = NOW() 
+        WHERE username = p_username;
+        
+        -- 注意：这里依然返回 success，不打草惊蛇！让他在终端继续玩，但你的后台已经把他拉黑了。
+        RETURN json_build_object('success', true, 'msg', '状态同步正常(假象)');
+    END IF;
+
+    -- 正常情况
+    RETURN json_build_object('success', true, 'msg', '状态同步正常');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+-- ==========================================
+-- 5. 终端状态暗哨审计 (V4 支持无账号抓捕版)
+-- ==========================================
+CREATE OR REPLACE FUNCTION audit_client_status(p_username TEXT, p_uuid TEXT, p_client_is_vip BOOLEAN)
+RETURNS json AS $$
+DECLARE
+    v_db_is_vip BOOLEAN := false;
+BEGIN
+    -- 1. 优先按用户名查（如果他登录了的话）
+    IF p_username IS NOT NULL AND p_username != '' THEN
+        SELECT is_vip INTO v_db_is_vip FROM app_users WHERE username = p_username;
+    
+    -- 2. 如果没登录，按车机设备码查
+    ELSIF p_uuid IS NOT NULL AND p_uuid != '' THEN
+        SELECT is_vip INTO v_db_is_vip FROM app_users WHERE device_uuid = p_uuid LIMIT 1;
+    END IF;
+
+    -- 3. 🌟 终极裁决 🌟
+    -- 如果数据库里查无此人，或者查出来了但他不是 VIP...
+    -- 但是他居然敢向服务器宣称自己是 VIP (p_client_is_vip = true)
+    IF (v_db_is_vip IS NULL OR v_db_is_vip = false) AND p_client_is_vip = true THEN
+        
+        -- 这绝对是个破解者！就算他连账号都没注册，我们也要把他的设备码给拉黑拉满！
+        -- 如果他有账号，就更新他的案底
+        IF p_username IS NOT NULL AND p_username != '' THEN
+            UPDATE app_users SET is_cracked = true, crack_report_time = NOW() WHERE username = p_username;
+        ELSE
+            -- 如果他连账号都没有，我们把他的设备码记录下来
+            -- (前提是你的表里支持对 device_uuid 进行更新操作，或者你可以新建个 cracked_devices 专门装这些人)
+            UPDATE app_users SET is_cracked = true, crack_report_time = NOW() WHERE device_uuid = p_uuid;
+        END IF;
+        
+        RETURN json_build_object('success', true, 'msg', '状态同步正常(假象)');
+    END IF;
+
+    RETURN json_build_object('success', true, 'msg', '状态同步正常');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 
 -- ==========================================
 -- ⚠️ 终极拉闸命令：删除所有 V1 老接
