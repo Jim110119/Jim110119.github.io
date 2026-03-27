@@ -21,7 +21,7 @@
         .btn-export:active { background: #047857; }
         .table-wrapper { display: none; width: 100%; overflow-x: auto; margin-top: 15px; background: #1e293b; border-radius: 10px; border: 1px solid #334155; }
         
-        table { width: 100%; border-collapse: collapse; min-width: 1500px; } /* 稍微加宽一点适配新列 */
+        table { width: 100%; border-collapse: collapse; min-width: 1550px; } /* 🌟 稍微加宽一点适配查水表新列 */
         th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; vertical-align: middle; }
         th:last-child, td:last-child { border-right: none; }
         th { background: #0f172a; color: #38bdf8; position: sticky; top: 0; z-index: 10; }
@@ -86,6 +86,8 @@
                     <th>App版本</th>
                     <th>车机型号/系统</th>
                     <th id="thLastActive" class="sortable-th" onclick="toggleLastActiveSort()" title="点击切换：默认 / 远到近 / 近到远">最后活跃时间 ↕️</th>
+                    <!-- 🌟 新增：查水表列头 -->
+                    <th title="防破解蜜罐探针检测结果">查水表 🕵️</th>
                     <th>操作控制</th>
                     <th>当前绑定设备 (UUID)</th>
                 </tr>
@@ -297,7 +299,6 @@
                 else if (vipType === "赠送永久VIP") vipClass = "vip-gifted";
                 else if (vipType === "未注册用户") vipClass = "vip-unreg";
 
-                // 🌟 新增：解析展示“售价”字段
                 const priceDisplay = (user.price !== null && user.price !== undefined) 
                     ? `<span style="color:#f59e0b; font-weight:bold;">¥ ${user.price}</span>` 
                     : `<span style="color:#64748b;">-</span>`;
@@ -316,6 +317,13 @@
                     ? `<span style="color: #10b981; font-weight: bold;">${user.last_active}</span>` 
                     : `<span style="color: #64748b;">无记录</span>`;
 
+                // 🌟 新增：解析展示“查水表”字段（红名白嫖党通报）
+                let crackDisplay = `<span style="color: #64748b;">正常</span>`; // 默认为低调的正常颜色
+                if (user.is_cracked) {
+                    const crackTime = user.crack_report_time ? formatTime(user.crack_report_time) : '近期';
+                    crackDisplay = `<span style="color: #ef4444; font-weight: bold;" title="捕获时间: ${crackTime}">🚨 异常 (白嫖党)</span>`;
+                }
+
                 htmlString += `<tr>
                     <td style="font-weight: bold; color: #e2e8f0;">${displayUsername}</td>
                     <td>${displayPassword}</td>
@@ -328,6 +336,8 @@
                     <td>${appVersion}</td>
                     <td>${deviceModel}</td>
                     <td>${activeDisplay}</td>
+                    <!-- 🌟 插入查水表数据格 -->
+                    <td>${crackDisplay}</td>
                     <td>${actionBtn}</td>
                     <td class="uuid-text">${uuidDisplay}</td>
                 </tr>`;
@@ -368,8 +378,8 @@
                 return;
             }
 
-            // 🌟 导出工具加入“售价”表头
-            const headers = ['用户名', '密码', '身份状态', '售价(元)', '使用的密钥', '注册时间', '核销时间', '首次安装时间', '7日活跃记录(打卡日期)', 'App版本', '车机型号/系统', '最后活跃时间', '当前绑定设备(UUID)'];
+            // 🌟 导出工具加入“查水表状态”表头
+            const headers = ['用户名', '密码', '身份状态', '售价(元)', '使用的密钥', '注册时间', '核销时间', '首次安装时间', '7日活跃记录(打卡日期)', 'App版本', '车机型号/系统', '最后活跃时间', '查水表状态', '操作控制', '当前绑定设备(UUID)'];
             
             const escapeCSV = (str) => {
                 if (str === null || str === undefined) return '""';
@@ -381,7 +391,7 @@
                 const username = user.username ? user.username : '(未注册设备)';
                 const password = user.password ? user.password : '-';
                 const vipType = getUserVipType(user);
-                const price = (user.price !== null && user.price !== undefined) ? user.price : '-'; // 🌟 导出数据
+                const price = (user.price !== null && user.price !== undefined) ? user.price : '-'; 
                 const code = user.used_code ? user.used_code : '-';
                 
                 const regTimeStr = user.created_at ? formatTime(user.created_at) : '-';
@@ -392,9 +402,14 @@
                 const appVersion = user.app_version ? user.app_version : '-';
                 const deviceModel = user.device_model ? user.device_model : '-'; 
                 const lastActive = user.last_active ? user.last_active : '无记录';
+                
+                // 🌟 新增：导出文件内的水表状态解析
+                const crackStatus = user.is_cracked ? '异常(疑似破解)' : '正常';
+                
                 const uuid = user.device_uuid ? user.device_uuid : '未绑定设备';
                 
-                return [username, password, vipType, price, code, regTimeStr, actTimeStr, firstActiveStr, recent7DaysStr, appVersion, deviceModel, lastActive, uuid].map(escapeCSV).join(',');
+                // 注意此处的顺序，需要与 headers 一一对应
+                return [username, password, vipType, price, code, regTimeStr, actTimeStr, firstActiveStr, recent7DaysStr, appVersion, deviceModel, lastActive, crackStatus, '', uuid].map(escapeCSV).join(',');
             });
 
             const csvContent = "\uFEFF" + headers.map(escapeCSV).join(',') + "\n" + rows.join("\n");
