@@ -2,5 +2,5 @@
   "versionCode": 7,
   "versionName": "v4.0",
   "updateLog": "• 新增支持第三方播放器方向盘键控。\n• 修复主屏歌词关闭状态下，仪表歌词开机自启不能自动打开的问题。\n• 仪表歌名模式增加音乐占位图标。\n• 优化虚拟模式飞屏显示效果。\n• 密钥输入框支持粘贴板。\n• 新增快捷悬浮球应用内直达，含内存占用显示。\n• 新增支持跨设备剪贴板。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v3.7.apk"
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.0.apk"
 }
