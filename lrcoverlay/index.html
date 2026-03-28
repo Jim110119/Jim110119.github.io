@@ -732,6 +732,7 @@
             <div class="feature-title">任意应用飞仪表与副驾屏</div>
             <div class="feature-desc">
               <p>解锁🔓专属高级功能，实现LP21-23老款车型仪表屏任意app常驻显示，实现副驾驶屏幕投放任意app，实现仪表车道级导航与副驾驶娱乐自由。</p>
+			  <p>高级功能支持第三方媒体播放器方向盘切歌与控制，支持一件开启无障碍永久模式，支持悬浮球快捷操作。</p>
             </div>
           </li>
 		  
@@ -766,6 +767,38 @@
 
     <div class="content-wrapper">
       <div class="versions-container">
+
+		  			  <!-- 请在 data-version=”v3” 的版本块下方，粘贴此代码块 -->
+		<div class="version-block" data-version="v4.0"> <!-- 1. 更新 data-version 属性 -->
+		  <div class="version-content">
+			<div class="version-info-col">
+			  <div class="version-info">
+				<div>
+				  <span class="info-label">版本号：</span>
+				  <span class="info-value">v4.0</span> <!-- 2. 更新显示版本号 -->
+				</div>
+				<span class="file-size-info">3.98 MB</span> <!-- 3. 请填写实际文件大小，如“4.2 MB” -->
+			  </div>
+			  <div class="version-description">
+                1. 支持仪表歌名居左。
+				2. 优化应用列表扫描用户已安装app不全的问题。
+				3. 优化开机自动应用静态壁纸出现黑边的问题。
+				4. 优化飞屏UX，增加飞屏自定义时延设置。 
+				5. 优化副驾桌面歌词残留问题。
+			  </div>
+			</div>
+			<div class="download-col">
+			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
+			  <a href="./release/lrcoverlay-release_v4.0.apk" class="download-btn" data-version="v4.0">
+				<i class="fas fa-download"></i> 立即下载
+			  </a>
+			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
+			  <div class="download-count" id="count-v4.0">
+				<i class="fas fa-users"></i> 加载中...
+			  </div>
+			</div>
+		  </div>
+		</div>
 	  
 			  <!-- 请在 data-version=”v3” 的版本块下方，粘贴此代码块 -->
 		<div class="version-block" data-version="v3.7"> <!-- 1. 更新 data-version 属性 -->
@@ -858,6 +891,7 @@
       
       // 根据用户要求，只保留 v2.0 和 v1.2.0 版本的下载统计
       versionKeys: {
+		'v4.0': 'downloads_v4_0', // ✅ 加上单引号就完美解决了！
         'v3.7': 'downloads_v3_2', // ✅ 加上单引号就完美解决了！
       },
       
