@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>密钥发货控制台</title>
     <style>
-        /* 🌟 核心修复：强制所有元素使用标准盒模型，完美对齐！ */
-        * { box-sizing: border-box; }
         
         body { background-color: #0f172a; color: #e2e8f0; font-family: monospace; padding: 15px; margin: 0; padding-bottom: 80px; }
         .auth-box { text-align: center; margin-top: 50px; }
@@ -38,7 +36,7 @@
         .price-box input { background: transparent; border: none; color: #10b981; font-weight: bold; text-align: right; margin: 0; padding: 4px; width: 100%; outline: none; font-size: 14px; }
 
         /* 🌟 新增：卡密专属备注框样式 */
-        .remark-input-small { background: #0f172a; border: 1px solid #475569; color: #94a3b8; padding: 6px; margin-top: 6px; margin-bottom: 0 !important; width: 100%; border-radius: 6px; box-sizing: border-box; font-size: 12px; outline: none; transition: border-color 0.2s, color 0.2s; }
+		.remark-input-small { background: #0f172a; border: 1px solid #475569; color: #94a3b8; padding: 6px; margin-top: 6px; margin-bottom: 0 !important; width: 100%; max-width: 100% !important; border-radius: 6px; box-sizing: border-box; font-size: 12px; outline: none; transition: border-color 0.2s, color 0.2s; }
         .remark-input-small:focus { border-color: #38bdf8; color: white; }
     </style>
 </head>
