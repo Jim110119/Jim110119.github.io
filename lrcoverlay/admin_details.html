@@ -21,7 +21,7 @@
         .btn-export:active { background: #047857; }
         .table-wrapper { display: none; width: 100%; overflow-x: auto; margin-top: 15px; background: #1e293b; border-radius: 10px; border: 1px solid #334155; }
         
-        table { width: 100%; border-collapse: collapse; min-width: 1700px; } /* 🌟 再次加宽适配备注列 */
+        table { width: 100%; border-collapse: collapse; min-width: 1800px; } /* 🌟 再次加宽适配备注列 */
         th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; vertical-align: middle; }
         th:last-child, td:last-child { border-right: none; }
         th { background: #0f172a; color: #38bdf8; position: sticky; top: 0; z-index: 10; }
@@ -41,7 +41,6 @@
         .version-text { font-weight: bold; color: #38bdf8; }
         .model-text { font-weight: bold; color: #f97316; } 
 
-        /* 🌟 新增：备注单元格的专属样式 */
         .remark-cell { cursor: pointer; min-width: 160px; transition: background 0.2s; border-radius: 4px; }
         .remark-cell:hover { background: #334155; }
         .remark-input { width: 100%; padding: 6px 8px; border-radius: 4px; border: 1px solid #38bdf8; background: #0f172a; color: white; font-family: monospace; outline: none; }
@@ -71,7 +70,7 @@
                 <option value="未注册用户">👻 仅看未注册用户</option>
                 <option value="排除未注册用户">🚫 排除未注册用户</option>
             </select>
-            <input type="text" id="searchInput" class="search-box input-text" placeholder="🔍 搜用户名/UUID..." oninput="filterTable()">
+            <input type="text" id="searchInput" class="search-box input-text" placeholder="🔍 搜用户名/UUID/备注..." oninput="filterTable()">
             <button class="btn-export" onclick="exportToCSV()">📥 导出.csv</button>
         </div>
     </div>
@@ -85,6 +84,8 @@
                     <th>身份状态</th>
                     <th>售价</th>
                     <th>使用的密钥</th>
+                    <!-- 🌟 新增：只读的密钥备注列 -->
+                    <th title="同步自发货控制台的卡密备注，仅供查看">密钥备注 🏷️</th>
                     <th>注册 / 核销时间</th>
                     <th id="thFirstActive" class="sortable-th" onclick="toggleFirstActiveSort()" title="点击切换：默认 / 远到近 / 近到远">首次安装 ↕️</th>
                     <th title="最右侧为今天，绿色代表上线">7日活跃轨迹 💡</th>
@@ -94,8 +95,7 @@
                     <th title="防破解蜜罐探针检测结果">查水表 🕵️</th>
                     <th>操作控制</th>
                     <th>当前绑定设备 (UUID)</th>
-                    <!-- 🌟 新增：备注列头 -->
-                    <th title="点击单元格可直接编辑内容，按下回车键保存">备注信息 ✏️</th>
+                    <th title="点击单元格可直接编辑内容，按下回车键保存">用户专属备注 ✏️</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -329,8 +329,13 @@
                     crackDisplay = `<span style="color: #ef4444; font-weight: bold;" title="捕获时间: ${crackTime}">🚨 异常 (白嫖党)</span>`;
                 }
 
-                // 🌟 新增：备注内容解析
+                // 🌟 解析用户备注
                 const remarkDisplay = user.remark ? user.remark : `<span style="color:#64748b; font-style:italic;">[点击添加]</span>`;
+                
+                // 🌟 新增：解析只读的卡密备注 (code_remark)
+                const codeRemarkDisplay = user.code_remark 
+                    ? `<span style="color:#a78bfa; font-size:12px; background:#4c1d95; padding:2px 6px; border-radius:4px;">${user.code_remark}</span>` 
+                    : `<span style="color:#64748b;">-</span>`;
 
                 htmlString += `<tr>
                     <td style="font-weight: bold; color: #e2e8f0;">${displayUsername}</td>
@@ -338,6 +343,8 @@
                     <td class="${vipClass}">${vipType}</td>
                     <td>${priceDisplay}</td>
                     <td style="color: #10b981;">${user.used_code || '-'}</td>
+                    <!-- 🌟 插入只读的卡密备注 -->
+                    <td>${codeRemarkDisplay}</td>
                     <td>${timeBox}</td>
                     <td>${firstActive}</td>
                     <td>${trafficLights}</td>
@@ -347,7 +354,6 @@
                     <td>${crackDisplay}</td>
                     <td>${actionBtn}</td>
                     <td class="uuid-text">${uuidDisplay}</td>
-                    <!-- 🌟 插入备注数据格 -->
                     <td class="remark-cell" onclick="editRemark(this)">
                         <div class="remark-text">${remarkDisplay}</div>
                         <input type="text" class="remark-input" style="display:none;" value="${user.remark || ''}" data-user="${safeUsername}" data-uuid="${safeUuid}" placeholder="回车保存，Esc取消" onkeydown="saveRemark(event, this)" onblur="cancelRemark(this)">
@@ -363,7 +369,9 @@
             const vipFilter = document.getElementById('vipFilter').value;
 
             const filteredData = allUserData.filter(user => {
-                const searchStr = (user.username || "") + " " + (user.device_uuid || "") + " " + (user.remark || "");
+                // 🌟 核心：将 code_remark 也加入搜索词库，这样直接搜发货台的备注也能把人找出来
+                const codeRemarkStr = user.code_remark ? user.code_remark.toLowerCase() : "";
+                const searchStr = (user.username || "") + " " + (user.device_uuid || "") + " " + (user.remark || "") + " " + codeRemarkStr;
                 const matchKeyword = searchStr.toLowerCase().includes(keyword);
                 
                 const userType = getUserVipType(user);
@@ -390,8 +398,8 @@
                 return;
             }
 
-            // 🌟 导出工具加入“备注信息”表头
-            const headers = ['用户名', '密码', '身份状态', '售价(元)', '使用的密钥', '注册时间', '核销时间', '首次安装时间', '7日活跃记录(打卡日期)', 'App版本', '车机型号/系统', '最后活跃时间', '查水表状态', '当前绑定设备(UUID)', '备注信息'];
+            // 🌟 导出工具加入“密钥备注”表头
+            const headers = ['用户名', '密码', '身份状态', '售价(元)', '使用的密钥', '密钥备注', '注册时间', '核销时间', '首次安装时间', '7日活跃记录(打卡日期)', 'App版本', '车机型号/系统', '最后活跃时间', '查水表状态', '当前绑定设备(UUID)', '用户专属备注'];
             
             const escapeCSV = (str) => {
                 if (str === null || str === undefined) return '""';
@@ -405,6 +413,7 @@
                 const vipType = getUserVipType(user);
                 const price = (user.price !== null && user.price !== undefined) ? user.price : '-'; 
                 const code = user.used_code ? user.used_code : '-';
+                const codeRemarkStr = user.code_remark ? user.code_remark : '-'; // 🌟 导出卡密备注
                 
                 const regTimeStr = user.created_at ? formatTime(user.created_at) : '-';
                 const actTimeStr = user.used_time ? formatTime(user.used_time) : '-';
@@ -416,11 +425,9 @@
                 const lastActive = user.last_active ? user.last_active : '无记录';
                 const crackStatus = user.is_cracked ? '异常(疑似破解)' : '正常';
                 const uuid = user.device_uuid ? user.device_uuid : '未绑定设备';
-                
-                // 🌟 新增：导出文件内的备注解析
                 const remarkStr = user.remark ? user.remark : '';
                 
-                return [username, password, vipType, price, code, regTimeStr, actTimeStr, firstActiveStr, recent7DaysStr, appVersion, deviceModel, lastActive, crackStatus, uuid, remarkStr].map(escapeCSV).join(',');
+                return [username, password, vipType, price, code, codeRemarkStr, regTimeStr, actTimeStr, firstActiveStr, recent7DaysStr, appVersion, deviceModel, lastActive, crackStatus, uuid, remarkStr].map(escapeCSV).join(',');
             });
 
             const csvContent = "\uFEFF" + headers.map(escapeCSV).join(',') + "\n" + rows.join("\n");
@@ -436,11 +443,11 @@
             document.body.removeChild(link);
         }
 
-        // 🌟 新增的备注控制组
+        // 备注控制组
         function editRemark(td) {
             const span = td.querySelector('.remark-text');
             const input = td.querySelector('.remark-input');
-            if (input.style.display === 'block') return; // 防止重复点击
+            if (input.style.display === 'block') return; 
             span.style.display = 'none';
             input.style.display = 'block';
             input.focus();
@@ -452,14 +459,13 @@
             input.style.display = 'none';
             span.style.display = 'block';
             
-            // 恢复原先的值
             const originalVal = span.innerText === '[点击添加]' ? '' : span.innerText;
             input.value = originalVal;
         }
 
         function saveRemark(event, input) {
             if (event.key === 'Escape') {
-                input.blur(); // 按下 Esc 取消焦点，触发 cancelRemark
+                input.blur(); 
                 return;
             }
             if (event.key === 'Enter') {
@@ -470,7 +476,7 @@
                 const td = input.parentElement;
                 const span = td.querySelector('.remark-text');
 
-                input.disabled = true; // 锁定防止二次按键
+                input.disabled = true; 
 
                 fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_update_remark`, {
                     method: 'POST',
@@ -481,11 +487,9 @@
                 .then(resData => {
                     input.disabled = false;
                     if(resData.success) {
-                        // 1. 同步修改内存里的数据，让下一次重绘保持状态
                         const target = allUserData.find(u => (u.username||'') === username && (u.device_uuid||'') === uuid);
                         if (target) target.remark = newRemark;
                         
-                        // 2. 局部刷新 UI，不造成整个表格抖动
                         if (newRemark) {
                             span.innerText = newRemark;
                             span.style.color = '#e2e8f0';
