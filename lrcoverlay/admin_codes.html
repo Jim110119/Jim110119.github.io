@@ -25,7 +25,6 @@
         .center-controls { display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .page-info { color: #38bdf8; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px; }
         
-        /* 🌟 优化调整了内部控件的样式，包含新增的搜索框 */
         .jump-input { width: 40px !important; padding: 4px !important; font-size: 14px !important; text-align: center; border-radius: 6px !important; margin: 0 !important; background: #0f172a !important; color: #38bdf8 !important; border: 1px solid #38bdf8 !important; -moz-appearance: textfield; }
         .jump-input::-webkit-outer-spin-button, .jump-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .filter-select { width: 100% !important; max-width: 140px; padding: 4px 8px !important; font-size: 12px !important; border-radius: 6px; border: 1px solid #38bdf8; color: #e2e8f0; margin-bottom: 0; }
@@ -34,6 +33,10 @@
         
         .price-box { display: flex; align-items: center; justify-content: space-between; background: #0f172a; border: 1px solid #475569; border-radius: 6px; padding: 2px 8px; width: 100%; box-sizing: border-box; }
         .price-box input { background: transparent; border: none; color: #10b981; font-weight: bold; text-align: right; margin: 0; padding: 4px; width: 100%; outline: none; font-size: 14px; }
+
+        /* 🌟 新增：卡密专属备注框样式 */
+        .remark-input-small { background: #0f172a; border: 1px solid #475569; color: #94a3b8; padding: 6px; margin-top: 6px; margin-bottom: 0 !important; width: 100%; border-radius: 6px; box-sizing: border-box; font-size: 12px; outline: none; transition: border-color 0.2s, color 0.2s; }
+        .remark-input-small:focus { border-color: #38bdf8; color: white; }
     </style>
 </head>
 <body>
@@ -48,8 +51,7 @@
     <div class="pagination" id="paginationTop">
         <button class="page-btn" id="prevBtn" onclick="changePage(-1)">上一页</button>
         <div class="center-controls">
-            <!-- 🌟 新增：卡密搜索框，通过 oninput 实现边输边搜 -->
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 搜索卡密/用户..." oninput="applyFilter(true)">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 搜卡密/用户/备注" oninput="applyFilter(true)">
             
             <select id="statusFilter" class="filter-select" onchange="applyFilter(true)">
                 <option value="全部">全部状态</option>
@@ -115,24 +117,23 @@
             });
         }
 
-        // 🌟 核心升级：过滤引擎现在同时处理“状态下拉框”和“搜索框”
         function applyFilter(resetPage) {
             const filterVal = document.getElementById('statusFilter').value;
             const searchKeyword = document.getElementById('searchInput').value.trim().toLowerCase();
 
             filteredData = allCodesData.filter(item => {
-                // 1. 检验状态匹配
                 let matchStatus = true;
                 if (filterVal !== '全部') {
                     matchStatus = item.sell_status === filterVal;
                 }
                 
-                // 2. 检验关键词匹配 (支持搜卡密本身，也支持搜激活用户的名字)
+                // 🌟 核心升级：连备注内容也能被搜索到
                 let matchSearch = true;
                 if (searchKeyword !== '') {
                     const codeStr = item.code ? item.code.toLowerCase() : '';
                     const userStr = item.used_by_user ? item.used_by_user.toLowerCase() : '';
-                    matchSearch = codeStr.includes(searchKeyword) || userStr.includes(searchKeyword);
+                    const remarkStr = item.remark ? item.remark.toLowerCase() : '';
+                    matchSearch = codeStr.includes(searchKeyword) || userStr.includes(searchKeyword) || remarkStr.includes(searchKeyword);
                 }
 
                 return matchStatus && matchSearch;
@@ -167,6 +168,7 @@
                 const isActivatedText = item.is_used ? `<span style="color:#ef4444;">已激活 (${item.used_by_user})</span>` : '未激活';
                 const currentPrice = item.price || 0; 
                 
+                // 🌟 这里新增了备注框，与原价格框同列对齐
                 htmlString += `
                     <div class="card ${cardClass}">
                         <div style="flex: 2; overflow: hidden; padding-right: 10px;">
@@ -185,6 +187,8 @@
                                 <span style="font-size:12px; color:#94a3b8;">¥</span>
                                 <input type="number" id="price_${item.code}" value="${currentPrice}" onchange="updateInfo('${item.code}')" placeholder="0">
                             </div>
+
+                            <input type="text" id="remark_${item.code}" class="remark-input-small" value="${item.remark || ''}" onchange="updateInfo('${item.code}')" placeholder="📝 添加备注...">
                         </div>
                     </div>
                 `;
@@ -221,7 +225,6 @@
 
         function copyCode(code, btnElement) {
             navigator.clipboard.writeText(code).then(() => {
-                const originalText = btnElement.innerText;
                 btnElement.innerText = '✅ 已复制!';
                 btnElement.style.background = '#3b82f6';
                 setTimeout(() => {
@@ -243,14 +246,22 @@
             updateInfo(code); 
         }
 
+        // 🌟 更新接口：将备注字段 (p_remark) 一起打包推给云端
         function updateInfo(code) {
             const newStatus = document.getElementById(`status_${code}`).value;
             const newPrice = parseFloat(document.getElementById(`price_${code}`).value) || 0;
+            const newRemark = document.getElementById(`remark_${code}`).value.trim();
 
             fetch(`${SUPABASE_URL}/rest/v1/rpc/update_code_info`, {
                 method: 'POST',
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ admin_pwd: currentPwd, p_code: code, p_status: newStatus, p_price: newPrice })
+                body: JSON.stringify({ 
+                    admin_pwd: currentPwd, 
+                    p_code: code, 
+                    p_status: newStatus, 
+                    p_price: newPrice, 
+                    p_remark: newRemark 
+                })
             })
             .then(res => res.json())
             .then(resData => {
@@ -259,8 +270,8 @@
                     if (itemIndex > -1) {
                         allCodesData[itemIndex].sell_status = newStatus;
                         allCodesData[itemIndex].price = newPrice;
+                        allCodesData[itemIndex].remark = newRemark;
                     }
-                    // 注意：这里改动状态后不再强制切回第一页，提升操作体验
                     applyFilter(false); 
                 } else {
                     alert('数据保存失败：' + resData.msg);
