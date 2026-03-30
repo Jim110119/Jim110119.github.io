@@ -768,6 +768,33 @@
     <div class="content-wrapper">
       <div class="versions-container">
 
+		<div class="version-block" data-version="v4.2"> <!-- 1. 更新 data-version 属性 -->
+		  <div class="version-content">
+			<div class="version-info-col">
+			  <div class="version-info">
+				<div>
+				  <span class="info-label">版本号：</span>
+				  <span class="info-value">v4.2</span> <!-- 2. 更新显示版本号 -->
+				</div>
+				<span class="file-size-info">4.02 MB</span> <!-- 3. 请填写实际文件大小，如“4.2 MB” -->
+			  </div>
+			  <div class="version-description">
+                1. 悬浮球新增分屏与应用快捷启动功能，可以自定义快捷应用或者展示完整应用列表。
+			  </div>
+			</div>
+			<div class="download-col">
+			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
+			  <a href="./release/lrcoverlay-release_v4.2.apk" class="download-btn" data-version="v4.2">
+				<i class="fas fa-download"></i> 立即下载
+			  </a>
+			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
+			  <div class="download-count" id="count-v4.2">
+				<i class="fas fa-users"></i> 加载中...
+			  </div>
+			</div>
+		  </div>
+		</div>
+		  
 		<div class="version-block" data-version="v4.1.2"> <!-- 1. 更新 data-version 属性 -->
 		  <div class="version-content">
 			<div class="version-info-col">
@@ -801,7 +828,6 @@
 		  </div>
 		</div>
 	  
-			  <!-- 请在 data-version=”v3” 的版本块下方，粘贴此代码块 -->
 		<div class="version-block" data-version="v3.7"> <!-- 1. 更新 data-version 属性 -->
 		  <div class="version-content">
 			<div class="version-info-col">
@@ -892,6 +918,7 @@
       
       // 根据用户要求，只保留 v2.0 和 v1.2.0 版本的下载统计
       versionKeys: {
+		'v4.2': 'downloads_v4_0', // ✅ 加上单引号就完美解决了！
 		'v4.1.2': 'downloads_v4_0', // ✅ 加上单引号就完美解决了！
         'v3.7': 'downloads_v3_2', // ✅ 加上单引号就完美解决了！
       },
