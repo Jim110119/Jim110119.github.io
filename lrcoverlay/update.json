@@ -1,6 +1,6 @@
 {
-  "versionCode": 11,
-  "versionName": "v4.2",
-  "updateLog": "• 悬浮球新增分屏与应用快捷启动功能，可以自定义快捷应用或者展示完整应用列表。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.2.apk"
+  "versionCode": 12,
+  "versionName": "v4.3",
+  "updateLog": "• 飞屏应用列表选择框支持已选应用常驻，可通过悬浮球快捷菜单一键飞屏与关闭。\n• 悬浮球应用列表增加悬浮歌词自己的图标，不用再去桌面找。\n• 悬浮球增加边缘吸附功能及动效，2s无操作自动贴边，增加拖动阻尼与触发灵敏度，手感更佳。\n• 悬浮球支持手势自定义。\n• 悬浮球应用列表样式改为桌面抽屉式美化风格，增加弹出动效，智能跟随悬浮球位置弹出。\n• 新增副驾驶屏幕悬浮球，共享主屏悬浮球配置。\n• 新增支持操作中控时，副驾驶屏幕视频免点击自动恢复播放，需手动开启。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.3.apk"
 }
