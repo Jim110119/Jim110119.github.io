@@ -1,6 +1,6 @@
 {
   "versionCode": 13,
-  "versionName": "v4.3.1",
+  "versionName": "v4.3.2",
   "updateLog": "• 修复悬浮球副驾屏保快捷菜单控制失败的问题。\n• 将系统应用中“文件管理”、“安卓设置”、“雷石ktv”透传到悬浮球应用列表。\n• 悬浮球应用列表新增支持更改应用排序方式。\n• 悬浮球应用列表增加主屏快捷截图功能。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.3.1.apk"
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.3.2.apk"
 }
