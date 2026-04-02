@@ -1,6 +1,6 @@
 {
-  "versionCode": 13,
-  "versionName": "v4.3.2",
-  "updateLog": "• 修复悬浮球副驾屏保快捷菜单控制失败的问题。\n• 将系统应用中“文件管理”、“安卓设置”、“雷石ktv”透传到悬浮球应用列表。\n• 悬浮球应用列表新增支持更改应用排序方式。\n• 悬浮球应用列表增加主屏快捷截图功能。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.3.2.apk"
+  "versionCode": 15,
+  "versionName": "v4.4",
+  "updateLog": "• 新增DashMap第三方应用公共虚拟屏幕接口，适用于Carlife免飞屏同步显示仪表地图。\n• 公共虚拟屏幕支持原车地图遮罩、开机自启、悬浮球快捷开启。\n• 悬浮球快捷菜单增加至6个球，能容纳更多快捷设置。\n• 修复新安装应用在飞屏列表中不能自动刷新的问题。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.4.apk"
 }
