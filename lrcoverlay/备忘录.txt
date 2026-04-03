@@ -318,6 +318,66 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================
+-- 1. 数据表结构微调：增加“最后登录时间”用于辅助分析
+-- ==========================================
+ALTER TABLE app_users
+ADD COLUMN IF NOT EXISTS last_login_time TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+-- ==========================================
+-- 2. 部署 login_device_v3 (核心：强行顶号挤兑)
+-- 不再检查换绑次数，直接覆写，确保“最新登录者获胜”
+-- ==========================================
+CREATE OR REPLACE FUNCTION login_device_v3(p_username TEXT, p_password TEXT, p_uuid TEXT)
+RETURNS json AS $$
+DECLARE
+    v_user RECORD;
+BEGIN
+    SELECT * INTO v_user FROM app_users WHERE username = p_username;
+
+    IF NOT FOUND THEN
+        RETURN json_build_object('success', false, 'msg', '账号不存在');
+    END IF;
+
+    IF v_user.password != p_password THEN
+        RETURN json_build_object('success', false, 'msg', '密码错误');
+    END IF;
+
+    -- 🌟 Highlander 规则：强行顶号，更新 device_uuid 为当前最新的 p_uuid
+    UPDATE app_users 
+    SET device_uuid = p_uuid, 
+        last_login_time = NOW() 
+    WHERE username = p_username;
+
+    RETURN json_build_object(
+        'success', true, 
+        'msg', '登录成功', 
+        'is_vip', v_user.is_vip
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================
+-- 3. 部署 check_device_binding_v3 (核心：静默查岗)
+-- ==========================================
+CREATE OR REPLACE FUNCTION check_device_binding_v3(p_username TEXT, p_uuid TEXT)
+RETURNS json AS $$
+DECLARE
+    v_db_uuid TEXT;
+    v_is_vip BOOLEAN;
+BEGIN
+    SELECT device_uuid, is_vip INTO v_db_uuid, v_is_vip FROM app_users WHERE username = p_username;
+
+    IF v_db_uuid = p_uuid THEN
+        -- 查岗成功：当前设备仍是合法绑定的唯一设备
+        RETURN json_build_object('is_bound', true, 'is_vip', v_is_vip);
+    ELSE
+        -- 查岗失败：账号已被其他设备顶掉
+        RETURN json_build_object('is_bound', false, 'is_vip', false);
+    END IF;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==========================================
 -- ⚠️ 终极拉闸命令：删除所有 V1 老接
 -- ==========================================
 DROP FUNCTION IF EXISTS login_device(TEXT, TEXT, TEXT);
