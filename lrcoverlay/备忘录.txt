@@ -1,3 +1,45 @@
+-- ==========================================
+-- (1)
+-- ==========================================
+
+-- 核心 RPC 存储过程：卡密核销（只更新这个函数，绝不碰表结构）
+CREATE OR REPLACE FUNCTION verify_code(p_username TEXT, p_code TEXT)
+RETURNS json AS $$
+DECLARE
+    v_is_used BOOLEAN;
+    v_code_exists BOOLEAN;
+BEGIN
+    -- 第一关：检查卡密到底存不存在？
+    SELECT EXISTS(SELECT 1 FROM activation_codes WHERE code = p_code) INTO v_code_exists;
+    IF NOT v_code_exists THEN
+        RETURN json_build_object('success', false, 'msg', '无效的卡密，请检查是否输入错误');
+    END IF;
+
+    -- 第二关：检查卡密是不是被人用过了？
+    SELECT is_used INTO v_is_used FROM activation_codes WHERE code = p_code;
+    IF v_is_used THEN
+        -- 👇 你的专属文案已经替换在这里！
+        RETURN json_build_object('success', false, 'msg', '该卡密已被使用，请重新购买或联系客服');
+    END IF;
+
+    -- 第三关：两表连动，瞬间核销！(事务级别的原子操作，绝对安全)
+    -- a. 作废卡密，记录元凶
+    UPDATE activation_codes 
+    SET is_used = true, 
+        used_by_user = p_username, 
+        used_time = NOW() 
+    WHERE code = p_code;
+
+    -- b. 给用户发放永久 VIP 特权
+    UPDATE app_users 
+    SET is_vip = true 
+    WHERE username = p_username;
+
+    -- 大功告成，返回成功信号
+    RETURN json_build_object('success', true, 'msg', '激活成功！高级功能已永久解锁');
+END;
+$$ LANGUAGE plpgsql;
+
 
 -- ==========================================
 -- 1. 注册新账号 (V2 升维版)
@@ -204,6 +246,76 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+
+-- ==========================================
+-- 步骤一：为 app_users 表追加“风控”字段
+-- （如果表里已经有了，它会自动跳过，安全无痛）
+-- ==========================================
+ALTER TABLE app_users
+ADD COLUMN IF NOT EXISTS unbind_count INT DEFAULT 0,
+ADD COLUMN IF NOT EXISTS last_unbind_time TIMESTAMP WITH TIME ZONE DEFAULT NOW();
+
+-- ==========================================
+-- 步骤二：升维重写 login_device_v2 登录函数
+-- （直接覆盖旧函数，不影响原有业务，无需改动 App）
+-- ==========================================
+CREATE OR REPLACE FUNCTION login_device_v2(p_username TEXT, p_password TEXT, p_uuid TEXT)
+RETURNS json AS $$
+DECLARE
+    v_user RECORD;
+BEGIN
+    -- 1. 查账号是否存在，并把该账号所有信息一次性拉取到记录变量 v_user 中
+    SELECT * INTO v_user
+    FROM app_users
+    WHERE username = p_username;
+
+    IF NOT FOUND THEN
+        RETURN json_build_object('success', false, 'msg', '账号不存在，请检查是否输入错误');
+    END IF;
+
+    -- 2. 核对密码
+    IF v_user.password != p_password THEN
+        RETURN json_build_object('success', false, 'msg', '密码错误，请重新输入');
+    END IF;
+
+    -- ==========================================
+    -- 🌟 3. 核心：设备匹配与智能换绑引擎
+    -- ==========================================
+
+    -- 【情景 A】: 账号纯新没绑过设备，或者就是本机正常的重复登录
+    IF v_user.device_uuid IS NULL OR v_user.device_uuid = '' OR v_user.device_uuid = p_uuid THEN
+        -- 放行，顺手稳固一下设备绑定（不增加风控计数）
+        UPDATE app_users SET device_uuid = p_uuid WHERE username = p_username;
+        -- 返回时带上 is_vip 字段，兼容你 App 原有的逻辑
+        RETURN json_build_object('success', true, 'msg', '登录成功', 'is_vip', v_user.is_vip);
+    END IF;
+
+    -- 【情景 B】: 发现设备不匹配！触发“自动换绑”防线
+    IF v_user.device_uuid != p_uuid THEN
+        
+        -- 判断一：如果距离上次换绑已经超过 30 天了（或者从来没换绑过），给用户“恢复清白”，重置计数
+        IF v_user.last_unbind_time IS NULL OR v_user.last_unbind_time < (NOW() - INTERVAL '30 days') THEN
+            v_user.unbind_count := 0;
+        END IF;
+
+        -- 判断二：检查本月换绑次数（0次、1次允许，第2次及以上拦截，即每个月只给2次机会）
+        IF COALESCE(v_user.unbind_count, 0) >= 2 THEN
+            RETURN json_build_object('success', false, 'msg', '本月自动换绑次数已达上限，为保障账号安全已锁定，请联系作者解绑');
+        END IF;
+
+        -- 判断三：放行！允许顶号换绑！
+        -- 直接把数据库的 device_uuid 替换为当前请求的 p_uuid，换绑次数 +1，更新换绑时间
+        UPDATE app_users 
+        SET device_uuid = p_uuid, 
+            unbind_count = COALESCE(v_user.unbind_count, 0) + 1, 
+            last_unbind_time = NOW() 
+        WHERE username = p_username;
+
+        RETURN json_build_object('success', true, 'msg', '检测到新设备或数据重置，已自动为您安全换绑！', 'is_vip', v_user.is_vip);
+    END IF;
+
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ==========================================
 -- ⚠️ 终极拉闸命令：删除所有 V1 老接
