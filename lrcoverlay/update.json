@@ -1,6 +1,6 @@
 {
-  "versionCode": 15,
-  "versionName": "v4.4",
-  "updateLog": "• 新增DashMap第三方应用公共虚拟屏幕接口，适用于Carlife免飞屏同步显示仪表地图。\n• 公共虚拟屏幕支持原车地图遮罩、开机自启、悬浮球快捷开启。\n• 悬浮球快捷菜单增加至6个球，能容纳更多快捷设置。\n• 修复新安装应用在飞屏列表中不能自动刷新的问题。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.4.apk"
+  "versionCode": 16,
+  "versionName": "v4.5",
+  "updateLog": "• 新增中控屏保功能。\n• 新增副驾原车桌面壁纸功能。\n• 新增支持语音助手不打断音乐。\n• 修复v4.4版本应用界面不能即刻跟随系统主题切换深浅色的问题。\n• 修复副驾驶悬浮球重复生成的问题。\n• 优化悬浮球快捷控制与应用主界面开关状态联动慢的问题。\n• 优化账号登录体验，支持免解绑顶号登录。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.5.apk"
 }
