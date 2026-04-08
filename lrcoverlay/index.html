@@ -80,11 +80,11 @@
     }
 
     /* 介绍内容区域 */
-    .intro-container {
-      padding: 25px 30px;
-      background-color: white;
-      border-bottom: 2px solid #f0f0f0;
-    }
+	.intro-container {
+      padding: 15px 30px 10px 30px; /* 上 15px, 右 30px, 下 10px, 左 30px */
+	  background-color: white;
+	  border-bottom: none; /* 移除了这条分割线 */
+	}
 
     .intro-title {
       font-size: 20px;
@@ -178,7 +178,7 @@
     }
 
     .versions-container {
-      padding: 15px;
+      padding: 5px 15px; /* 上下 5px, 左右 15px */
       position: relative;
       z-index: 10;
     }
@@ -674,7 +674,7 @@
       </h2>
       
       <div class="intro-content">
-        <p>本 app 由LP车主开发，适用于 21-23 款，因第三方媒体应用不能访问U盘歌曲，故制作此应用让本地歌曲也能实现歌词悬浮。主屏、仪表、副驾、屏保四屏渲染独立开关控制，并且副屏可以实现屏保歌词自定义、动态主屏壁纸、仪表副驾驶飞屏独立开关、方向盘控制、悬浮球、开机自启等。这应该是全网第一个不依赖第三方桌面的LP悬浮歌词插件。</p> 
+        <p>悬浮歌词是一款车机应用，由LP车主开发，适用于 21-23 款。本应用让本地歌曲及各类播放器均能实现歌词悬浮，支持联网及本地歌词。主屏、仪表、副驾、屏保四屏歌词独立渲染单独开关，支持主屏及副驾屏自定义屏保歌词，支持跨设备剪贴板。高级功能包含任意应用投屏仪表和副驾驶屏幕、carlife仪表屏接口、主副屏原车桌面自定义动态及静态壁纸、第三方播放器方向盘切歌、解锁行车视频播放限制、主屏及副驾驶快捷悬浮球、中控分屏、中控截图等功能。</p> 
                 
         <div class="image-container">
           <img src="./悬浮效果.png" alt="悬浮歌词效果展示" style="width: 75%; max-width: 540px; height: auto;">
@@ -686,53 +686,76 @@
         </h3>
         
         <ul class="feature-list">
-          <li>
-            <div class="feature-title">歌曲匹配与全局媒体监听</div>
+		
+		  <li>
+            <div class="feature-title">三联屏悬浮歌词及屏保歌词</div>
             <div class="feature-desc">
-              <p>监听U盘播放曲目。由于不使用安卓的标准媒体通知，U盘歌词有些bug：拖动进度条歌词不能同步；刚开机或者从其他播放器回切时自动从头开始，按暂停或者切歌即刻同步。</p>
-              <p>监听任意第三方播放器（包括视频播放器），发布的标准媒体通知，第三方播放器无歌词同步不跳动的问题（若播放视频请手动关闭歌词）。</p>
+              <p>支持系统播放器及任意播放器悬浮歌词，支持U盘播放或联网播放悬浮歌词，支持本地歌词及联网歌词，支持主控、仪表、通知栏及副驾驶桌面悬浮歌词，支持副驾驶屏幕屏保歌词。</p>
+              <p>支持各屏幕悬浮歌词个性化定制，自由定义颜色、行数、字体大小、任意位置拖动及副驾驶视频屏保歌词设置等。仪表支持歌词或歌名悬浮模式，可悬浮于仪表地图上方，实现导航与切歌信息共存。</p>
+			  <p>独立的渲染沙盒，行滚动提供丝滑硬件渲染动画滑动效果。主屏、仪表、副驾驶、屏保完全独立开关与设置，支持断电记忆。</p>
             </div>
           </li>
-          
-          <li>
-            <div class="feature-title">无障碍级状态栏穿透与后台常驻</div>
+		
+		  <li>
+            <div class="feature-title">任意应用投屏至仪表与副驾驶屏幕</div>
             <div class="feature-desc">
-              <p>无障碍级穿透，可悬浮于通知栏/系统设置之上不被遮挡，完美实现通知栏歌词。</p>
-              <p>无障碍版AMS后台免死，常驻后台。</p>
-            </div>
-          </li>
-          
-          <li>
-            <div class="feature-title">仪表盘多屏异显引擎</div>
-            <div class="feature-desc">
-              <p>建立独立渲染沙盒，主屏、仪表、副驾驶、屏保，一键飞屏，完全独立开关与设置。</p>
-            </div>
-          </li>
-          
-          <li>
-            <div class="feature-title">双核歌词解析</div>
-            <div class="feature-desc">
-              <p>本地扫描：基于树形目录遍历索引U盘/内部存储.lrc文件。但是U盘仅限SAF方式访问速度较慢，刚打开或启动时会显示"无本地歌词"（未打开网络歌词），请静待扫描完成。</p>
-              <p>智能网搜回退：本地无匹配时，自动触发网络引擎（默认对接网易云API，可自行更换），支持精准ID匹配与歌名/歌手模糊搜索。</p>
-            </div>
-          </li>
-          
-          <li>
-            <div class="feature-title">深度级UI定制</div>
-            <div class="feature-desc">
-              <p>自由配置：通过RGB滑块实现颜色自由定义，加深阴影在复杂背景下仍清晰可见，快捷设置栏实现对行数、位置、时间补偿自由定义。</p>
-              <p>丝滑上推过渡：行滚动提供丝滑硬件渲染动画滑动效果。</p>
-              <p>开启自启记忆：开机自动沿用上次设置。</p>
-			  <p>专属副驾屏保：可以自定义副驾屏动态壁纸及歌词。</p>
-              <p>其他：切歌时UI等待与IO读取之间有时间冲突，会概率性看到切歌上一首歌词开头残影（ms级）的现象。</p>
+              <p>支持任意用户已安装应用飞屏至仪表及副驾驶屏幕，独立开关控，支持虚拟悬浮窗与物理直连双模式飞屏，支持仪表遮罩跟随主题自动切换日夜间模式，完美切合原车仪表台UI。</p>
+              <p>支持将抖音、B站、浏览器或第三方桌面等app投屏至副驾驶屏幕娱乐，支持副驾驶屏幕返回操作，解锁副屏应用限制。</p>
+			  <p>支持将百度地图或第三方高德地图等自安装应用投屏至仪表区域，实现车机车道级导航及红绿灯读秒功能，支持目的地输入一键直达仪表地图。</p>
+			  <p>支持开机自动静默飞屏，可自定义开机飞屏屏幕、应用及等待时长。</p>
             </div>
           </li>
 		  
 		  <li>
-            <div class="feature-title">任意应用飞仪表与副驾屏</div>
+            <div class="feature-title">支持仪表第三方应用投屏接口</div>
             <div class="feature-desc">
-              <p>解锁🔓专属高级功能，实现LP21-23老款车型仪表屏任意app常驻显示，实现副驾驶屏幕投放任意app，实现仪表车道级导航与副驾驶娱乐自由。</p>
-			  <p>高级功能支持第三方媒体播放器方向盘切歌与控制，支持一件开启无障碍永久模式，支持悬浮球快捷操作。</p>
+              <p>支持仪表地图overlay第三方应用投屏接口，可通过DashMap虚拟屏幕将carlife或者carlink同屏投屏至仪表区域。</p>
+			  <p>支持开机自动开启公屏及唤醒指定飞屏应用，支持遮罩自动跟随系统主题自动切换，完美切合仪表UI。</p>
+            </div>
+          </li>
+		  
+		  <li>
+            <div class="feature-title">原车桌面及副驾驶桌面自定义壁纸</div>
+            <div class="feature-desc">
+              <p>支持免壁纸引擎将原车桌面自定义为动态壁纸，支持开机自动应用动态壁纸。</p>
+			  <p>支持主屏及副驾驶屏幕桌面状态下自定义静态壁纸，支持开机自动应用静态壁纸。</p>
+			  <p>支持开启中控屏幕时钟视频屏保，自由定义屏保超时及背景遮罩暗度，轻触接触屏保。</p>
+            </div>
+          </li>
+		
+          <li>
+            <div class="feature-title">第三方媒体播放器方向盘切歌</div>
+            <div class="feature-desc">
+              <p>方控一键开关，支持指定第三方音乐播放器方向盘切歌与暂停播放，如汽水音乐、酷我音乐等；支持方向盘控制抖音及B站等视频APP切换视频及播放暂停。</p>
+            </div>
+          </li>
+          
+          <li>
+            <div class="feature-title">中控及副驾驶快捷悬浮球</div>
+            <div class="feature-desc">
+			  <p>支持开启中控及副驾驶屏幕独立开启快捷悬浮球，可自定义颜色大小及背景透明度，悬浮球每5s刷新内存占用情况，支持自动贴边及精美菜单动画。</p>
+              <p>支持返回、多任务、Home键、快捷菜单、快捷应用等多种功能，支持手势自定义。</p>
+              <p>支持主屏及副驾驶屏幕应用抽屉，可通过悬浮球打开任意第三方应用（免第三方桌面），支持应用排序。</p>
+			  <p>可通过悬浮球实现应用内快捷设置，如悬浮球一键飞屏等快捷操作，以及中控分屏及截屏功能。</p>
+            </div>
+          </li>
+          
+		  <li>
+            <div class="feature-title">更多高级功能</div>
+            <div class="feature-desc">
+			  <p>支持解锁行车娱乐视频播放限制。</p>
+              <p>支持一键开启无障碍永久，实现开机自启后台常驻。</p>
+              <p>支持飞屏时操作主控，副驾驶屏幕视频自动点击恢复播放。</p>
+			  <p>支持解锁语音唤醒时不打断媒体音乐。</p>
+            </div>
+          </li>
+		  
+          <li>
+            <div class="feature-title">其他</div>
+            <div class="feature-desc">
+              <p>支持浏览器扫码共享车机剪贴板内容，实现ADB命令等免输入跨设备快捷传达。</p>
+			  <p>本应用常驻后台进行基础服务内存占用小于15m，请放心挂后台。若您开启多屏歌词及视频壁纸等，可根据车机运行负载合理开启多线程。</p>
+			  <p>温馨提醒：1、由于要监听媒体信息，如果您在播放视频，悬浮歌词也会就绪，此时请手动关闭悬浮歌词。2、如果您使用方控时开启歌词，受U盘歌曲的影响，可能会有切歌的歌名残影。</p>
             </div>
           </li>
 		  
@@ -743,10 +766,10 @@
         </h3>
         
         <ol class="feature-list" style="list-style-type: decimal; margin-left: 25px;">
-          <li><strong>基础授权</strong>：安装完成后进行基础授权和歌词目录选择，请在u盘存放与歌曲同名的.lrc格式的歌词文件，名称格式为“歌手 - 歌名.lrc”或“歌名.lrc。</li>
-          <li><strong>启用无障碍穿透</strong>：首次打主屏悬浮窗激活，或进入原生系统"无障碍"设置，找到"悬浮歌词"并开启。无障碍开机保活需ADB提权，可在高级功能面板一键开启。</li>
-          <li><strong>歌词设置</strong>：将歌词调整至合适区域，若移出屏幕外围，请回主界面重置。</li>
-		  <li><strong>高级功能设置</strong>：一键ADB开启飞屏高级功能。</li>
+          <li><strong>基础授权</strong>：安装完成后进行基础授权和歌词目录选择，请在u盘存放与歌曲同名的.lrc格式的歌词文件，名称格式为“歌手 - 歌名.lrc”或“歌名.lrc，也可使用联网歌词。然后选择打开主屏歌词，进行无障碍权限授权。</li>
+		  <li><strong>歌词设置</strong>：在歌词面板独立开启，将悬浮歌词调整至合适区域，轻触弹出设置菜单，若移出屏幕外围，请回主界面重置。</li>
+		  <li><strong>高级功能设置</strong>：高级功能设置需唤醒ADB权限，由无障碍自动模拟点击授权。使用前先确保能打开主屏歌词确认无障碍权限就位，若不能显示悬浮歌词，则点击打开主屏歌词授权无障碍，再进行高级功能设置。</li>
+		  <li><strong>Tips</strong>：设置面板有相应的红色小字提示，可参照小字进行操作。</li>
         </ol>
         
         <p style="text-align: left;">参考视频：<a href="https://v.douyin.com/hpTsMJbPGOY" target="_blank" style="color: #1e88e5; text-decoration: underline;">点击链接播放</a></p>
@@ -754,207 +777,55 @@
         <div class="warning-box">
           <div class="warning-title">
             <i class="fas fa-exclamation-triangle"></i> 安全警告与免责声明
-          </div>
-          <p><strong>驾驶安全第一</strong>：在仪表盘区域显示动态信息可能会分散驾驶注意力。应用内置了自定义坐标系统，请务必将歌词调节至不遮挡系统图标、时速、导航箭头的边缘安全区域！请规范使用仪表歌词，专注驾驶！</p>
-          <p><strong>声明</strong>：本应用纯属个人DIY，使用高级功能需唤醒ADB调试模式，用于实现应用飞屏功能，不会修改您的系统配置，请不要在开启高级功能时打开任何ADB权限敏感工具，若引发任何问题由使用者自行承担。</p>
+		  </div>
+		  <p><strong>驾驶安全第一</strong>：在仪表盘区域显示动态信息可能会分散驾驶注意力。应用内置了自定义坐标系统，请务必将歌词调节至不遮挡系统图标、时速、导航箭头的边缘安全区域！请规范使用仪表歌词，谨慎解锁行车娱乐功能，专注驾驶！</p>
+          <p><strong>声明</strong>：本应用纯属个人DIY，为获取联网歌词、天气信息及高级功能授权需联网，不会触及您的隐私。使用高级功能需唤醒ADB调试模式，用于实现应用飞屏功能，不会修改您的系统配置，请不要在开启高级功能时打开任何ADB权限敏感工具，若引发任何问题由使用者自行承担。</p>
         </div>
         
         <h3 class="intro-title" style="font-size: 18px; margin-top: 20px; border-bottom-color: #1e88e5;">
-          <i class="fas fa-download"></i> 下载链接
+          <i class="fas fa-download"></i> 最新版本下载链接
         </h3>
       </div>
     </div>
 
     <div class="content-wrapper">
       <div class="versions-container">
-
-		<div class="version-block" data-version="v4.4"> <!-- 1. 更新 data-version 属性 -->
+	  
+	  	<div class="version-block" data-version="v4.5"> <!-- 1. 更新 data-version 属性 -->
 		  <div class="version-content">
 			<div class="version-info-col">
 			  <div class="version-info">
 				<div>
 				  <span class="info-label">版本号：</span>
-				  <span class="info-value">v4.4</span> <!-- 2. 更新显示版本号 -->
+				  <span class="info-value">v4.5</span> <!-- 2. 更新显示版本号 -->
 				</div>
 				<span class="file-size-info">4.04 MB</span> <!-- 3. 请填写实际文件大小，如“4.3 MB” -->
 			  </div>
 			  <div class="version-description">
-                1. 新增DashMap第三方应用公共虚拟屏幕接口，适用于Carlife免飞屏同步显示仪表地图。
-				2. 公共虚拟屏幕支持原车地图遮罩、开机自启、悬浮球快捷开启。
-				3. 悬浮球快捷菜单增加至6个球，能容纳更多快捷设置。
-				4. 修复新安装应用在飞屏列表中不能自动刷新的问题。
+                1. 新增中控屏保功能。
+				2. 新增副驾原车桌面壁纸功能。
+                3. 新增支持语音助手不打断音乐。
+				4. 修复v4.4版本应用界面不能即刻跟随系统主题切换深浅色的问题。
+				5. 修复副驾驶悬浮球重复生成的问题。
+				6. 优化悬浮球快捷控制与应用主界面开关状态联动慢的问题。
 			  </div>
 			</div>
 			<div class="download-col">
 			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
-			  <a href="./release/lrcoverlay-release_v4.4.apk" class="download-btn" data-version="v4.4">
+			  <a href="./release/lrcoverlay-release_v4.5.apk" class="download-btn" data-version="v4.5">
 				<i class="fas fa-download"></i> 立即下载
 			  </a>
 			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
-			  <div class="download-count" id="count-v4.4">
+			  <div class="download-count" id="count-v4.5">
 				<i class="fas fa-users"></i> 加载中...
 			  </div>
 			</div>
 		  </div>
-		</div>
-		  
-		<div class="version-block" data-version="v4.3.2"> <!-- 1. 更新 data-version 属性 -->
-		  <div class="version-content">
-			<div class="version-info-col">
-			  <div class="version-info">
-				<div>
-				  <span class="info-label">版本号：</span>
-				  <span class="info-value">v4.3.2</span> <!-- 2. 更新显示版本号 -->
-				</div>
-				<span class="file-size-info">4.03 MB</span> <!-- 3. 请填写实际文件大小，如“4.3 MB” -->
-			  </div>
-			  <div class="version-description">
-                1. 修复悬浮球副驾屏保快捷菜单控制失败的问题。
-				2. 将系统应用中“文件管理”、“安卓设置”、“雷石ktv”透传到悬浮球应用列表。
-				3. 悬浮球应用列表新增支持更改应用排序方式。
-				4. 悬浮球应用列表增加主屏快捷截图功能。
-			  </div>
-			</div>
-			<div class="download-col">
-			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
-			  <a href="./release/lrcoverlay-release_v4.3.2.apk" class="download-btn" data-version="v4.3.2">
-				<i class="fas fa-download"></i> 立即下载
-			  </a>
-			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
-			  <div class="download-count" id="count-v4.3.2">
-				<i class="fas fa-users"></i> 加载中...
-			  </div>
-			</div>
-		  </div>
-		</div>
-		  
-		<div class="version-block" data-version="v4.3"> <!-- 1. 更新 data-version 属性 -->
-		  <div class="version-content">
-			<div class="version-info-col">
-			  <div class="version-info">
-				<div>
-				  <span class="info-label">版本号：</span>
-				  <span class="info-value">v4.3</span> <!-- 2. 更新显示版本号 -->
-				</div>
-				<span class="file-size-info">4.03 MB</span> <!-- 3. 请填写实际文件大小，如“4.3 MB” -->
-			  </div>
-			  <div class="version-description">
-                1. 飞屏应用列表选择框支持已选应用常驻，可通过悬浮球快捷菜单一键飞屏与关闭。
-				2. 悬浮球应用列表增加悬浮歌词自己的图标，不用再去桌面找。
-				3. 悬浮球增加边缘吸附功能及动效，2s无操作自动贴边，增加拖动阻尼与触发灵敏度，手感更佳。
-				4. 悬浮球支持手势自定义。
-				5. 悬浮球应用列表样式改为桌面抽屉式美化风格，增加弹出动效，智能跟随悬浮球位置弹出。
-				6. 新增副驾驶屏幕悬浮球，共享主屏悬浮球配置。
-				7. 新增支持操作中控时，副驾驶屏幕视频免点击自动恢复播放，需手动开启。
-			  </div>
-			</div>
-			<div class="download-col">
-			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
-			  <a href="./release/lrcoverlay-release_v4.3.apk" class="download-btn" data-version="v4.3">
-				<i class="fas fa-download"></i> 立即下载
-			  </a>
-			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
-			  <div class="download-count" id="count-v4.3">
-				<i class="fas fa-users"></i> 加载中...
-			  </div>
-			</div>
-		  </div>
-		</div>
-		  
-		<div class="version-block" data-version="v4.2"> <!-- 1. 更新 data-version 属性 -->
-		  <div class="version-content">
-			<div class="version-info-col">
-			  <div class="version-info">
-				<div>
-				  <span class="info-label">版本号：</span>
-				  <span class="info-value">v4.2</span> <!-- 2. 更新显示版本号 -->
-				</div>
-				<span class="file-size-info">4.02 MB</span> <!-- 3. 请填写实际文件大小，如“4.2 MB” -->
-			  </div>
-			  <div class="version-description">
-                1. 悬浮球新增分屏与应用快捷启动功能，可以自定义快捷应用或者展示完整应用列表。
-			  </div>
-			</div>
-			<div class="download-col">
-			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
-			  <a href="./release/lrcoverlay-release_v4.2.apk" class="download-btn" data-version="v4.2">
-				<i class="fas fa-download"></i> 立即下载
-			  </a>
-			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
-			  <div class="download-count" id="count-v4.2">
-				<i class="fas fa-users"></i> 加载中...
-			  </div>
-			</div>
-		  </div>
-		</div>
-		  
-		<div class="version-block" data-version="v4.1.2"> <!-- 1. 更新 data-version 属性 -->
-		  <div class="version-content">
-			<div class="version-info-col">
-			  <div class="version-info">
-				<div>
-				  <span class="info-label">版本号：</span>
-				  <span class="info-value">v4.1.2</span> <!-- 2. 更新显示版本号 -->
-				</div>
-				<span class="file-size-info">4.02 MB</span> <!-- 3. 请填写实际文件大小，如“4.2 MB” -->
-			  </div>
-			  <div class="version-description">
-                1. 修复方控引起系统无声音问题。
-				2. 修复主屏歌词关闭状态下，仪表歌词开机自启不能自动打开的问题。
-				3. 仪表歌名模式增加音乐占位图标。
-				4. 回滚修复百度地图卡顿问题。
-				5. 密钥输入框支持粘贴板。
-				6. 修复悬浮球开机位置记忆。
-				7. 新增支持跨设备剪贴板。
-			  </div>
-			</div>
-			<div class="download-col">
-			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
-			  <a href="./release/lrcoverlay-release_v4.1.2.apk" class="download-btn" data-version="v4.1.2">
-				<i class="fas fa-download"></i> 立即下载
-			  </a>
-			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
-			  <div class="download-count" id="count-v4.1.2">
-				<i class="fas fa-users"></i> 加载中...
-			  </div>
-			</div>
-		  </div>
-		</div>
-	  
-		<div class="version-block" data-version="v3.7"> <!-- 1. 更新 data-version 属性 -->
-		  <div class="version-content">
-			<div class="version-info-col">
-			  <div class="version-info">
-				<div>
-				  <span class="info-label">版本号：</span>
-				  <span class="info-value">v3.7</span> <!-- 2. 更新显示版本号 -->
-				</div>
-				<span class="file-size-info">3.98 MB</span> <!-- 3. 请填写实际文件大小，如“4.2 MB” -->
-			  </div>
-			  <div class="version-description">
-                1. 支持仪表歌名居左。
-				2. 优化应用列表扫描用户已安装app不全的问题。
-				3. 优化开机自动应用静态壁纸出现黑边的问题。
-				4. 优化飞屏UX，增加飞屏自定义时延设置。 
-				5. 优化副驾桌面歌词残留问题。
-			  </div>
-			</div>
-			<div class="download-col">
-			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
-			  <a href="./release/lrcoverlay-release_v3.7.apk" class="download-btn" data-version="v3.7">
-				<i class="fas fa-download"></i> 立即下载
-			  </a>
-			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
-			  <div class="download-count" id="count-v3.7">
-				<i class="fas fa-users"></i> 加载中...
-			  </div>
-			</div>
-		  </div>
-		</div>
+	  </div>
 
-      </div>
+     </div>
 
-      <div class="comments-container">
+     <div class="comments-container">
         <h3 class="comments-title">
           <i class="fas fa-comments"></i> 评论
         </h3>
@@ -1011,12 +882,7 @@
       
       // 根据用户要求，只保留 v2.0 和 v1.2.0 版本的下载统计
       versionKeys: {
-		'v4.4': 'downloads_v4_4', // ✅ 加上单引号就完美解决了！
-		'v4.3.2': 'downloads_v4_3_2', // ✅ 加上单引号就完美解决了！
-		'v4.3': 'downloads_v4_3', // ✅ 加上单引号就完美解决了！
-		'v4.2': 'downloads_v4_2', // ✅ 加上单引号就完美解决了！
-		'v4.1.2': 'downloads_v4_0', // ✅ 加上单引号就完美解决了！
-        'v3.7': 'downloads_v3_2', // ✅ 加上单引号就完美解决了！
+	  	'v4.5': 'downloads_v4_5', // ✅ 加上单引号就完美解决了！
       },
       
       async getVersionDownloads(version) {
