@@ -1,6 +1,6 @@
 {
-  "versionCode": 16,
-  "versionName": "v4.5",
-  "updateLog": "• 新增中控屏保功能。\n• 新增副驾原车桌面壁纸功能。\n• 新增支持语音助手不打断音乐。\n• 修复v4.4版本应用界面不能即刻跟随系统主题切换深浅色的问题。\n• 修复副驾驶悬浮球重复生成的问题。\n• 优化悬浮球快捷控制与应用主界面开关状态联动慢的问题。\n• 优化账号登录体验，支持免解绑顶号登录。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.5.apk"
+  "versionCode": 17,
+  "versionName": "v4.6",
+  "updateLog": "• 中控屏保支持完全沉浸隐藏状态栏。\n• 中控屏保日期时钟文字支持开关。\n• 支持关闭副驾驶屏保歌词。\n• 修复主控屏保遮挡360的问题。\n• 修复主控屏保重启车机不能自动应用的问题（更新后请清除一次应用数据）。\n• 优化副驾驶壁纸开机自动应用等待时间。\n• 优化副驾屏保地理位置授权失败的问题。\n• 修复主屏开机自动应用动态壁纸模拟点击乱点的问题。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.6.apk"
 }
