@@ -6,11 +6,39 @@
     <title>后台管理 - 用户明细与设备控制</title>
     <style>
         * { box-sizing: border-box; }
-        body { background-color: #0f172a; color: #e2e8f0; font-family: monospace; padding: 15px; margin: 0; }
+        
+        /* 🌟 优化：使用 Flex 布局控制全屏高度，防止悬浮遮挡内容 */
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+        body { 
+            background-color: #0f172a; 
+            color: #e2e8f0; 
+            font-family: monospace; 
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            height: 100vh;
+            height: 100dvh; /* 适配移动端浏览器地址栏 */
+        }
+        
         .auth-box { text-align: center; margin-top: 60px; }
         input.pwd-input { padding: 12px; border-radius: 8px; border: 1px solid #38bdf8; background: #1e293b; color: white; outline: none; width: 100%; max-width: 300px; font-size: 16px; margin-bottom: 15px; }
         button.btn-primary { padding: 12px 20px; border-radius: 8px; border: none; background: #0ea5e9; color: white; cursor: pointer; font-weight: bold; width: 100%; max-width: 300px; font-size: 16px; }
-        .control-panel { display: none; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 15px; background: #1e293b; padding: 15px; border-radius: 10px; border: 1px solid #334155; gap: 15px; }
+        
+        /* 🌟 优化：控制面板不允许被压缩，始终位于顶部 */
+        .control-panel { 
+            display: none; 
+            flex-wrap: wrap; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-shrink: 0; /* 保证高度不被压缩 */
+            background: #1e293b; 
+            padding: 15px; 
+            border-radius: 10px; 
+            border: 1px solid #334155; 
+            gap: 15px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); /* 增加悬浮阴影感 */
+        }
+        
         .panel-left { font-size: 16px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 100%; }
         .search-container { display: flex; gap: 10px; flex: 1; min-width: 100%; }
         .search-box { padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; outline: none; font-size: 14px; }
@@ -19,14 +47,37 @@
         .btn-export { background: #10b981; padding: 10px 15px; border-radius: 8px; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s; white-space: nowrap; }
         .btn-export:hover { background: #059669; }
         .btn-export:active { background: #047857; }
-        .table-wrapper { display: none; width: 100%; overflow-x: auto; margin-top: 15px; background: #1e293b; border-radius: 10px; border: 1px solid #334155; }
         
-        table { width: 100%; border-collapse: collapse; min-width: 1800px; } /* 🌟 再次加宽适配备注列 */
+        /* 🌟 优化：表格外壳占据剩余全部高度，并在内部滚动 */
+        .table-wrapper { 
+            display: none; 
+            width: 100%; 
+            flex: 1; /* 占据剩余屏幕空间 */
+            overflow: auto; /* 内部滚动 (X轴和Y轴) */
+            margin-top: 15px; 
+            background: #1e293b; 
+            border-radius: 10px; 
+            border: 1px solid #334155; 
+        }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 1800px; }
         th, td { padding: 12px 15px; border-bottom: 1px solid #334155; border-right: 1px solid #334155; text-align: left; white-space: nowrap; vertical-align: middle; }
         th:last-child, td:last-child { border-right: none; }
-        th { background: #0f172a; color: #38bdf8; position: sticky; top: 0; z-index: 10; }
+        
+		/* 🌟 优化：表头吸顶及样式区分 */
+		th { 
+			background: #162032; 
+			color: #38bdf8; 
+			position: sticky; 
+			top: 0; 
+			z-index: 10; 
+			border-bottom: 1px solid #334155; /* 改为与内容单元格完全一致的细边框 */
+			box-shadow: 0 4px 6px -2px rgba(0, 0, 0, 0.4); /* 保留极其微弱的阴影，让滑动时依然有层级感 */
+		}
+        
         .sortable-th { cursor: pointer; user-select: none; transition: color 0.2s; }
-        .sortable-th:hover { color: #0ea5e9; }
+        .sortable-th:hover { color: #e2e8f0; }
+        
         .vip-purchased { color: #f59e0b; font-weight: bold; } 
         .vip-gifted { color: #8b5cf6; font-weight: bold; }    
         .vip-no { color: #94a3b8; }                           
@@ -44,6 +95,17 @@
         .remark-cell { cursor: pointer; min-width: 160px; transition: background 0.2s; border-radius: 4px; }
         .remark-cell:hover { background: #334155; }
         .remark-input { width: 100%; padding: 6px 8px; border-radius: 4px; border: 1px solid #38bdf8; background: #0f172a; color: white; font-family: monospace; outline: none; }
+
+        /* 🌟 移动端极度优化：防止顶部控件占用太多高度 */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .control-panel { gap: 10px; padding: 10px; }
+            .search-container { flex-wrap: wrap; gap: 8px; }
+            .filter-select { flex: 1; min-width: 45%; }
+            .input-text { flex: 2; min-width: 100%; order: -1; } /* 让搜索框占满整行并在最上方 */
+            .btn-export { flex: 1; min-width: 45%; }
+            .table-wrapper { margin-top: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -70,7 +132,7 @@
                 <option value="未注册用户">👻 仅看未注册用户</option>
                 <option value="排除未注册用户">🚫 排除未注册用户</option>
             </select>
-            <input type="text" id="searchInput" class="search-box input-text" placeholder="🔍 搜用户名/UUID/备注..." oninput="filterTable()">
+            <input type="text" id="searchInput" class="search-box input-text" placeholder="🔍 搜用户名/UUID/备注/密钥..." oninput="filterTable()">
             <button class="btn-export" onclick="exportToCSV()">📥 导出.csv</button>
         </div>
     </div>
@@ -84,7 +146,6 @@
                     <th>身份状态</th>
                     <th>售价</th>
                     <th>使用的密钥</th>
-                    <!-- 🌟 新增：只读的密钥备注列 -->
                     <th title="同步自发货控制台的卡密备注，仅供查看">密钥备注 🏷️</th>
                     <th>注册 / 核销时间</th>
                     <th id="thFirstActive" class="sortable-th" onclick="toggleFirstActiveSort()" title="点击切换：默认 / 远到近 / 近到远">首次安装 ↕️</th>
@@ -329,10 +390,8 @@
                     crackDisplay = `<span style="color: #ef4444; font-weight: bold;" title="捕获时间: ${crackTime}">🚨 异常 (白嫖党)</span>`;
                 }
 
-                // 🌟 解析用户备注
                 const remarkDisplay = user.remark ? user.remark : `<span style="color:#64748b; font-style:italic;">[点击添加]</span>`;
                 
-                // 🌟 新增：解析只读的卡密备注 (code_remark)
                 const codeRemarkDisplay = user.code_remark 
                     ? `<span style="color:#a78bfa; font-size:12px; background:#4c1d95; padding:2px 6px; border-radius:4px;">${user.code_remark}</span>` 
                     : `<span style="color:#64748b;">-</span>`;
@@ -343,7 +402,6 @@
                     <td class="${vipClass}">${vipType}</td>
                     <td>${priceDisplay}</td>
                     <td style="color: #10b981;">${user.used_code || '-'}</td>
-                    <!-- 🌟 插入只读的卡密备注 -->
                     <td>${codeRemarkDisplay}</td>
                     <td>${timeBox}</td>
                     <td>${firstActive}</td>
@@ -369,9 +427,11 @@
             const vipFilter = document.getElementById('vipFilter').value;
 
             const filteredData = allUserData.filter(user => {
-                // 🌟 核心：将 code_remark 也加入搜索词库，这样直接搜发货台的备注也能把人找出来
+                // 🌟 核心优化：将 used_code (使用的密钥) 加入搜索比对字符串
                 const codeRemarkStr = user.code_remark ? user.code_remark.toLowerCase() : "";
-                const searchStr = (user.username || "") + " " + (user.device_uuid || "") + " " + (user.remark || "") + " " + codeRemarkStr;
+                const usedCodeStr = user.used_code ? user.used_code.toLowerCase() : "";
+                
+                const searchStr = (user.username || "") + " " + (user.device_uuid || "") + " " + (user.remark || "") + " " + codeRemarkStr + " " + usedCodeStr;
                 const matchKeyword = searchStr.toLowerCase().includes(keyword);
                 
                 const userType = getUserVipType(user);
@@ -398,7 +458,6 @@
                 return;
             }
 
-            // 🌟 导出工具加入“密钥备注”表头
             const headers = ['用户名', '密码', '身份状态', '售价(元)', '使用的密钥', '密钥备注', '注册时间', '核销时间', '首次安装时间', '7日活跃记录(打卡日期)', 'App版本', '车机型号/系统', '最后活跃时间', '查水表状态', '当前绑定设备(UUID)', '用户专属备注'];
             
             const escapeCSV = (str) => {
@@ -413,7 +472,7 @@
                 const vipType = getUserVipType(user);
                 const price = (user.price !== null && user.price !== undefined) ? user.price : '-'; 
                 const code = user.used_code ? user.used_code : '-';
-                const codeRemarkStr = user.code_remark ? user.code_remark : '-'; // 🌟 导出卡密备注
+                const codeRemarkStr = user.code_remark ? user.code_remark : '-';
                 
                 const regTimeStr = user.created_at ? formatTime(user.created_at) : '-';
                 const actTimeStr = user.used_time ? formatTime(user.used_time) : '-';
@@ -443,7 +502,6 @@
             document.body.removeChild(link);
         }
 
-        // 备注控制组
         function editRemark(td) {
             const span = td.querySelector('.remark-text');
             const input = td.querySelector('.remark-input');
