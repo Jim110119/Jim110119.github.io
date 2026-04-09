@@ -33,7 +33,7 @@
 
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
-        /* 🌟 修改：一致的密钥数据卡片样式 */
+        /* 🌟 密钥数据卡片样式 */
         .key-stat-card { background: rgba(30, 41, 59, 0.7); padding: 20px; border-radius: 12px; border: 1px solid #334155; text-align: center; min-width: 200px; flex: 1; }
         .key-stat-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%; margin-top: 20px; }
         .key-stat-card h3 { font-size: 16px; margin-bottom: 10px; color: #cbd5e1; }
@@ -76,32 +76,27 @@
             </div>
         </div>
 		
-		<!-- 🌟 修改：密钥流转与转化率 - 简约卡片风格 -->
         <div class="card">
             <h2>💳 密钥流转与转化率</h2>
             <div class="key-stat-container" id="codeFlowCards">
-                <!-- 出售转化 -->
                 <div class="key-stat-card">
                     <h3>出售转化</h3>
                     <div id="statSoldValue" class="key-stat-value loading">...</div>
                     <div class="key-stat-ratio" id="statSoldRatio">(激活/售出)</div>
                     <div class="key-stat-label">已激活 / 已售出</div>
                 </div>
-                <!-- 赠送转化 -->
                 <div class="key-stat-card">
                     <h3>赠送转化</h3>
                     <div id="statGiftValue" class="key-stat-value loading">...</div>
                     <div class="key-stat-ratio" id="statGiftRatio">(激活/赠出)</div>
                     <div class="key-stat-label">已激活 / 已赠送</div>
                 </div>
-                <!-- 派发进度 -->
                 <div class="key-stat-card">
                     <h3>派发进度</h3>
                     <div id="statDistValue" class="key-stat-value loading">...</div>
                     <div class="key-stat-ratio" id="statDistRatio">(已派发/总盘)</div>
                     <div class="key-stat-label">已售出+赠送 / 密钥总数</div>
                 </div>
-                <!-- 总盘激活 -->
                 <div class="key-stat-card">
                     <h3>总盘激活</h3>
                     <div id="statTotalActiveValue" class="key-stat-value loading">...</div>
@@ -115,6 +110,7 @@
             <h2>💎 注册与付费转化结构图</h2>
             <div style="font-size: 13px; color: #94a3b8; margin-top: 25px; margin-bottom: 0px; line-height: 2;">
                 <div>安装总设备数：<span id="uniqueDeviceCount" class="loading" style="color: #38bdf8; font-weight: bold; font-size: 15px;">...</span> 台</div>
+                <div>注册用户数：<span id="registeredUserCount" class="loading" style="color: #10b981; font-weight: bold; font-size: 15px;">...</span> 人</div>
                 <div>会员总营收：<span style="color: #f59e0b; font-weight: bold; font-size: 15px;">¥ <span id="totalRevenue" class="loading">...</span></span></div>
             </div>
             
@@ -195,6 +191,9 @@
                 const purchasedVip = data.purchased_vip || 0;
                 const giftedVip = data.gifted_vip || 0;
                 const free = total - purchasedVip - giftedVip;
+                
+                // 🌟 新增：在此处动画渲染注册用户数（total 实际上就是你要求的三者之和）
+                animateValue("registeredUserCount", 0, total, 1500);
 
                 new Chart(document.getElementById('vipChart').getContext('2d'), {
                     type: 'bar', 
@@ -258,7 +257,6 @@
                     document.getElementById("totalRevenue").classList.remove("loading"); 
                 });
 				
-				// 🌟 修改：获取密钥流转数据并渲染为卡片
             fetch(`${SUPABASE_URL}/rest/v1/rpc/get_code_stats`, { method: 'POST', headers: headers })
                 .then(res => res.json())
                 .then(data => {
@@ -266,7 +264,6 @@
                 })
                 .catch(err => {
                     console.error("密钥数据加载失败", err);
-                    // 如果失败，设置默认值
                     ["statSoldValue", "statGiftValue", "statDistValue", "statTotalActiveValue"].forEach(id => {
                         const el = document.getElementById(id);
                         if(el) {
@@ -278,7 +275,6 @@
 				
         }
 
-        // 🌟 新增：渲染密钥数据卡片的函数
         function renderCodeCards(data) {
             if (!data) return;
 
@@ -288,10 +284,9 @@
             const giftUsed = data.gift_used || 0;
             const total = data.total || 0;
             
-            const distributedTotal = soldTotal + giftTotal; // 已派发总数
-            const distributedUsed = soldUsed + giftUsed; // 已派发且激活总数
+            const distributedTotal = soldTotal + giftTotal; 
+            const distributedUsed = soldUsed + giftUsed; 
 
-            // 填充数据并移除加载状态
             const soldValueEl = document.getElementById("statSoldValue");
             if(soldValueEl) {
                 soldValueEl.innerHTML = `${soldUsed}`;
