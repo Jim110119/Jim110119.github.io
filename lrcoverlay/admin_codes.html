@@ -64,6 +64,7 @@
                 <option value="待出售">🟢 仅看待出售</option>
                 <option value="已出售">🟠 仅看已出售</option>
                 <option value="已赠送">🎁 仅看已赠送</option>
+				<option value="已废弃">❌ 仅看已废弃</option>
             </select>
             
             <!-- 🌟 排版优化：将页码显示和导出按钮放在同一行，节省手机垂直空间 -->
@@ -203,6 +204,7 @@
                                 <option value="待出售" ${item.sell_status === '待出售' ? 'selected' : ''}>🟢 待出售</option>
                                 <option value="已出售" ${item.sell_status === '已出售' ? 'selected' : ''}>🟠 已出售</option>
                                 <option value="已赠送" ${item.sell_status === '已赠送' ? 'selected' : ''}>🎁 已赠送</option>
+								<option value="已废弃" ${item.sell_status === '已废弃' ? 'selected' : ''}>❌ 已废弃</option>
                             </select>
                             
                             <div class="price-box">
