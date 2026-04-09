@@ -20,6 +20,7 @@
         .status-ready { border-left: 4px solid #10b981; } 
         .status-sold { border-left: 4px solid #f59e0b; opacity: 0.6; } 
         .status-gifted { border-left: 4px solid #8b5cf6; opacity: 0.6; } 
+		.status-void { border-left: 4px solid #ef4444; opacity: 0.5; }
         
         .pagination { display: none; justify-content: space-between; align-items: center; background: #1e293b; padding: 10px 10px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 15px; position: sticky; top: 10px; z-index: 100; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); }
         .page-btn { background: #334155; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; }
@@ -188,7 +189,8 @@
                 let cardClass = 'status-ready';
                 if (item.sell_status === '已出售') cardClass = 'status-sold';
                 else if (item.sell_status === '已赠送') cardClass = 'status-gifted';
-                
+                else if (item.sell_status === '已废弃') cardClass = 'status-void'; // 🌟 新增：识别已废弃并变暗
+				
                 const isActivatedText = item.is_used ? `<span style="color:#ef4444;">已激活 (${item.used_by_user})</span>` : '未激活';
                 const currentPrice = item.price || 0; 
                 
@@ -290,10 +292,19 @@
             .then(resData => {
                 if(resData.success) {
                     const itemIndex = allCodesData.findIndex(i => i.code === code);
-                    if (itemIndex > -1) {
+					if (itemIndex > -1) {
                         allCodesData[itemIndex].sell_status = newStatus;
                         allCodesData[itemIndex].price = newPrice;
                         allCodesData[itemIndex].remark = newRemark;
+                        // 🌟 新增：如果选了废弃，前端立刻显示已作废（不用等刷新）
+                        if (newStatus === '已废弃') {
+                            allCodesData[itemIndex].is_used = true;
+                            allCodesData[itemIndex].used_by_user = '管理员作废';
+                        } else if (newStatus === '待出售') {
+                            // 🌟 防误触：如果从废弃改回待出售，前端立刻恢复未激活
+                            allCodesData[itemIndex].is_used = false;
+                            allCodesData[itemIndex].used_by_user = null;
+                        }
                     }
                     applyFilter(false); 
                 } else {
