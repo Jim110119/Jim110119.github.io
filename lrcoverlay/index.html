@@ -791,34 +791,35 @@
     <div class="content-wrapper">
       <div class="versions-container">
 
-	  	<div class="version-block" data-version="v4.6"> <!-- 1. 更新 data-version 属性 -->
+	  	<div class="version-block" data-version="v4.6.1"> <!-- 1. 更新 data-version 属性 -->
 		  <div class="version-content">
 			<div class="version-info-col">
 			  <div class="version-info">
 				<div>
 				  <span class="info-label">版本号：</span>
-				  <span class="info-value">v4.6</span> <!-- 2. 更新显示版本号 -->
+				  <span class="info-value">v4.6.1</span> <!-- 2. 更新显示版本号 -->
 				</div>
 				<span class="file-size-info">4.06 MB</span> <!-- 3. 请填写实际文件大小，如“4.3 MB” -->
 			  </div>
 			  <div class="version-description">
-                1. 中控屏保支持完全沉浸隐藏状态栏。
-				2. 中控屏保日期时钟文字支持开关。
-				3. 支持关闭副驾驶屏保歌词。
-				4. 修复主控屏保遮挡360的问题。
-				5. 修复主控屏保重启车机不能自动应用的问题（更新后请清除一次应用数据）。
-				6. 优化副驾驶壁纸开机自动应用等待时间。
-				7. 优化副驾屏保地理位置授权失败的问题。
-				8. 修复主屏开机自动应用动态壁纸模拟点击乱点的问题。
+                1. 修复中控屏保完全沉浸隐藏状态栏冲突问题。
+				2. 优化carlife虚拟公屏显示区域。
+				3. 中控屏保日期时钟文字支持开关。
+				4. 支持关闭副驾驶屏保歌词。
+				5. 修复主控屏保遮挡360的问题。
+				6. 修复主控屏保重启车机不能自动应用的问题（更新后请清除一次应用数据）。
+				7. 优化副驾驶壁纸开机自动应用等待时间。
+				8. 优化副驾屏保地理位置授权失败的问题。
+				9. 修复主屏开机自动应用动态壁纸模拟点击乱点的问题。
 			  </div>
 			</div>
 			<div class="download-col">
 			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
-			  <a href="./release/lrcoverlay-release_v4.6.apk" class="download-btn" data-version="v4.6">
+			  <a href="./release/lrcoverlay-release_v4.6.1.apk" class="download-btn" data-version="v4.6.1">
 				<i class="fas fa-download"></i> 立即下载
 			  </a>
 			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
-			  <div class="download-count" id="count-v4.6">
+			  <div class="download-count" id="count-v4.6.1">
 				<i class="fas fa-users"></i> 加载中...
 			  </div>
 			</div>
@@ -917,7 +918,7 @@
       
       // 根据用户要求，只保留 v2.0 和 v1.2.0 版本的下载统计
       versionKeys: {
-		'v4.6': 'downloads_v4_6', // ✅ 加上单引号就完美解决了！
+		'v4.6.1': 'downloads_v4_6', // ✅ 加上单引号就完美解决了！
 	  	'v4.5': 'downloads_v4_5', // ✅ 加上单引号就完美解决了！
       },
       
