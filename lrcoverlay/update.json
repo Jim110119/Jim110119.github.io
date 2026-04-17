@@ -1,6 +1,6 @@
 {
-  "versionCode": 17,
-  "versionName": "v4.6",
-  "updateLog": "• 中控屏保支持完全沉浸隐藏状态栏。\n• 中控屏保日期时钟文字支持开关。\n• 支持关闭副驾驶屏保歌词。\n• 修复主控屏保遮挡360的问题。\n• 修复主控屏保重启车机不能自动应用的问题（更新后请清除一次应用数据）。\n• 优化副驾驶壁纸开机自动应用等待时间。\n• 优化副驾屏保地理位置授权失败的问题。\n• 修复主屏开机自动应用动态壁纸模拟点击乱点的问题。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.6.apk"
+  "versionCode": 18,
+  "versionName": "v4.6.1",
+  "updateLog": "• 修复中控屏保沉浸式（隐藏状态栏）与其他app沉浸式冲突的问题。\n• 优化carlife虚拟公屏显示区域，将起始点设置为x=1050，屏幕大小改为1440*720，更方便截取。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.6.1.apk"
 }
