@@ -173,11 +173,26 @@
             fetch(`${SUPABASE_URL}/rest/v1/installations?select=id&limit=1`, { method: 'GET', headers: { ...headers, 'Range-Unit': 'items', 'Prefer': 'count=exact' } })
                 .then(res => animateValue("installCount", 0, res.headers.get('Content-Range') ? parseInt(res.headers.get('Content-Range').split('/')[1]) : 0, 1500));
 
-            fetch(`${SUPABASE_URL}/rest/v1/daily_stats?select=*`, { method: 'GET', headers: headers }).then(res => res.json()).then(data => {
+			fetch(`${SUPABASE_URL}/rest/v1/daily_stats?select=*`, { method: 'GET', headers: headers }).then(res => res.json()).then(data => {
                 data.reverse();
                 const labels = data.map(item => item.active_date.substring(5));
                 const counts = data.map(item => item.active_count);
-                animateValue("todayActiveCount", 0, counts.length > 0 ? counts[counts.length - 1] : 0, 1500);
+                
+                // 🌟 核心修复：获取真正的“本地今天”日期 (YYYY-MM-DD 格式)
+                const d = new Date();
+                const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                
+                // 🌟 判断最后一条记录到底是不是“今天”
+                let realTodayCount = 0;
+                if (data.length > 0) {
+                    const lastRecordDate = data[data.length - 1].active_date;
+                    if (lastRecordDate === todayStr) {
+                        realTodayCount = counts[counts.length - 1]; // 如果是今天，才读取数字
+                    }
+                }
+                
+                // 使用校验后的真实今日数据渲染动画
+                animateValue("todayActiveCount", 0, realTodayCount, 1500);
 
                 new Chart(document.getElementById('dauChart').getContext('2d'), {
                     type: 'line',
