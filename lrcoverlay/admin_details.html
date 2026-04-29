@@ -156,6 +156,7 @@
                     <th title="防破解蜜罐探针检测结果">查水表 🕵️</th>
                     <th>操作控制</th>
                     <th>当前绑定设备 (UUID)</th>
+					<th style="width: 80px;">换绑标记</th>
                     <th title="点击单元格可直接编辑内容，按下回车键保存">用户专属备注 ✏️</th>
                 </tr>
             </thead>
@@ -169,6 +170,7 @@
         
         let currentPwd = '';
         let allUserData = []; 
+		let supersededCounts = {}; // 🌟 新增：用来存换绑次数的对象
         let currentFilteredData = []; 
         let lastActiveSortOrder = 0; 
         let firstActiveSortOrder = 0;
@@ -206,23 +208,46 @@
             return html;
         }
 
-        function fetchData() {
+		async function fetchData() {
             currentPwd = document.getElementById('adminPwd').value.trim();
             const btn = document.querySelector('.btn-primary');
             btn.innerText = "加载中...";
             btn.disabled = true;
 
-            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_all_user_details`, {
-                method: 'POST',
-                headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ admin_pwd: currentPwd })
-            })
-            .then(res => res.json())
-            .then(resData => {
+            const headers = { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
+
+            try {
+                // 🌟 升级：同时向云端发起两个请求（1.验证密码拿全量数据；2.获取换绑旧ID黑名单）
+				// 🌟 升级：两个请求全部走安全的 POST RPC 通道
+                const [userRes, supersededRes] = await Promise.all([
+                    fetch(`${SUPABASE_URL}/rest/v1/rpc/get_all_user_details`, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({ admin_pwd: currentPwd })
+                    }),
+                    // 🌟 新增：调用刚刚部署的次数统计函数
+                    fetch(`${SUPABASE_URL}/rest/v1/rpc/get_superseded_counts`, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({ admin_pwd: currentPwd })
+                    })
+                ]);
+
+                const resData = await userRes.json();
+                
+                // 🌟 获取换绑次数并存入全局变量
+                if (supersededRes.ok) {
+                    const supersededResData = await supersededRes.json();
+                    if (supersededResData.success) {
+                        supersededCounts = supersededResData.data; // 得到形如 {"test1": 1, "test2": 2}
+                    }
+                }
+
                 btn.innerText = "解锁数据";
                 btn.disabled = false;
 
                 if (resData.success) {
+                    // 原有的 UI 面板切换逻辑保持不变
                     document.getElementById('errMsg').style.display = 'none';
                     document.getElementById('authBox').style.display = 'none';
                     document.getElementById('controlPanel').style.display = 'flex';
@@ -233,6 +258,7 @@
                     document.getElementById('thLastActive').innerHTML = '最后活跃时间 ↕️';
                     document.getElementById('thFirstActive').innerHTML = '首次安装 ↕️';
                     
+                    // 原有的时间降序排序逻辑保持不变
                     allUserData = resData.data.sort((a, b) => {
                         const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
                         const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -245,13 +271,12 @@
                     document.getElementById('errMsg').innerText = errorStr;
                     document.getElementById('errMsg').style.display = 'block';
                 }
-            })
-            .catch(err => {
+            } catch (err) {
                 btn.innerText = "解锁数据";
                 btn.disabled = false;
                 document.getElementById('errMsg').innerText = "请求失败，请检查网络：" + err;
                 document.getElementById('errMsg').style.display = 'block';
-            });
+            }
         }
 
         function toggleLastActiveSort() {
@@ -333,7 +358,7 @@
             return "购买永久VIP"; 
         }
 
-        function renderTable(dataArray) {
+		function renderTable(dataArray) {
             const tbody = document.getElementById('tableBody');
             let htmlString = ''; 
             
@@ -344,6 +369,15 @@
                 
                 const isBound = user.device_uuid && user.device_uuid !== '';
                 const uuidDisplay = isBound ? user.device_uuid : `<span style="color:#ef4444;">未绑定设备</span>`;
+
+                // 🌟 新增核心逻辑：判断当前用户的 UUID 是否在换绑黑名单 Set 中
+				// 🌟 终极逻辑：从全局对象中获取该用户的换绑次数，没有就是 0
+                const rebindCount = user.username ? (supersededCounts[user.username] || 0) : 0;
+                
+                // 🌟 如果大于 0，就显示一个橙色的标签框，否则留空
+                const markHtml = rebindCount > 0 
+                    ? `<span style="color: #f59e0b; font-weight: bold; border: 1px solid #f59e0b; padding: 2px 6px; border-radius: 4px; font-size: 12px; background: rgba(245, 158, 11, 0.1);" title="该账号曾换绑过 ${rebindCount} 次设备">🔄 ${rebindCount} 次</span>` 
+                    : '';
 
                 const safeUsername = user.username ? user.username : '';
                 const safeUuid = user.device_uuid ? user.device_uuid : '';
@@ -412,6 +446,9 @@
                     <td>${crackDisplay}</td>
                     <td>${actionBtn}</td>
                     <td class="uuid-text">${uuidDisplay}</td>
+                    
+                    <td style="text-align: center;">${markHtml}</td>
+                    
                     <td class="remark-cell" onclick="editRemark(this)">
                         <div class="remark-text">${remarkDisplay}</div>
                         <input type="text" class="remark-input" style="display:none;" value="${user.remark || ''}" data-user="${safeUsername}" data-uuid="${safeUuid}" placeholder="回车保存，Esc取消" onkeydown="saveRemark(event, this)" onblur="cancelRemark(this)">
@@ -570,22 +607,30 @@
             }
         }
 
-        function forceUnbind(targetUsername) {
+		function forceUnbind(targetUsername) {
             if(!confirm(`⚠️ 危险操作确认\n\n确定要强制清空账号【${targetUsername}】的设备绑定吗？\n清空后他可以在新车机直接登录。`)) return;
 
             fetch(`${SUPABASE_URL}/rest/v1/rpc/admin_unbind_device`, {
                 method: 'POST',
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ admin_pwd: currentPwd, p_username: targetUsername })
+                // 🌟 核心修正：这里改为 target_username，与刚才更新的 SQL 保持 100% 一致！
+                body: JSON.stringify({ admin_pwd: currentPwd, target_username: targetUsername })
             })
-            .then(res => res.json())
-            .then(resData => {
-                if(resData.success) {
+            .then(async res => {
+                const resData = await res.json();
+                if(res.ok && resData.success) {
                     alert('✅ ' + resData.msg);
                     fetchData(); 
                 } else {
-                    alert('❌ 解绑失败：' + resData.msg);
+                    // 🌟 防御 undefined 的铁甲
+                    const errorInfo = resData.msg || resData.message || '未知服务器错误';
+                    console.error("解绑原始报错:", resData);
+                    alert('❌ 解绑失败：' + errorInfo);
                 }
+            })
+            .catch(err => {
+                console.error("网络请求异常:", err);
+                alert('❌ 解绑失败：网络连接异常');
             });
         }
 
@@ -608,14 +653,21 @@
                 headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ admin_pwd: currentPwd, p_username: targetUsername, p_uuid: targetUuid })
             })
-            .then(res => res.json())
-            .then(resData => {
-                if(resData.success) {
+            .then(async res => {
+                const resData = await res.json();
+                if(res.ok && resData.success) {
                     alert('✅ ' + resData.msg);
                     fetchData(); 
                 } else {
-                    alert('❌ 删除失败：' + resData.msg);
+                    // 🌟 同样的防御铁甲，顺手帮 deleteUser 也堵上漏洞
+                    const errorInfo = resData.msg || resData.message || '未知服务器错误';
+                    console.error("删除原始报错:", resData);
+                    alert('❌ 删除失败：' + errorInfo);
                 }
+            })
+            .catch(err => {
+                console.error("网络请求异常:", err);
+                alert('❌ 删除失败：网络连接异常');
             });
         }
     </script>
