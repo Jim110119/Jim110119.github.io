@@ -40,6 +40,36 @@
         .key-stat-value { font-size: 40px; font-weight: bold; color: #0ea5e9; line-height: 1; margin-bottom: 5px; }
         .key-stat-ratio { font-size: 18px; color: #94a3b8; }
         .key-stat-label { font-size: 13px; color: #64748b; margin-top: 5px; }
+		
+		/* 🌟 新增：三栏卡片容器与扁平化分栏排版样式 */
+        .stats-container { 
+            display: flex; 
+            gap: 20px; 
+            width: 100%; 
+            flex-wrap: wrap; 
+            justify-content: space-between; 
+        }
+        .sub-stats-grid {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #334155;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+            padding-left: 15%;
+        }
+        .sub-item {
+            font-size: 13px;
+            color: #94a3b8;
+            display: flex;
+            justify-content: space-between;
+            padding-right: 15%;
+        }
+        .sub-item span:last-child {
+            font-family: monospace;
+            font-size: 15px;
+        }
     </style>
 </head>
 <body>
@@ -53,21 +83,37 @@
     </div>
 
     <div class="dashboard" id="mainDashboard">
-        <div style="display: flex; gap: 20px; flex-wrap: wrap; width: 100%;">
-            <div class="card" style="flex: 1; min-width: 250px;">
-                <h2>🚀 累计总装机</h2>
-                <div id="installCount" class="number-box loading">...</div>
-            </div>
-            <div class="card" style="flex: 1; min-width: 250px;">
-                <h2>🔥 今日实时活跃</h2>
-                <div id="todayActiveCount" class="number-box loading">...</div>
-            </div>
-            <div class="card" style="flex: 1; min-width: 250px;">
-                <h2>🗑️ 沉睡废弃空号</h2>
-                <div id="abandonedCount" class="number-box loading" style="color: #ef4444; text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">...</div>
-                <div style="font-size: 12px; color: #94a3b8; margin-top: -10px;">(大于7天未活跃的未付费号)</div>
-            </div>
-        </div>
+		<div class="stats-container">
+			<div class="card" style="flex: 1; min-width: 250px; display: flex; flex-direction: column;">
+				<h2>🚀 累计安装次数</h2>
+				<div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 150px;">
+					<div id="installCount" class="number-box loading" style="color: #38bdf8; text-shadow: 0 0 15px rgba(56, 189, 248, 0.5); margin: 0;">...</div>
+				</div>
+			</div>
+
+			<div class="card" style="flex: 1; min-width: 250px;">
+				<h2>🔥 今日实时活跃</h2>
+				<div id="todayActiveCount" class="number-box loading" style="color: #10b981; text-shadow: 0 0 15px rgba(16, 185, 129, 0.5);">...</div>
+				<div class="sub-stats-grid">
+					<div class="sub-item"><span>VIP 活跃：</span><span id="todayVipActive" style="color: #a855f7; font-weight: bold;">...</span></div>
+					<div class="sub-item"><span>非 VIP 活跃：</span><span id="todayNonVipActive" style="color: #38bdf8; font-weight: bold;">...</span></div>
+					<div class="sub-item"><span>未注册活跃：</span><span id="todayUnregActive" style="color: #64748b; font-weight: bold;">...</span></div>
+					<div class="sub-item" style="opacity: 0;"><span>占位：</span><span>-</span></div>
+				</div>
+			</div>
+
+			<div class="card" style="flex: 1; min-width: 250px;">
+				<h2>🗑️ 7天沉睡废弃</h2>
+				<div id="totalSleepingCount" class="number-box loading" style="color: #ef4444; text-shadow: 0 0 15px rgba(239, 68, 68, 0.5);">...</div>
+				
+				<div class="sub-stats-grid">
+					<div class="sub-item"><span>已建号未付费：</span><span id="abandonedCount" style="color: #ef4444; font-weight: bold;">...</span></div>
+					<div class="sub-item"><span>未注册设备死号：</span><span id="unregisteredDeadCount">...</span></div>
+					<div class="sub-item"><span>已付费流失预警：</span><span id="paidDeadCount" style="color: #a855f7;">...</span></div>
+					<div class="sub-item"><span>换绑/更新标记：</span><span id="supersededCount" style="color: #f59e0b;">...</span></div>
+				</div>
+			</div>
+		</div>
 
         <div class="card">
             <h2>📈 最近 7 天活跃趋势 (DAU)</h2>
@@ -173,33 +219,40 @@
             fetch(`${SUPABASE_URL}/rest/v1/installations?select=id&limit=1`, { method: 'GET', headers: { ...headers, 'Range-Unit': 'items', 'Prefer': 'count=exact' } })
                 .then(res => animateValue("installCount", 0, res.headers.get('Content-Range') ? parseInt(res.headers.get('Content-Range').split('/')[1]) : 0, 1500));
 
-			fetch(`${SUPABASE_URL}/rest/v1/daily_stats?select=*`, { method: 'GET', headers: headers }).then(res => res.json()).then(data => {
-                data.reverse();
-                const labels = data.map(item => item.active_date.substring(5));
-                const counts = data.map(item => item.active_count);
-                
-                // 🌟 核心修复：获取真正的“本地今天”日期 (YYYY-MM-DD 格式)
-                const d = new Date();
-                const todayStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                
-                // 🌟 判断最后一条记录到底是不是“今天”
-                let realTodayCount = 0;
-                if (data.length > 0) {
-                    const lastRecordDate = data[data.length - 1].active_date;
-                    if (lastRecordDate === todayStr) {
-                        realTodayCount = counts[counts.length - 1]; // 如果是今天，才读取数字
-                    }
-                }
-                
-                // 使用校验后的真实今日数据渲染动画
-                animateValue("todayActiveCount", 0, realTodayCount, 1500);
+			// 1. 获取今日实时活跃详情
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_today_active_details`, { method: 'POST', headers: headers })
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.message) return;
+                    const total = (data.vip || 0) + (data.non_vip || 0) + (data.unreg || 0);
+                    animateValue("todayActiveCount", 0, total, 1500);
+                    document.getElementById("todayVipActive").innerText = data.vip || 0;
+                    document.getElementById("todayNonVipActive").innerText = data.non_vip || 0;
+                    document.getElementById("todayUnregActive").innerText = data.unreg || 0;
+                    
+                    const rateEl = document.getElementById("onlineRate");
+                    if (rateEl) rateEl.innerText = "-"; // 预留在线率占位
+                })
+                .catch(err => console.error("今日活跃获取失败:", err));
 
-                new Chart(document.getElementById('dauChart').getContext('2d'), {
-                    type: 'line',
-                    data: { labels: labels, datasets: [{ label: '日活跃车机数', data: counts, borderColor: '#0ea5e9', backgroundColor: 'rgba(14, 165, 233, 0.2)', borderWidth: 3, pointBackgroundColor: '#fff', pointRadius: 5, fill: true, tension: 0.3 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94a3b8', stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { display: false }, datalabels: { display: false } } }
-                });
-            });
+            // 2. 获取多维度趋势图 (三条折线)
+			// 2. 获取多维度趋势图 (增加总和计算)
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_multiline_dau_stats`, { method: 'POST', headers: headers })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data || data.message) return;
+                    const labels = data.map(i => i.date.substring(5)); 
+                    const vipData = data.map(i => i.vip_count);
+                    const nonVipData = data.map(i => i.non_vip_count);
+                    const unregData = data.map(i => i.unreg_count);
+                    
+                    // 🌟 新增：计算每天的“活跃总数” = VIP + 非VIP + 未注册
+                    const totalData = vipData.map((val, index) => val + nonVipData[index] + unregData[index]);
+
+                    // 将 totalData 也传给图表渲染函数
+                    renderMultiChart(labels, vipData, nonVipData, unregData, totalData);
+                })
+                .catch(err => console.error("图表趋势获取失败:", err));
 
             fetch(`${SUPABASE_URL}/rest/v1/rpc/get_user_stats`, { method: 'POST', headers: headers }).then(res => res.json()).then(data => {
                 const total = data.total || 0;
@@ -248,10 +301,47 @@
                 });
             });
 
-            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_abandoned_users_count`, { method: 'POST', headers: headers }).then(res => res.json()).then(count => {
-                animateValue("abandonedCount", 0, count || 0, 1500);
-            }).catch(() => { document.getElementById("abandonedCount").innerHTML = "0"; document.getElementById("abandonedCount").classList.remove("loading"); });
-            
+			// 🌟 核心：一次性拉取并分配全景沉睡数据
+            fetch(`${SUPABASE_URL}/rest/v1/rpc/get_sleeping_device_stats`, { method: 'POST', headers: headers })
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.message) {
+                        console.error("🚨 沉睡号 SQL 运行报错:", data.message);
+                        return;
+                    }
+                    
+                    // 1. 计算沉睡总盘子 (不包含被顶替的旧皮)
+                    const totalSleeping = (data.unpaid_registered || 0) + (data.unregistered || 0) + (data.paid_registered || 0);
+                    animateValue("totalSleepingCount", 0, totalSleeping, 1500);
+
+                    // 2. 渲染细分列表
+                    animateValue("abandonedCount", 0, data.unpaid_registered, 1500);
+                    animateValue("unregisteredDeadCount", 0, data.unregistered, 1500);
+                    animateValue("paidDeadCount", 0, data.paid_registered, 1500);
+                })
+                .catch(err => { 
+                    console.error("🚨 沉睡数据请求失败:", err);
+                    ["totalSleepingCount", "abandonedCount", "unregisteredDeadCount", "paidDeadCount"].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) { el.innerHTML = "0"; el.classList.remove("loading"); }
+                    });
+                });
+				
+			fetch(`${SUPABASE_URL}/rest/v1/rpc/get_superseded_count`, { method: 'POST', headers: headers })
+				.then(res => res.json())
+				.then(count => {
+					// 修复渲染逻辑，确保 count 是数字
+					const finalCount = typeof count === 'number' ? count : (count?.count || 0);
+					const el = document.getElementById("supersededCount");
+					if(el) {
+						el.innerHTML = finalCount;
+						el.classList.remove("loading");
+					}
+				})
+				.catch(() => { 
+					document.getElementById("supersededCount").innerHTML = "0"; 
+				});			
+			
             fetch(`${SUPABASE_URL}/rest/v1/rpc/get_unique_device_count`, { method: 'POST', headers: headers })
                 .then(res => res.json())
                 .then(count => {
@@ -288,6 +378,96 @@
                     });
                 });
 				
+        }
+		
+
+		// 🌟 最终版：四线折线图 (总活跃为亮红实线)
+        function renderMultiChart(labels, vip, nonVip, unreg, total) {
+            const ctx = document.getElementById('dauChart').getContext('2d');
+            
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { 
+                            label: '🔥 活跃总数', 
+                            data: total, 
+                            borderColor: '#ff3131', // 亮红色
+                            backgroundColor: 'transparent',
+                            borderWidth: 3, // 稍微加粗一点，更醒目
+                            borderDash: [], // 🌟 变回实线
+                            fill: false, 
+                            tension: 0.4,
+                            order: 1 
+                        },
+                        { 
+                            label: 'VIP 活跃', 
+                            data: vip, 
+                            borderColor: '#a855f7', 
+                            backgroundColor: 'rgba(168, 85, 247, 0.1)', 
+                            borderWidth: 2,
+                            fill: true, 
+                            tension: 0.4,
+                            order: 2
+                        },
+                        { 
+                            label: '非 VIP 活跃', 
+                            data: nonVip, 
+                            borderColor: '#38bdf8', 
+                            backgroundColor: 'rgba(56, 189, 248, 0.1)', 
+                            borderWidth: 2,
+                            fill: true, 
+                            tension: 0.4,
+                            order: 3
+                        },
+                        { 
+                            label: '未注册活跃', 
+                            data: unreg, 
+                            borderColor: '#64748b', 
+                            backgroundColor: 'rgba(100, 116, 139, 0.1)', 
+                            borderWidth: 2,
+                            fill: true, 
+                            tension: 0.4,
+                            order: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: { 
+                        legend: { 
+                            labels: { color: '#94a3b8', font: { family: 'monospace' } } 
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#e2e8f0',
+                            bodyColor: '#cbd5e1',
+                            borderColor: '#334155',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            ticks: { color: '#64748b', precision: 0 }, 
+                            grid: { color: 'rgba(51, 65, 85, 0.5)' } 
+                        },
+                        x: { 
+                            ticks: { color: '#64748b' }, 
+                            grid: { display: false } 
+                        }
+                    }
+                }
+            });
         }
 
         function renderCodeCards(data) {
@@ -338,6 +518,12 @@
         function animateValue(id, start, end, duration) {
             let obj = document.getElementById(id);
             if (!obj) return;
+			
+			// 🌟 防御逻辑：如果 end 不是数字，强行设为 0，防止显示 NaN
+			if (isNaN(end) || end === null || typeof end === 'undefined') {
+				end = 0;
+			}
+			
             obj.classList.remove("loading");
             let startTimestamp = null;
             const step = (timestamp) => {
