@@ -791,6 +791,41 @@
     <div class="content-wrapper">
       <div class="versions-container">
 
+	  	<div class="version-block" data-version="v4.7"> <!-- 1. 更新 data-version 属性 -->
+		  <div class="version-content">
+			<div class="version-info-col">
+			  <div class="version-info">
+				<div>
+				  <span class="info-label">版本号：</span>
+				  <span class="info-value">v4.7</span> <!-- 2. 更新显示版本号 -->
+				</div>
+				<span class="file-size-info">4.08 MB</span> <!-- 3. 请填写实际文件大小，如“4.3 MB” -->
+			  </div>
+			  <div class="version-description">
+				• 修复仪表歌词开关唤醒异常的问题。
+				• 修复中控屏保沉浸式与其他app冲突的问题。
+				• 修改carlife虚拟公屏显示区域，将起始点设置为x=480，y=0，屏幕大小2160*800。
+				• 优化虚拟公屏和飞屏及遮罩互斥与自启逻辑。
+				• 飞屏延时预设起始改为8s，并优化悬浮球关闭飞屏会闪回应用界面。
+				• 优化悬浮球菜单及呼出显示效果，背景改为透明色。
+				• 增加飞屏与悬浮球无障碍校验拦截提醒。
+				• 增加一键重启。
+			  </div>
+			</div>
+			<div class="download-col">
+			  <!-- 5. 更新下载链接的href，指向正确的文件路径 -->
+			  <a href="./release/lrcoverlay-release_v4.7.apk" class="download-btn" data-version="v4.7">
+				<i class="fas fa-download"></i> 立即下载
+			  </a>
+			  <!-- 6. 更新下载计数显示的div的id，与data-version对应 -->
+			  <div class="download-count" id="count-v4.7">
+				<i class="fas fa-users"></i> 加载中...
+			  </div>
+			</div>
+		  </div>
+	  </div>
+
+		  
 	  	<div class="version-block" data-version="v4.6.1"> <!-- 1. 更新 data-version 属性 -->
 		  <div class="version-content">
 			<div class="version-info-col">
@@ -802,15 +837,14 @@
 				<span class="file-size-info">4.06 MB</span> <!-- 3. 请填写实际文件大小，如“4.3 MB” -->
 			  </div>
 			  <div class="version-description">
-                1. 修复中控屏保完全沉浸隐藏状态栏冲突问题。
-				2. 优化carlife虚拟公屏显示区域。
-				3. 中控屏保日期时钟文字支持开关。
-				4. 支持关闭副驾驶屏保歌词。
-				5. 修复主控屏保遮挡360的问题。
-				6. 修复主控屏保重启车机不能自动应用的问题（更新后请清除一次应用数据）。
-				7. 优化副驾驶壁纸开机自动应用等待时间。
-				8. 优化副驾屏保地理位置授权失败的问题。
-				9. 修复主屏开机自动应用动态壁纸模拟点击乱点的问题。
+                • 中控屏保支持完全沉浸隐藏状态栏。
+				• 中控屏保日期时钟文字支持开关。
+				• 支持关闭副驾驶屏保歌词。
+				• 修复主控屏保遮挡360的问题。
+				• 修复主控屏保重启车机不能自动应用的问题（更新后请清除一次应用数据）。
+				• 优化副驾驶壁纸开机自动应用等待时间。
+				• 优化副驾屏保地理位置授权失败的问题。
+				• 修复主屏开机自动应用动态壁纸模拟点击乱点的问题。
 			  </div>
 			</div>
 			<div class="download-col">
@@ -838,12 +872,12 @@
 				<span class="file-size-info">4.04 MB</span> <!-- 3. 请填写实际文件大小，如“4.3 MB” -->
 			  </div>
 			  <div class="version-description">
-                1. 新增中控屏保功能。
-				2. 新增副驾原车桌面壁纸功能。
-                3. 新增支持语音助手不打断音乐。
-				4. 修复v4.4版本应用界面不能即刻跟随系统主题切换深浅色的问题。
-				5. 修复副驾驶悬浮球重复生成的问题。
-				6. 优化悬浮球快捷控制与应用主界面开关状态联动慢的问题。
+                • 新增中控屏保功能。
+				• 新增副驾原车桌面壁纸功能。
+                • 新增支持语音助手不打断音乐。
+				• 修复v4.4版本应用界面不能即刻跟随系统主题切换深浅色的问题。
+				• 修复副驾驶悬浮球重复生成的问题。
+				• 优化悬浮球快捷控制与应用主界面开关状态联动慢的问题。
 			  </div>
 			</div>
 			<div class="download-col">
@@ -918,6 +952,7 @@
       
       // 根据用户要求，只保留 v2.0 和 v1.2.0 版本的下载统计
       versionKeys: {
+		'v4.7': 'downloads_v4_7', // ✅ 加上单引号就完美解决了！  
 		'v4.6.1': 'downloads_v4_6', // ✅ 加上单引号就完美解决了！
 	  	'v4.5': 'downloads_v4_5', // ✅ 加上单引号就完美解决了！
       },
