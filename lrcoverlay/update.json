@@ -1,6 +1,6 @@
 {
-  "versionCode": 21,
-  "versionName": "v4.7",
-  "updateLog": "• 修复仪表歌词开关唤醒异常的问题。\n• 修复中控屏保沉浸式与其他app冲突的问题。\n• 修改carlife虚拟公屏显示区域，将起始点设置为x=480，y=0，屏幕大小2160*800。\n• 优化虚拟公屏和飞屏及遮罩互斥与自启逻辑。\n• 飞屏延时预设起始改为8s，并优化悬浮球关闭飞屏会闪回应用界面的问题。\n• 优化悬浮球菜单及呼出显示效果，背景改为透明色。\n• 增加飞屏与悬浮球无障碍校验拦截提醒。\n• 增加一键重启。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.7.apk"
+  "versionCode": 22,
+  "versionName": "v4.7.1",
+  "updateLog": "n• 新增支持账户改密功能。\n• 更新闲鱼二维码。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.7.1.apk"
 }
