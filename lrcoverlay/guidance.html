@@ -43,8 +43,7 @@
     // 填入你的 Supabase 配置
     const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     // 生成随机设备指纹 (UUID)
     function generateDeviceId() {
         return 'device_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -75,7 +74,7 @@
 
         try {
             // 请求后端验证：带着 token 和 deviceId 一起去
-            const { data, error } = await supabase.rpc('verify_and_fetch_device', { 
+        const { data, error } = await supabaseClient.rpc('verify_and_fetch_device', { 
                 input_token: token, 
                 input_device_id: deviceId 
             });
