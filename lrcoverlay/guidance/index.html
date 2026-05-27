@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.css" rel="stylesheet">
     
     <style>
-        /* 防复制样式 */
+        /* 防复制样式：仅针对正文 */
         body {
             -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
             background-color: #f6f8fa; display: flex; justify-content: center; padding: 20px;
@@ -18,9 +18,29 @@
             max-width: 800px; width: 100%; background: white; padding: 40px; 
             border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 80vh;
         }
+        
+        /* 给超链接开绿灯：允许选中复制，增加点击光标 */
+        .markdown-body a {
+            -webkit-user-select: text !important; -moz-user-select: text !important; 
+            -ms-user-select: text !important; user-select: text !important;
+            color: #0366d6; text-decoration: none; cursor: pointer;
+        }
+        .markdown-body a:hover { text-decoration: underline; }
+
         #loading, #error-msg { text-align: center; font-size: 1.2rem; margin-top: 50px; color: #555; }
         #error-msg { color: #d73a49; font-weight: bold; }
         @media print { body { display: none !important; } }
+
+        /* 点击链接后的弹窗提示样式 */
+        #toast {
+            visibility: hidden; min-width: 200px; background-color: rgba(0,0,0,0.8); 
+            color: #fff; text-align: center; border-radius: 8px; padding: 12px; 
+            position: fixed; z-index: 100; bottom: 30px; left: 50%; 
+            transform: translateX(-50%); font-size: 14px;
+        }
+        #toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
     </style>
 </head>
 <body>
@@ -31,6 +51,8 @@
     <div id="content" class="markdown-body" style="display: none;"></div>
 </div>
 
+<div id="toast">✅ 链接已自动复制</div>
+
 <script>
     // 禁用右键、截取和拖拽
     document.addEventListener('contextmenu', event => event.preventDefault());
@@ -40,11 +62,12 @@
     });
     document.addEventListener('dragstart', event => event.preventDefault());
 
-    // 填入你的 Supabase 配置
+    // Supabase 配置
     const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    // 生成随机设备指纹 (UUID)
+
+    // 生成随机设备指纹
     function generateDeviceId() {
         return 'device_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     }
@@ -63,31 +86,52 @@
             return;
         }
 
-        // 核心逻辑：从 localStorage 获取或创建设备码
         const storageKey = 'my_doc_device_id_' + token;
         let deviceId = localStorage.getItem(storageKey);
-        
-        if (!deviceId) {
-            deviceId = generateDeviceId();
-            // 暂时不存入 localStorage，等后端验证通过后再存，防止伪造垃圾数据
-        }
+        if (!deviceId) deviceId = generateDeviceId();
 
         try {
-            // 请求后端验证：带着 token 和 deviceId 一起去
-        const { data, error } = await supabaseClient.rpc('verify_and_fetch_device', { 
+            const { data, error } = await supabaseClient.rpc('verify_and_fetch_device', { 
                 input_token: token, 
                 input_device_id: deviceId 
             });
 
             if (error) throw error;
 
-            // 验证通过，把设备码死死钉在浏览器的本地存储里
             localStorage.setItem(storageKey, deviceId);
 
-            // 渲染文档
+            // 配置 marked 解析器，强制开启 GFM 以自动识别纯文本超链接
+            marked.setOptions({ gfm: true, breaks: true });
+            
+            // 渲染正文
             loadingEl.style.display = 'none';
             contentEl.style.display = 'block';
             contentEl.innerHTML = marked.parse(data);
+
+            // 【核心修复：对渲染后的链接进行二次加工】
+            const links = contentEl.querySelectorAll('a');
+            links.forEach(link => {
+                // 1. 过滤掉 Markdown 源码中干扰解析的反斜杠
+                let cleanUrl = link.href.replace(/\\/g, '');
+                link.href = cleanUrl;
+                link.innerText = link.innerText.replace(/\\/g, '');
+                
+                // 2. 强制新标签页打开，防止当前页面跳转或被拦截
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+
+                // 3. 点击时不仅跳转，还顺便把链接塞进剪贴板，并弹窗提示
+                link.addEventListener('click', (e) => {
+                    try {
+                        navigator.clipboard.writeText(link.href);
+                        const toast = document.getElementById('toast');
+                        toast.className = 'show';
+                        setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 2800);
+                    } catch(err) {
+                        // 忽略剪贴板报错
+                    }
+                });
+            });
 
         } catch (err) {
             loadingEl.style.display = 'none';
