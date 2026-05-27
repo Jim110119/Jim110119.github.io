@@ -1,1 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>零跑车机安装悬浮歌词教程 - 专属分享</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.css" rel="stylesheet">
+    
+    <style>
+        /* 防复制样式 */
+        body {
+            -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+            background-color: #f6f8fa; display: flex; justify-content: center; padding: 20px;
+        }
+        .container {
+            max-width: 800px; width: 100%; background: white; padding: 40px; 
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-height: 80vh;
+        }
+        #loading, #error-msg { text-align: center; font-size: 1.2rem; margin-top: 50px; color: #555; }
+        #error-msg { color: #d73a49; font-weight: bold; }
+        @media print { body { display: none !important; } }
+    </style>
+</head>
+<body>
 
+<div class="container">
+    <div id="loading">正在验证您的设备授权...</div>
+    <div id="error-msg" style="display: none;"></div>
+    <div id="content" class="markdown-body" style="display: none;"></div>
+</div>
+
+<script>
+    // 禁用右键、截取和拖拽
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && ['c', 's', 'p'].includes(e.key.toLowerCase())) e.preventDefault();
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) e.preventDefault();
+    });
+    document.addEventListener('dragstart', event => event.preventDefault());
+
+    // 填入你的 Supabase 配置
+    const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // 生成随机设备指纹 (UUID)
+    function generateDeviceId() {
+        return 'device_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    }
+
+    async function loadDocument() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error-msg');
+        const contentEl = document.getElementById('content');
+
+        if (!token) {
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'block';
+            errorEl.innerText = '⚠️ 拒绝访问：未提供有效的分享链接。';
+            return;
+        }
+
+        // 核心逻辑：从 localStorage 获取或创建设备码
+        const storageKey = 'my_doc_device_id_' + token;
+        let deviceId = localStorage.getItem(storageKey);
+        
+        if (!deviceId) {
+            deviceId = generateDeviceId();
+            // 暂时不存入 localStorage，等后端验证通过后再存，防止伪造垃圾数据
+        }
+
+        try {
+            // 请求后端验证：带着 token 和 deviceId 一起去
+        const { data, error } = await supabaseClient.rpc('verify_and_fetch_device', { 
+                input_token: token, 
+                input_device_id: deviceId 
+            });
+
+            if (error) throw error;
+
+            // 验证通过，把设备码死死钉在浏览器的本地存储里
+            localStorage.setItem(storageKey, deviceId);
+
+            // 渲染文档
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
+            contentEl.innerHTML = marked.parse(data);
+
+        } catch (err) {
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'block';
+            errorEl.innerText = '⚠️ ' + (err.message || '文档加载失败或设备未授权。');
+        }
+    }
+
+    window.onload = loadDocument;
+</script>
+
+</body>
+</html>
