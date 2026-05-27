@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专属分享文档</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.css" rel="stylesheet">
+    
+    <style>
+        /* 终极防复制 CSS */
+        body {
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE10+/Edge */
+            user-select: none;         /* Standard */
+            background-color: #f6f8fa;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-height: 80vh;
+        }
+
+        #loading, #error-msg {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 50px;
+            color: #555;
+        }
+        
+        #error-msg { color: #d73a49; font-weight: bold; }
+        
+        /* 隐藏打印内容 */
+        @media print {
+            body { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="loading">正在验证专属访问凭证...</div>
+    <div id="error-msg" style="display: none;"></div>
+    <div id="content" class="markdown-body" style="display: none;"></div>
+</div>
+
+<script>
+    // 防注入和防按键截取逻辑
+    document.addEventListener('contextmenu', event => event.preventDefault()); // 禁用右键
+    document.addEventListener('keydown', (e) => {
+        // 禁用 Ctrl+C, Ctrl+S, Ctrl+P, F12, Ctrl+Shift+I
+        if (e.ctrlKey && ['c', 's', 'p'].includes(e.key.toLowerCase())) e.preventDefault();
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) e.preventDefault();
+    });
+    // 禁用拖拽文本
+    document.addEventListener('dragstart', event => event.preventDefault());
+
+    // 填入你的 Supabase 配置
+    const SUPABASE_URL = 'https://clefvejumahurbbzdwbe.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsZWZ2ZWp1bWFodXJiYnpkd2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMzE0MzIsImV4cCI6MjA4ODYwNzQzMn0.KB_WSUNRfmZ7Kvps8Gpvr1EESmX25d3t7TeZrP4kdEo';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function loadDocument() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error-msg');
+        const contentEl = document.getElementById('content');
+
+        if (!token) {
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'block';
+            errorEl.innerText = '⚠️ 拒绝访问：未提供有效的分享链接。';
+            return;
+        }
+
+        try {
+            // 调用后端的 verify_and_fetch 函数
+            const { data, error } = await supabase.rpc('verify_and_fetch', { input_token: token });
+
+            if (error) throw error;
+
+            // 渲染成功
+            loadingEl.style.display = 'none';
+            contentEl.style.display = 'block';
+            contentEl.innerHTML = marked.parse(data);
+
+        } catch (err) {
+            loadingEl.style.display = 'none';
+            errorEl.style.display = 'block';
+            // 抓取后端抛出的自定义错误信息
+            errorEl.innerText = '⚠️ ' + (err.message || '文档加载失败，请联系发布者。');
+        }
+    }
+
+    // 页面加载完成后执行
+    window.onload = loadDocument;
+</script>
+
+</body>
+</html>
