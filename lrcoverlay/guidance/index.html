@@ -140,6 +140,47 @@
         }
     }
 
+    // ==========================================
+    // 🛡️ 终极防御：动态滚动噪点（破坏长图缝合）
+    // ==========================================
+    
+    // 1. 创建一个全屏的噪点覆盖层
+    const noiseOverlay = document.createElement('div');
+    noiseOverlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        pointer-events: none; /* 绝对不能阻挡用户的点击和操作 */
+        z-index: 99999; /* 放在网页的最顶层 */
+        opacity: 0; /* 默认完全透明，不干扰阅读 */
+        /* 用 CSS 渐变画一张细密的网格条纹图 */
+        background-image: repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000), 
+                          repeating-linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
+        background-size: 8px 8px; /* 极其细密的噪点 */
+        transition: opacity 0.1s ease-out; /* 停止滑动时平滑消失 */
+    `;
+    document.body.appendChild(noiseOverlay);
+
+    let scrollTimeout; // 用于记录停止滑动的定时器
+
+    // 2. 监听浏览器的滚动事件
+    window.addEventListener('scroll', () => {
+        // 【干扰开启】正在滑动时，把透明度调到 0.08（肉眼可见一层蒙版，但不影响看清字）
+        noiseOverlay.style.opacity = '0.08';
+        
+        // 【致命一击】在滑动过程中，让噪点背景疯狂随机位移！
+        // 每滚动一下，背景位置都在乱跳，彻底闪瞎长图算法的“眼睛”
+        const randomX = Math.floor(Math.random() * 100);
+        const randomY = Math.floor(Math.random() * 100);
+        noiseOverlay.style.backgroundPosition = `${randomX}px ${randomY}px`;
+
+        // 清除上一次的定时器
+        window.clearTimeout(scrollTimeout);
+
+        // 【干扰关闭】设置定时器：如果 150 毫秒内没有新的滚动触发，判定为“停止滑动”
+        scrollTimeout = setTimeout(() => {
+            noiseOverlay.style.opacity = '0'; // 瞬间恢复透明，不干扰用户正常阅读
+        }, 150);
+    });
+    
     window.onload = loadDocument;
 </script>
 
