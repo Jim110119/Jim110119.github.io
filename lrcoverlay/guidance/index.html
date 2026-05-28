@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>零跑车机安装悬浮歌词教程 - 专属分享</title>
+    <title>零跑车机安装悬浮歌词教程</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.css" rel="stylesheet">
@@ -46,7 +46,7 @@
 <body>
 
 <div class="container">
-    <div id="loading">正在验证您的设备授权...</div>
+    <div id="loading">正在验证...</div>
     <div id="error-msg" style="display: none;"></div>
     <div id="content" class="markdown-body" style="display: none;"></div>
 </div>
@@ -136,7 +136,7 @@
         } catch (err) {
             loadingEl.style.display = 'none';
             errorEl.style.display = 'block';
-            errorEl.innerText = '⚠️ ' + (err.message || '文档加载失败或设备未授权。');
+            errorEl.innerText = '⚠️ ' + (err.message || '文档加载失败或未授权。');
         }
     }
 
