@@ -7,6 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         /* 防复制样式：仅针对正文 */
@@ -41,11 +42,29 @@
         #toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 2.5s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
-    </style>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <meta name="referrer" content="no-referrer">
-    
+        /* 新增：匹配 Markdown 风格的极简统计栏样式 */
+        .visit-stats {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eaecef;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            display: none; /* 初始隐藏，等正文加载完再显示 */
+        }
+        .stats-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f6f8fa;
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .visit-stats i { color: #0366d6; font-size: 13px; }
+        #visitCount { font-weight: bold; color: #0366d6; font-size: 15px; }
+    </style>
 </head>
 <body>
 
@@ -53,6 +72,12 @@
     <div id="loading">正在加载...</div>
     <div id="error-msg" style="display: none;"></div>
     <div id="content" class="markdown-body" style="display: none;"></div>
+
+    <div class="visit-stats" id="visitStatsContainer">
+        <div class="stats-container">
+            <i class="fas fa-eye"></i> 教程总阅读：<span id="visitCount">加载中...</span> 次
+        </div>
+    </div>
 </div>
 
 <div id="toast">✅ 链接已自动复制</div>
@@ -76,12 +101,30 @@
         return 'device_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     }
 
+    // 新增：拉取并更新访问量逻辑
+    async function updateVisitCount() {
+        const visitCountEl = document.getElementById('visitCount');
+        const namespace = 'jim110119_github_io';
+        // 使用 tutorial_page_visits 以便与主页发布页 (page_visits) 的数据区分开
+        const key = 'tutorial_page_visits'; 
+
+        try {
+            const response = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/up`, { cache: 'no-store' });
+            if (!response.ok) throw new Error('API Error');
+            const data = await response.json();
+            visitCountEl.textContent = Number(data.count).toLocaleString();
+        } catch (error) {
+            visitCountEl.textContent = '获取中...';
+        }
+    }
+
     async function loadDocument() {
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
         const loadingEl = document.getElementById('loading');
         const errorEl = document.getElementById('error-msg');
         const contentEl = document.getElementById('content');
+        const statsEl = document.getElementById('visitStatsContainer');
 
         if (!token) {
             loadingEl.style.display = 'none';
@@ -112,7 +155,11 @@
             contentEl.style.display = 'block';
             contentEl.innerHTML = marked.parse(data);
 
-            // 【核心修复：对渲染后的链接进行二次加工】
+            // ★ 核心：文档加载成功且授权通过后，显示底部统计框并请求访问量 +1
+            statsEl.style.display = 'block';
+            updateVisitCount();
+
+            // 对渲染后的链接进行二次加工
             const links = contentEl.querySelectorAll('a');
             links.forEach(link => {
                 // 1. 过滤掉 Markdown 源码中干扰解析的反斜杠
