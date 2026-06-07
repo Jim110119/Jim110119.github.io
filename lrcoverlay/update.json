@@ -1,6 +1,6 @@
 {
-  "versionCode": 22,
-  "versionName": "v4.7.1",
-  "updateLog": "• 新增支持账户改密功能。\n• 更新闲鱼二维码。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.7.1.apk"
+  "versionCode": 24,
+  "versionName": "v4.7.3",
+  "updateLog": "• 增加飞屏遮罩库，覆盖四种主题的日夜间与原车UI/高透模式，支持跟随系统主题自动切换同主题深浅色遮罩。\n• 将仪表歌名图标由🎶改为♫。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.7.3.apk"
 }
