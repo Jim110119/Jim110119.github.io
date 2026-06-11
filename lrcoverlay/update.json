@@ -1,6 +1,6 @@
 {
-  "versionCode": 24,
-  "versionName": "v4.7.3",
-  "updateLog": "• 增加飞屏遮罩库，覆盖四种主题的日夜间与原车UI/高透模式，支持跟随系统主题自动切换同主题深浅色遮罩。\n• 将仪表歌名图标由🎶改为♫。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.7.3.apk"
+  "versionCode": 25,
+  "versionName": "v4.7.4",
+  "updateLog": "• 增加全主题虚拟公屏遮罩库原车UI/高透模式，支持跟随系统主题自动切换同深浅色。\n• 将仪表歌名图标由♫改为🎵。\n• 悬浮球快捷应用抽屉分栏，支持右栏显示应用内快捷菜单并长按排序。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.7.4.apk"
 }
