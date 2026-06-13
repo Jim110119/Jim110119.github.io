@@ -1,6 +1,6 @@
 {
-  "versionCode": 26,
-  "versionName": "v4.8",
-  "updateLog": "• 修复悬浮球应用抽屉快捷菜单排序崩溃的问题。\n• 修复遮罩主题跟随错位的问题（测试中）。\n• 虚拟公屏新增自定义显示区域，可移动视图。\n• 新增飞屏虚拟悬浮窗自定义大小。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.7.4.apk"
+  "versionCode": 27,
+  "versionName": "v4.8.1",
+  "updateLog": "• 修复自定义飞屏仪表的虚拟悬浮窗大小时遮罩不能死锁的问题。\n• 修改高级功能面板分栏排版方式。\n• 支持自定义悬浮球皮肤。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.8.1.apk"
 }
