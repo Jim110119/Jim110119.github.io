@@ -1,6 +1,6 @@
 {
-  "versionCode": 27,
-  "versionName": "v4.8.1",
-  "updateLog": "• 修复自定义飞屏仪表的虚拟悬浮窗大小时遮罩不能死锁的问题。\n• 修改高级功能面板分栏排版方式。\n• 支持自定义悬浮球皮肤。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.8.1.apk"
+  "versionCode": 28,
+  "versionName": "v4.8.2",
+  "updateLog": "n• 虚拟公屏悬浮窗支持自定义大小。\n• 虚拟悬浮窗支持仪表同屏中控。\n• 修复遮罩跟随主题自动切换逻辑（测试中）。\n• 支持中控单独歌名显示。\n• 悬浮球优化。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.8.2.apk"
 }
