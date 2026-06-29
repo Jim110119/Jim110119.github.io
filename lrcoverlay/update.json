@@ -1,6 +1,6 @@
 {
-  "versionCode": 29,
+  "versionCode": 30,
   "versionName": "v4.8.3",
-  "updateLog": "• 仪表歌名支持开启胶囊底纹。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.8.3.apk"
+  "updateLog": "• 支持开机自动关闭行人警示音。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.8.4.apk"
 }
