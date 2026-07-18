@@ -1,6 +1,6 @@
 {
-  "versionCode": 30,
-  "versionName": "v4.8.3",
-  "updateLog": "• 支持开机自动关闭行人警示音。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.8.4.apk"
+  "versionCode": 31,
+  "versionName": "v4.8.5",
+  "updateLog": "• 修复主屏开启仅歌名模式时，副屏歌词不显示的问题。",
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.8.5.apk"
 }
