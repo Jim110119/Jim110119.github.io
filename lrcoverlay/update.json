@@ -2,5 +2,5 @@
   "versionCode": 32,
   "versionName": "v4.8.6",
   "updateLog": "• 优化主屏开启仅歌名模式时，副屏歌词不显示的问题。\n• 优化开机中控自动同屏到仪表的流程，免手动开启。",
-  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.8.5.apk"
+  "downloadUrl": "https://jim110119.github.io/lrcoverlay/release/lrcoverlay-release_v4.8.6.apk"
 }
